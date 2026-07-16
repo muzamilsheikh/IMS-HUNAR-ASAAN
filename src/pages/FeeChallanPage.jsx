@@ -47,9 +47,15 @@ const FeeChallanPage = () => {
                 setLoading(true);
                 setError(null);
 
-                // ── 1. Find the student record matching the logged-in user ──
+                // ── 1. Find the student record matching the logged-in user or requested query ──
+                const queryParams = new URLSearchParams(window.location.search);
+                const urlStudentId = queryParams.get('studentId');
+
                 let student = null;
-                if (user?.role === 'Admin' || user?.role === 'Manager') {
+                if (urlStudentId && (user?.role === 'Admin' || user?.role === 'Manager' || user?.role === 'accounts_manager')) {
+                    const res = await api.getStudentById(urlStudentId);
+                    student = res?.student || res;
+                } else if (user?.role === 'Admin' || user?.role === 'Manager' || user?.role === 'accounts_manager') {
                     student = {
                         id: 'TEMPLATE',
                         name: 'Student Name (Placeholder)',
@@ -67,7 +73,7 @@ const FeeChallanPage = () => {
                 }
 
                 if (!student) {
-                    setError('No student profile found for your account.');
+                    setError('No student profile found.');
                     return;
                 }
 
@@ -123,8 +129,17 @@ const FeeChallanPage = () => {
                     if (discount > 0) {
                         feeHeads.push({ name: 'Scholarship / Discount', amount: -discount });
                     }
-                    if (totalPaid > 0) {
-                        feeHeads.push({ name: 'Amount Already Paid', amount: -totalPaid });
+                    
+                    // List each paid transaction
+                    const paidPayments = payments.filter(p => p.status === 'Paid');
+                    if (paidPayments.length > 0) {
+                        paidPayments.forEach((p, idx) => {
+                            const dateStr = new Date(p.paymentDate).toLocaleDateString('en-PK', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                            feeHeads.push({ 
+                                name: `Paid: Inst ${p.installmentNo || (idx + 1)} (${dateStr})`, 
+                                amount: -Number(p.amountPaid || 0) 
+                            });
+                        });
                     }
                 } else {
                     // Fallback: show a generic fee breakdown
@@ -134,8 +149,17 @@ const FeeChallanPage = () => {
                     if (discount > 0) {
                         feeHeads.push({ name: 'Scholarship / Discount', amount: -discount });
                     }
-                    if (totalPaid > 0) {
-                        feeHeads.push({ name: 'Amount Already Paid', amount: -totalPaid });
+                    
+                    // List each paid transaction
+                    const paidPayments = payments.filter(p => p.status === 'Paid');
+                    if (paidPayments.length > 0) {
+                        paidPayments.forEach((p, idx) => {
+                            const dateStr = new Date(p.paymentDate).toLocaleDateString('en-PK', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                            feeHeads.push({ 
+                                name: `Paid: Inst ${p.installmentNo || (idx + 1)} (${dateStr})`, 
+                                amount: -Number(p.amountPaid || 0) 
+                            });
+                        });
                     }
                 }
 

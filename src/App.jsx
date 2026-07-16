@@ -203,7 +203,7 @@ function AppContent() {
         } />
 
         <Route path="/fee-challan" element={
-          <ProtectedRoute allowedRoles={['Admin', 'Manager', 'Student']}>
+          <ProtectedRoute allowedRoles={['Admin', 'Manager', 'Student', 'accounts_manager']}>
             <FeeChallanPage />
           </ProtectedRoute>
         } />

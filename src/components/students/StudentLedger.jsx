@@ -569,6 +569,13 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                         Reset Password
                     </button>
                     <button 
+                        onClick={() => window.open(`/fee-challan?studentId=${student?.id}`, '_blank')}
+                        className="group bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all border border-emerald-100 shadow-sm active:scale-95"
+                    >
+                        <FileText size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+                        Print Fee Challan
+                    </button>
+                    <button 
                         onClick={() => setShowEnrollModal(true)}
                         className="group bg-slate-800 hover:bg-black text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-4 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-95"
                     >

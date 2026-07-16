@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '../components/layout/Modal';
 
 const Batches = () => {
-    const { batches, courses, students, addBatch, deleteBatch, updateBatch } = useApp();
+    const { batches, courses, students, addBatch, deleteBatch, updateBatch, user } = useApp();
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -106,24 +106,26 @@ const Batches = () => {
                     <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">Batch Management</h2>
                     <p className="text-slate-400 mt-1 font-medium">Coordinate timing groups, schedule classes, and monitor enrollment.</p>
                 </div>
-                <button 
-                    onClick={() => {
-                        setEditingBatch(null);
-                        setNewBatch({
-                            name: '',
-                            time: '',
-                            courseId: '',
-                            startDate: '',
-                            scheduleDays: [],
-                            startTime: '',
-                            endTime: ''
-                        });
-                        setShowModal(true);
-                    }} 
-                    className="btn-secondary flex items-center gap-2"
-                >
-                    <Plus size={20} /> Create New Batch
-                </button>
+                {user?.role !== 'accounts_manager' && (
+                    <button 
+                        onClick={() => {
+                            setEditingBatch(null);
+                            setNewBatch({
+                                name: '',
+                                time: '',
+                                courseId: '',
+                                startDate: '',
+                                scheduleDays: [],
+                                startTime: '',
+                                endTime: ''
+                            });
+                            setShowModal(true);
+                        }} 
+                        className="btn-secondary flex items-center gap-2"
+                    >
+                        <Plus size={20} /> Create New Batch
+                    </button>
+                )}
             </div>
 
             <div className="bg-white p-4 rounded-3xl border border-slate-200 flex flex-col md:flex-row gap-4 items-center">
@@ -156,22 +158,24 @@ const Batches = () => {
                                     <div className="w-14 h-14 bg-secondary/5 text-secondary rounded-2xl flex items-center justify-center border border-secondary/10">
                                         <Layers size={28} />
                                     </div>
-                                    <div className="flex gap-2">
-                                        <button 
-                                            onClick={() => handleEditClick(batch)} 
-                                            className="p-2 text-slate-400 hover:text-secondary hover:bg-slate-100 rounded-lg transition-all"
-                                            title="Edit Batch"
-                                        >
-                                            <Edit3 size={18} />
-                                        </button>
-                                        <button 
-                                            onClick={() => deleteBatch(batch.id || batch._id)} 
-                                            className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                                            title="Delete Batch"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
+                                    {user?.role !== 'accounts_manager' && (
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => handleEditClick(batch)} 
+                                                className="p-2 text-slate-400 hover:text-secondary hover:bg-slate-100 rounded-lg transition-all"
+                                                title="Edit Batch"
+                                            >
+                                                <Edit3 size={18} />
+                                            </button>
+                                            <button 
+                                                onClick={() => deleteBatch(batch.id || batch._id)} 
+                                                className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                                                title="Delete Batch"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="mb-6">

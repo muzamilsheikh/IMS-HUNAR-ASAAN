@@ -35,7 +35,7 @@ const User = sequelize.define('User', {
     name: { type: DataTypes.STRING(255), allowNull: false },
     email: { type: DataTypes.STRING(255), allowNull: false, unique: { name: 'unique_email_constraint' } },
     password: { type: DataTypes.STRING(255), allowNull: false },
-    role: { type: DataTypes.ENUM('Admin', 'Manager', 'Ads Manager', 'Staff', 'Student'), defaultValue: 'Staff' },
+    role: { type: DataTypes.ENUM('Admin', 'Manager', 'Ads Manager', 'Staff', 'Student', 'accounts_manager'), defaultValue: 'Staff' },
     status: {
         type: DataTypes.ENUM('Active', 'Inactive'),
         allowNull: false,

@@ -7,7 +7,7 @@ const {
     updateCourse,
     deleteCourse
 } = require('../controllers/courseController');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, adminOrManagerMiddleware } = require('../middleware/auth');
 
 // Get all courses
 router.get('/', authenticateToken, getAllCourses);
@@ -16,10 +16,10 @@ router.get('/', authenticateToken, getAllCourses);
 router.get('/:id', authenticateToken, getCourseById);
 
 // Create a new course
-router.post('/', authenticateToken, createCourse);
+router.post('/', authenticateToken, adminOrManagerMiddleware, createCourse);
 
 // Update a course
-router.put('/:id', authenticateToken, updateCourse);
+router.put('/:id', authenticateToken, adminOrManagerMiddleware, updateCourse);
 
 // Delete a course
 router.delete('/:id', authenticateToken, deleteCourse);

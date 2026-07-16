@@ -43,4 +43,12 @@ const adminMiddleware = (req, res, next) => {
     }
 };
 
-module.exports = { authenticateToken, adminMiddleware };
+const adminOrManagerMiddleware = (req, res, next) => {
+    if (req.user && (req.user.role === 'Admin' || req.user.role === 'Manager')) {
+        next();
+    } else {
+        return res.status(403).json({ error: 'Access denied: Admin or Manager role required' });
+    }
+};
+
+module.exports = { authenticateToken, adminMiddleware, adminOrManagerMiddleware };

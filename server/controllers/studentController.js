@@ -496,6 +496,10 @@ const updateStudent = async (req, res) => {
 
 // Delete student (with cascading deletion)
 const deleteStudent = async (req, res) => {
+  if (!req.user || req.user.role !== 'Admin') {
+    return res.status(403).json({ error: 'You do not have permission to delete students' });
+  }
+
   const { sequelize } = require('../models');
   const transaction = await sequelize.transaction();
 

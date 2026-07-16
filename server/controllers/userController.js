@@ -71,7 +71,7 @@ const createUser = async (req, res) => {
         }
 
         // Validate role
-        const validRoles = ['Admin', 'Manager', 'Ads Manager', 'Staff', 'Student'];
+        const validRoles = ['Admin', 'Manager', 'Ads Manager', 'Staff', 'Student', 'accounts_manager'];
         if (!validRoles.includes(role)) {
             return res.status(400).json({
                 error: 'Invalid role',

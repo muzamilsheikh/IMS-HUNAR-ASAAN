@@ -26,7 +26,7 @@ import toast from 'react-hot-toast';
 import apiClient from '../utils/api';
 
 const Students = () => {
-    const { students, courses, batches, loading } = useApp();
+    const { students, courses, batches, loading, user } = useApp();
     const location = useLocation();
     const [view, setView] = useState('grid');
     const [showRegForm, setShowRegForm] = useState(false);
@@ -268,15 +268,17 @@ const Students = () => {
                                             <Pencil size={18} />
                                         </button>
                                         {/* ✅ Delete Button */}
-                                        <button
-                                            onClick={(e) => {
-                                               e.stopPropagation();
-                                                setDeleteConfirm(student);
-                                            }}
-                                            className="w-12 h-12 bg-red-50 text-red-500 rounded-[1.2rem] flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm border border-red-100 hover:shadow-md active:scale-95"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
+                                        {user?.role !== 'accounts_manager' && (
+                                            <button
+                                                onClick={(e) => {
+                                                   e.stopPropagation();
+                                                    setDeleteConfirm(student);
+                                                }}
+                                                className="w-12 h-12 bg-red-50 text-red-500 rounded-[1.2rem] flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm border border-red-100 hover:shadow-md active:scale-95"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        )}
                                         {/* View Button */}
                                         <div className="w-14 h-14 bg-slate-50 text-slate-300 rounded-[1.2rem] flex items-center justify-center group-hover:bg-secondary group-hover:text-white transition-all shadow-sm border border-slate-100 group-hover:translate-x-1 group-hover:-translate-y-1">
                                             <Eye size={24} />

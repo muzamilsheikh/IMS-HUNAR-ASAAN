@@ -70,6 +70,16 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
   }
 
+  // Accounts Manager guards: permit entry ONLY to dashboard, calendar, students, batches, courses, reports, expenses, payroll
+  if (role === 'accounts_manager') {
+    const permittedForAccounts = ['/', '/calendar', '/students', '/batches', '/courses', '/reports', '/expenses', '/payroll'];
+    const isPermitted = permittedForAccounts.some(path => currentPath === path || currentPath.startsWith(path + '/'));
+    if (!isPermitted) {
+      toast.error('Access Denied: Accounts Manager account is restricted to financial and reporting modules.');
+      return <Navigate to="/" replace />;
+    }
+  }
+
   // Coarse-grained allowedRoles check for other roles
   if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
     toast.error('Access Denied: Unauthorized role.');
@@ -127,13 +137,13 @@ function AppContent() {
         } />
 
         <Route path="/courses" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
+          <ProtectedRoute allowedRoles={['Admin', 'accounts_manager']}>
             <Courses />
           </ProtectedRoute>
         } />
 
         <Route path="/expenses" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
+          <ProtectedRoute allowedRoles={['Admin', 'accounts_manager']}>
             <Expenses />
           </ProtectedRoute>
         } />
@@ -163,7 +173,7 @@ function AppContent() {
         } />
 
         <Route path="/reports" element={
-          <ProtectedRoute allowedRoles={['Admin', 'Staff']}>
+          <ProtectedRoute allowedRoles={['Admin', 'Staff', 'accounts_manager']}>
             <Reports />
           </ProtectedRoute>
         } />
@@ -181,13 +191,13 @@ function AppContent() {
         } />
 
         <Route path="/calendar" element={
-          <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Student']}>
+          <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Student', 'accounts_manager']}>
             <Calendar />
           </ProtectedRoute>
         } />
 
         <Route path="/payroll" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
+          <ProtectedRoute allowedRoles={['Admin', 'accounts_manager']}>
             <Payroll />
           </ProtectedRoute>
         } />

@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Modal from '../components/layout/Modal';
 
 const Courses = () => {
-    const { courses, addCourse, updateCourse } = useApp();
+    const { courses, addCourse, updateCourse, user } = useApp();
     const [showModal, setShowModal] = useState(false);
     const [editingCourse, setEditingCourse] = useState(null);
     const [formData, setFormData] = useState({ 
@@ -82,9 +82,11 @@ const Courses = () => {
                     <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">Course Catalog</h2>
                     <p className="text-slate-400 mt-1 font-medium">Manage academic offerings and pricing strategies.</p>
                 </div>
-                <button onClick={() => handleOpenModal()} className="btn-secondary flex items-center gap-2">
-                    <Plus size={20} /> Create New Course
-                </button>
+                {user?.role !== 'accounts_manager' && (
+                    <button onClick={() => handleOpenModal()} className="btn-secondary flex items-center gap-2">
+                        <Plus size={20} /> Create New Course
+                    </button>
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -96,9 +98,11 @@ const Courses = () => {
                                     <div className="w-14 h-14 bg-secondary/10 text-secondary rounded-2xl flex items-center justify-center border border-secondary/10">
                                         <BookOpen size={28} />
                                     </div>
-                                    <button onClick={() => handleOpenModal(course)} className="p-2 text-slate-300 hover:text-secondary hover:bg-secondary/5 rounded-lg">
-                                        <Edit3 size={18} />
-                                    </button>
+                                    {user?.role !== 'accounts_manager' && (
+                                        <button onClick={() => handleOpenModal(course)} className="p-2 text-slate-300 hover:text-secondary hover:bg-secondary/5 rounded-lg">
+                                            <Edit3 size={18} />
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="mb-8">

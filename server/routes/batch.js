@@ -8,7 +8,7 @@ const {
     deleteBatch
 } = require('../controllers/batchController');
 const { getAllSchedules } = require('../controllers/scheduleController');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, adminOrManagerMiddleware } = require('../middleware/auth');
 
 // Get schedule grid for batches
 router.get('/schedule', authenticateToken, getAllSchedules);
@@ -20,10 +20,10 @@ router.get('/', authenticateToken, getAllBatches);
 router.get('/:id', authenticateToken, getBatchById);
 
 // Create a new batch
-router.post('/', authenticateToken, createBatch);
+router.post('/', authenticateToken, adminOrManagerMiddleware, createBatch);
 
 // Update a batch
-router.put('/:id', authenticateToken, updateBatch);
+router.put('/:id', authenticateToken, adminOrManagerMiddleware, updateBatch);
 
 // Delete a batch
 router.delete('/:id', authenticateToken, deleteBatch);

@@ -14,15 +14,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         : window.location.origin;
 
     const navLinks = [
-        { name: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['Admin', 'Staff', 'Student'] },
-        { name: 'Calendar', icon: Calendar, path: '/calendar', roles: ['Admin', 'Staff', 'Student'] },
-        { name: 'Students', icon: Users, path: '/students', roles: ['Admin', 'Staff'] },
+        { name: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['Admin', 'Staff', 'Student', 'accounts_manager'] },
+        { name: 'Calendar', icon: Calendar, path: '/calendar', roles: ['Admin', 'Staff', 'Student', 'accounts_manager'] },
+        { name: 'Students', icon: Users, path: '/students', roles: ['Admin', 'Staff', 'accounts_manager'] },
         { name: 'Users', icon: ShieldCheck, path: '/users', roles: ['Admin'] },
-        { name: 'Batches', icon: Layers, path: '/batches', roles: ['Admin', 'Staff'] },
-        { name: 'Courses', icon: GraduationCap, path: '/courses', roles: ['Admin'] },
-        { name: 'Expenses', icon: Wallet, path: '/expenses', roles: ['Admin'] },
-        { name: 'Payroll', icon: Wallet, path: '/payroll', roles: ['Admin'] },
-        { name: 'Reports', icon: FileText, path: '/reports', roles: ['Admin', 'Staff'] },
+        { name: 'Batches', icon: Layers, path: '/batches', roles: ['Admin', 'Staff', 'accounts_manager'] },
+        { name: 'Courses', icon: GraduationCap, path: '/courses', roles: ['Admin', 'accounts_manager'] },
+        { name: 'Expenses', icon: Wallet, path: '/expenses', roles: ['Admin', 'accounts_manager'] },
+        { name: 'Payroll', icon: Wallet, path: '/payroll', roles: ['Admin', 'accounts_manager'] },
+        { name: 'Reports', icon: FileText, path: '/reports', roles: ['Admin', 'Staff', 'accounts_manager'] },
         { name: 'Roles', icon: ShieldCheck, path: '/roles', roles: ['Admin'] },
         { name: 'Live Class', icon: Video, path: '/live-class', roles: ['Admin', 'Staff', 'Student'] },
         { name: 'Chat', icon: MessageCircle, path: '/chat', roles: ['Admin', 'Staff', 'Student'] },

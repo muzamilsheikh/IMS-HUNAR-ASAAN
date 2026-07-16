@@ -436,6 +436,7 @@ const Users = () => {
                                             <option value="Manager">Manager</option>
                                             <option value="Ads Manager">Ads Manager</option>
                                             <option value="Admin">Admin</option>
+                                            <option value="accounts_manager">Accounts Manager</option>
                                         </select>
                                     </div>
                                     <div>

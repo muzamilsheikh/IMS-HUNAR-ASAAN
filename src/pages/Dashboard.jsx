@@ -40,7 +40,7 @@ const StatCard = ({ title, value, icon: Icon, trend, color, subtext }) => (
 );
 
 const Dashboard = () => {
-    const { students, getStats, loading } = useApp();
+    const { students, getStats, loading, user } = useApp();
     const [showRegModal, setShowRegModal] = useState(false);
     const [recoveryAlerts, setRecoveryAlerts] = useState([]);
     const [pendingFeesSummary, setPendingFeesSummary] = useState({});
@@ -407,7 +407,8 @@ const Dashboard = () => {
             </div>
 
             {/* 📅 Live Calendar & Class Matrix */}
-            <div className="space-y-6">
+            {user?.role !== 'accounts_manager' && (
+                <div className="space-y-6">
                 <div className="flex justify-between items-center px-2">
                     <h3 className="text-2xl font-black text-slate-800 tracking-tight italic uppercase font-serif">Academic Schedule Matrix</h3>
                     <div className="flex items-center gap-3 py-2 px-4 bg-white rounded-full shadow-sm border border-slate-100">
@@ -487,6 +488,7 @@ const Dashboard = () => {
                     )}
                 </div>
             </div>
+            )}
 
             {/* 📉 Intelligence Visualizer Section */}
             <div className="space-y-10">

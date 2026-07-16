@@ -4,7 +4,9 @@ import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, SkipBack, SkipForwar
 import DynamicWatermark from './DynamicWatermark';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api/video-vault';
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5001/api/video-vault'
+    : '/api/video-vault';
 
 const CustomVideoPlayer = ({ recording, user, sessionId, sessionToken, onSessionEnd }) => {
     const videoRef = useRef(null);

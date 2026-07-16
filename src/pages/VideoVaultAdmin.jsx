@@ -11,7 +11,9 @@ import { useApp } from '../context/AppContext';
 import io from 'socket.io-client';
 import Modal from '../components/layout/Modal';
 
-const API_URL = 'http://localhost:5001/api/video-vault';
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5001/api/video-vault'
+    : '/api/video-vault';
 
 const VideoVaultAdmin = () => {
     const { token, user } = useApp();
@@ -35,9 +37,11 @@ const VideoVaultAdmin = () => {
         thumbnailUrl: ''
     });
 
-    // Initialize Socket.io for real-time updates
     useEffect(() => {
-        const socketInstance = io('http://localhost:5001');
+        const socketUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:5001'
+            : window.location.origin;
+        const socketInstance = io(socketUrl);
         setSocket(socketInstance);
 
         socketInstance.on('video-access-request', (data) => {

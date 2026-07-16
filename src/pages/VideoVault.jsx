@@ -9,7 +9,9 @@ import { useApp } from '../context/AppContext';
 import CustomVideoPlayer from '../components/videoVault/CustomVideoPlayer';
 import toast from 'react-hot-toast';
 
-const API_URL = 'http://localhost:5001/api/video-vault';
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:5001/api/video-vault'
+    : '/api/video-vault';
 
 const VideoVault = () => {
     const { user, token } = useApp();

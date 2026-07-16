@@ -198,7 +198,10 @@ const getFullLogoUrl = (logoUrl) => {
     }
     // If it's a relative path, construct full URL
     if (logoUrl.startsWith('/')) {
-        return `http://localhost:5001${logoUrl}`;
+        const backendUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5001'
+            : window.location.origin;
+        return `${backendUrl}${logoUrl}`;
     }
     return logoUrl;
 };

@@ -9,6 +9,9 @@ import { cn } from '../../utils/cn';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const { settings, logout, user } = useApp();
+    const backendUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5001'
+        : window.location.origin;
 
     const navLinks = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['Admin', 'Staff', 'Student'] },
@@ -55,7 +58,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         <div className="w-10 h-10 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20">
                             {settings?.logoUrl ? (
                                 <img 
-                                    src={`http://localhost:5001${settings.logoUrl}`} 
+                                    src={`${backendUrl}${settings.logoUrl}`} 
                                     alt="Logo" 
                                     className="w-6 h-6 object-contain"
                                     onError={(e) => {
@@ -84,7 +87,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
                             {settings?.logoUrl ? (
                                 <img 
-                                    src={`http://localhost:5001${settings.logoUrl}`} 
+                                    src={`${backendUrl}${settings.logoUrl}`} 
                                     alt="Logo" 
                                     className="w-10 h-10 object-contain"
                                     onError={(e) => {

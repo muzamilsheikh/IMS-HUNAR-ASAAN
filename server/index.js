@@ -183,27 +183,21 @@ function setupRoutes() {
     app.use('/api/payroll', require('./routes/payroll')); // 🔥 NEW: Payroll API
     app.use('/api/salaries', require('./routes/salaries')); // 🔥 NEW: Salary Disbursement API
 
-    // Root route for status
-    app.get('/', (req, res) => {
-        res.send(`
-            <div style="font-family: sans-serif; text-align: center; padding: 50px;">
-                <h1 style="color: #4f46e5;">🚀 Hunar Asaan CRM Backend is LIVE</h1>
-                <p>API Version: 1.0.0</p>
-                <p>Status: All systems operational ✅</p>
-                <hr style="width: 200px; margin: 20px auto;">
-                <p style="color: #6b7280;">Hunar Asaan — Empowering Education</p>
-            </div>
-        `);
-    });
+    // Serve static files from frontend build
+    const distPath = path.join(__dirname, '../dist');
+    app.use(express.static(distPath));
 
     // Health check
     app.get('/api/health', (req, res) => {
         res.json({ status: 'Server is running ✅', port: PORT, timestamp: new Date() });
     });
 
-    // 404 Handler
-    app.use((req, res) => {
-        res.status(404).json({ error: `Route not found: ${req.method} ${req.originalUrl}` });
+    // Fallback all non-API/non-static requests to React index.html (for client-side routing)
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+            return next();
+        }
+        res.sendFile(path.join(distPath, 'index.html'));
     });
 
     // Global Error Handler

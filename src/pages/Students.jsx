@@ -70,6 +70,16 @@ const Students = () => {
         }
     }, [location.state]);
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                setSelectedStudentId(null);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     const [filters, setFilters] = useState({
         search: '',
         course: '',
@@ -347,9 +357,9 @@ const Students = () => {
                 )}
 
                 {selectedStudentId && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-slate-50/50 backdrop-blur-3xl flex items-center justify-center p-4 overflow-y-auto">
-                        <div className="min-h-[180vh] py-20 w-full flex items-center justify-center">
-                            <motion.div initial={{ scale: 0.95, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 50 }} className="w-full max-w-6xl relative">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-slate-50/80 backdrop-blur-3xl p-4 md:p-12 overflow-y-auto flex justify-center">
+                        <div className="h-fit w-full max-w-6xl relative py-12">
+                            <motion.div initial={{ scale: 0.95, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 50 }} className="w-full relative">
                                 <button onClick={() => setSelectedStudentId(null)} className="absolute -top-16 right-0 text-slate-400 hover:text-rose-500 font-black text-[10px] uppercase tracking-[0.4em] flex items-center gap-4 bg-white px-8 py-4 rounded-full border border-slate-100 hover:border-rose-100 transition-all shadow-2xl">
                                     Exit Scholar Ledger
                                 </button>

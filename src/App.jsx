@@ -70,9 +70,9 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
   }
 
-  // Accounts Manager guards: permit entry ONLY to dashboard, calendar, students, batches, courses, reports, expenses, payroll
+  // Accounts Manager guards: permit entry ONLY to dashboard, calendar, students, batches, courses, reports, expenses, payroll, fee-challan
   if (role === 'accounts_manager') {
-    const permittedForAccounts = ['/', '/calendar', '/students', '/batches', '/courses', '/reports', '/expenses', '/payroll'];
+    const permittedForAccounts = ['/', '/calendar', '/students', '/batches', '/courses', '/reports', '/expenses', '/payroll', '/fee-challan'];
     const isPermitted = permittedForAccounts.some(path => currentPath === path || currentPath.startsWith(path + '/'));
     if (!isPermitted) {
       toast.error('Access Denied: Accounts Manager account is restricted to financial and reporting modules.');

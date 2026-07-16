@@ -63,25 +63,29 @@ async function initializeDatabase() {
 
     while (retries > 0 && !dbReady) {
         try {
-            // First, connect without database to create it if missing
-            const sequelizeAdmin = new Sequelize('mysql', process.env.DB_USER || 'root', process.env.DB_PASSWORD || '', {
-                host: process.env.DB_HOST || '127.0.0.1',
-                dialect: 'mysql',
-                logging: false,
-                dialectOptions: {
-                    connectTimeout: 60000, // 60 seconds
-                    socketPath: process.env.DB_SOCKET || undefined
-                },
-                pool: {
-                    max: 10,
-                    min: 0,
-                    acquire: 30000,
-                    idle: 10000
-                }
-            });
+            // First, connect without database to create it if missing (graceful fail for production/cPanel)
+            try {
+                const sequelizeAdmin = new Sequelize('mysql', process.env.DB_USER || 'root', process.env.DB_PASSWORD || '', {
+                    host: process.env.DB_HOST || '127.0.0.1',
+                    dialect: 'mysql',
+                    logging: false,
+                    dialectOptions: {
+                        connectTimeout: 60000, // 60 seconds
+                        socketPath: process.env.DB_SOCKET || undefined
+                    },
+                    pool: {
+                        max: 10,
+                        min: 0,
+                        acquire: 30000,
+                        idle: 10000
+                    }
+                });
 
-            await sequelizeAdmin.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME || 'hunar_crm_db'}\``);
-            await sequelizeAdmin.close();
+                await sequelizeAdmin.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME || 'hunar_crm_db'}\``);
+                await sequelizeAdmin.close();
+            } catch (adminErr) {
+                console.log('⚠️ Database creation skipped or not permitted (using existing database):', adminErr.message);
+            }
 
             // Import models (connects to the specific database)
             const { sequelize, User, Course, Batch, Student, Expense, Setting, LiveClass, ChatGroup, ChatMessage, Payment, VideoRecording, VideoAccessRequest, VideoViewLog, VideoSession, Enrollment, InstallmentSchedule } = require('./models');

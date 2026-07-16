@@ -424,8 +424,8 @@ async function importData() {
                 batchId: batch.id,
                 totalFee: studentTotalFee,
                 discount: discount,
-                paidAmount: paidAmount,
-                totalPaid: paidAmount,
+                paidAmount: 0,
+                totalPaid: 0,
                 status: 'Active',
                 totalInstallments: totalInstallments,
                 commencementDate: data.date,
@@ -456,9 +456,7 @@ async function importData() {
                     dueDate.setMonth(startDate.getMonth() + i);
                     const dueDateStr = dueDate.toISOString().split('T')[0];
 
-                    const isPaid = (data.feeStatus === 'Full Pay') || 
-                                   (data.feeStatus === 'Installment' && i === 0) || 
-                                   (data.feeStatus === 'Installment' && i === 1 && data.remaining === 0);
+                    const isPaid = false;
 
                     // Create Installment Schedule
                     await InstallmentSchedule.create({

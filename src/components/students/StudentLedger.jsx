@@ -6,7 +6,7 @@ import {
     Calendar as CalendarIcon, User, Layers, Hash, Edit3, Save, X, Trash2,
     Briefcase, ArrowRight, ChevronRight, CreditCard, DollarSign, Printer,
     CopyCheck, TrendingDown, Wallet, Banknote, Tag, Percent, Calculator,
-    Eye, EyeOff
+    Eye, EyeOff, FileText
 } from 'lucide-react';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -251,6 +251,7 @@ const StudentLedger = ({ studentId, onUpdate }) => {
     const [isFullPay, setIsFullPay] = useState(false);
     const [loading, setLoading] = useState(false);
     const [payments, setPayments] = useState([]);
+    const [slipFile, setSlipFile] = useState(null);
     const [balance, setBalance] = useState(0);
     const [totalPaid, setTotalPaid] = useState(0); // ✅ NEW: Track total paid from payments
     const [toastMessage, setToastMessage] = useState(null);
@@ -446,14 +447,22 @@ const StudentLedger = ({ studentId, onUpdate }) => {
 
         setLoading(true);
         try {
-            const response = await apiClient.createPayment({
-                studentId: student?.id,
-                enrollmentId: selectedEnrollmentForPayment?.id || null, // 🔥 Include enrollment ID
-                amountPaid: netPaid,
-                discount: discVal,
-                paymentMethod,
-                transactionId: transactionId || null
-            });
+            const formData = new FormData();
+            formData.append('studentId', student?.id);
+            if (selectedEnrollmentForPayment?.id) {
+                formData.append('enrollmentId', selectedEnrollmentForPayment.id);
+            }
+            formData.append('amountPaid', netPaid);
+            formData.append('discount', discVal);
+            formData.append('paymentMethod', paymentMethod);
+            if (transactionId) {
+                formData.append('transactionId', transactionId);
+            }
+            if (slipFile) {
+                formData.append('slip', slipFile);
+            }
+
+            const response = await apiClient.createPayment(formData);
 
             if (response?.success) {
                 toast.success(`Payment of Rs. ${netPaid.toLocaleString()} received (Discount: Rs. ${discVal.toLocaleString()})! Receipt: ${response?.receiptNo}`);
@@ -462,6 +471,7 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                 setTransactionId('');
                 setPaymentMethod('Cash');
                 setIsFullPay(false);
+                setSlipFile(null);
                 setShowPaymentModal(false);
                 
                 // 🔥 CRITICAL: Refresh ALL data immediately - in this specific order
@@ -1122,6 +1132,7 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                     setTransactionId('');
                     setPaymentMethod('Cash');
                     setSelectedEnrollmentForPayment(null);
+                    setSlipFile(null);
                 }}
                 title="Fee Payment"
                 maxWidth="max-w-lg"
@@ -1345,6 +1356,17 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                             />
                         </motion.div>
                     )}
+
+                    {/* Upload Payment Slip */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block px-1">Upload Payment Slip (Optional)</label>
+                        <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={(e) => setSlipFile(e.target.files[0])}
+                            className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-700 outline-none focus:border-emerald-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-wider file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                        />
+                    </div>
                 </div>
 
                 <div className="flex gap-4 pt-8">
@@ -1453,18 +1475,34 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                                             </span>
                                         </td>
                                         <td className="block sm:table-cell px-4 sm:px-8 md:px-10 py-3 sm:py-6 text-right">
-                                            <button
-                                                type="button"
-                                                onClick={() => handlePrintReceipt(payment)}
-                                                className="group relative p-2 sm:p-3 bg-secondary/10 text-secondary rounded-lg sm:rounded-xl hover:bg-secondary hover:text-white transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center ml-auto"
-                                                title="Print 3-Copy Receipt (A4 Landscape)"
-                                            >
-                                                <Printer size={16} />
+                                            <div className="flex justify-end gap-2">
+                                                {payment?.slipUrl && (
+                                                    <a
+                                                        href={payment.slipUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="group relative p-2 sm:p-3 bg-emerald-50 text-emerald-600 rounded-lg sm:rounded-xl hover:bg-emerald-600 hover:text-white transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center"
+                                                        title="View Slip"
+                                                    >
+                                                        <FileText size={16} />
+                                                        <span className="absolute -top-9 right-0 whitespace-nowrap bg-slate-800 text-white text-[10px] font-semibold px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                                                            View Slip
+                                                        </span>
+                                                    </a>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handlePrintReceipt(payment)}
+                                                    className="group relative p-2 sm:p-3 bg-secondary/10 text-secondary rounded-lg sm:rounded-xl hover:bg-secondary hover:text-white transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center"
+                                                    title="Print 3-Copy Receipt (A4 Landscape)"
+                                                >
+                                                    <Printer size={16} />
                                                 {/* Hover tooltip */}
                                                 <span className="absolute -top-9 right-0 whitespace-nowrap bg-slate-800 text-white text-[10px] font-semibold px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
                                                     Print 3-Copy Receipt (A4 Landscape)
                                                 </span>
                                             </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

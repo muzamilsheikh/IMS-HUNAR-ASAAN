@@ -11,9 +11,29 @@ const {
     getStudentLedger
 } = require('../controllers/paymentController');
 const { authenticateToken } = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const uploadsDir = path.join(__dirname, '../uploads');
+const slipsDir = path.join(uploadsDir, 'slips');
+
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(slipsDir)) fs.mkdirSync(slipsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, slipsDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `slip_${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
+
+const upload = multer({ storage });
 
 // Create a new payment
-router.post('/', authenticateToken, createPayment);
+router.post('/', authenticateToken, upload.single('slip'), createPayment);
 
 // 🔥 Get recovery alerts (students with overdue fees) — must be before /:param routes
 router.get('/alerts/recovery', authenticateToken, getRecoveryAlerts);

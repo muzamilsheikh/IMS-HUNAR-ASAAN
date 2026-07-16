@@ -44,6 +44,9 @@ const createPayment = async (req, res) => {
         } = req.body;
 
         const discountVal = parseFloat(discountInput || 0);
+        amountPaid = parseFloat(amountPaid || 0);
+        if (studentId) studentId = parseInt(studentId, 10);
+        if (enrollmentId) enrollmentId = parseInt(enrollmentId, 10);
 
         // Validate required fields
         if (!studentId || !amountPaid || !paymentMethod) {
@@ -145,6 +148,8 @@ const createPayment = async (req, res) => {
             installmentNo = paymentCount + 1;
         }
 
+        const slipUrl = req.file ? `/uploads/slips/${req.file.filename}` : null;
+
         const payment = await Payment.create({
             studentId,
             enrollmentId: enrollmentId || null,
@@ -156,7 +161,8 @@ const createPayment = async (req, res) => {
             transactionId: transactionId || null,
             receiptNo,
             remainingBalance: newRemainingBalance,
-            status: 'Paid'
+            status: 'Paid',
+            slipUrl
         }, { transaction });
 
         // 🔥 CRITICAL FIX: Recalculate totalPaid from Payment table and update Student record

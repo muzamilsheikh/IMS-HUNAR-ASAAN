@@ -144,7 +144,14 @@ export const apiClient = {
   deleteExpense: (id) => api.delete(`/expenses/${id}`),
 
   // Payment endpoints
-  createPayment: (paymentData) => api.post('/payments', paymentData),
+  createPayment: (paymentData) => {
+    if (paymentData instanceof FormData) {
+      return api.post('/payments', paymentData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    }
+    return api.post('/payments', paymentData);
+  },
   getPaymentsByStudent: (studentId) => api.get(`/payments/student/${studentId}`),
   getAllPayments: () => api.get('/payments'),
   getPaymentByReceipt: (receiptNo) => api.get(`/payments/receipt/${receiptNo}`),

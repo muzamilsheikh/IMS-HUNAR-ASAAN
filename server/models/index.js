@@ -209,7 +209,8 @@ const Payment = sequelize.define('Payment', {
     status: { type: DataTypes.ENUM('Pending', 'Paid'), defaultValue: 'Paid' },
     enrollmentId: { type: DataTypes.INTEGER, allowNull: true },
     installmentNo: { type: DataTypes.INTEGER, allowNull: true },
-    discount: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 }
+    discount: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
+    slipUrl: { type: DataTypes.STRING(255), allowNull: true }
 }, { 
     timestamps: true, 
     tableName: 'Payments',

@@ -188,72 +188,108 @@ const Dashboard = () => {
                 <div className="absolute -right-20 -top-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute -left-20 -bottom-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl" />
                 
-                <div className="relative z-10 flex flex-col lg:flex-row justify-between gap-12">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-3 bg-white/5 rounded-2xl backdrop-blur-xl border border-white/10">
-                                <TrendingUp className="text-secondary" size={32} />
-                            </div>
-                            <div>
-                                <h3 className="text-sm font-black text-indigo-200 uppercase tracking-[0.3em]">Total Portfolio Worth</h3>
-                                <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-0.5">Revenue + Outstanding Assets</p>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-baseline gap-4 mb-8">
-                            <h2 className="text-5xl sm:text-7xl font-black tracking-tighter italic text-white drop-shadow-2xl">
-                                Rs. {grossBusinessValue?.toLocaleString()}
-                            </h2>
-                            <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
-                                Live System Data
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="bg-white/5 p-5 rounded-2xl border border-white/5 backdrop-blur-sm group hover:bg-white/10 transition-all">
-                                <p className="text-[9px] font-black text-indigo-300 uppercase tracking-widest mb-1 opacity-60">Verified Revenue (Collected)</p>
-                                <p className="text-2xl font-black text-emerald-400 tracking-tight">Rs. {financialStats.totalRevenue?.toLocaleString()}</p>
-                            </div>
-                            <div className="bg-white/5 p-5 rounded-2xl border border-white/5 backdrop-blur-sm group hover:bg-white/10 transition-all">
-                                <p className="text-[9px] font-black text-indigo-300 uppercase tracking-widest mb-1 opacity-60">Growth Forecast (Outstanding)</p>
-                                <p className="text-2xl font-black text-amber-400 tracking-tight">Rs. {financialStats.totalPending?.toLocaleString()}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="lg:w-80 flex flex-col justify-center p-8 bg-white/5 rounded-[2.5rem] border border-white/10 backdrop-blur-md">
-                        <div className="text-center mb-6">
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Capital Efficiency Ratio</p>
-                            <div className="relative inline-flex flex-col items-center">
-                                <div className="text-4xl font-black italic text-secondary">
-                                    {financialStats.totalRevenue ? Math.round((financialStats.totalRevenue / (grossBusinessValue || 1)) * 100) : 0}%
+                {user?.role === 'accounts_manager' ? (
+                    <div className="relative z-10 flex flex-col lg:flex-row justify-between gap-12">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-white/5 rounded-2xl backdrop-blur-xl border border-white/10">
+                                    <TrendingUp className="text-secondary" size={32} />
                                 </div>
-                                <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Realization</span>
+                                <div>
+                                    <h3 className="text-sm font-black text-indigo-200 uppercase tracking-[0.3em]">Monthly Revenue</h3>
+                                    <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-0.5">
+                                        Collected Revenue for {financialStats.chartData?.[5]?.month || 'this month'}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-baseline gap-4 mb-8">
+                                <h2 className="text-5xl sm:text-7xl font-black tracking-tighter italic text-white drop-shadow-2xl">
+                                    Rs. {(financialStats.chartData?.[5]?.revenue || 0).toLocaleString()}
+                                </h2>
+                                <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
+                                    Current Month
+                                </span>
                             </div>
                         </div>
-                        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden shadow-inner mb-4">
-                            <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${(financialStats.totalRevenue / (grossBusinessValue || 1)) * 100}%` }}
-                                className="h-full bg-gradient-to-r from-secondary to-amber-500"
-                            />
+                    </div>
+                ) : (
+                    <div className="relative z-10 flex flex-col lg:flex-row justify-between gap-12">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-white/5 rounded-2xl backdrop-blur-xl border border-white/10">
+                                    <TrendingUp className="text-secondary" size={32} />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-black text-indigo-200 uppercase tracking-[0.3em]">Total Portfolio Worth</h3>
+                                    <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-0.5">Revenue + Outstanding Assets</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-baseline gap-4 mb-8">
+                                <h2 className="text-5xl sm:text-7xl font-black tracking-tighter italic text-white drop-shadow-2xl">
+                                    Rs. {grossBusinessValue?.toLocaleString()}
+                                </h2>
+                                <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
+                                    Live System Data
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="bg-white/5 p-5 rounded-2xl border border-white/5 backdrop-blur-sm group hover:bg-white/10 transition-all">
+                                    <p className="text-[9px] font-black text-indigo-300 uppercase tracking-widest mb-1 opacity-60">Verified Revenue (Collected)</p>
+                                    <p className="text-2xl font-black text-emerald-400 tracking-tight">Rs. {financialStats.totalRevenue?.toLocaleString()}</p>
+                                </div>
+                                <div className="bg-white/5 p-5 rounded-2xl border border-white/5 backdrop-blur-sm group hover:bg-white/10 transition-all">
+                                    <p className="text-[9px] font-black text-indigo-300 uppercase tracking-widest mb-1 opacity-60">Growth Forecast (Outstanding)</p>
+                                    <p className="text-2xl font-black text-amber-400 tracking-tight">Rs. {financialStats.totalPending?.toLocaleString()}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex justify-between text-[8px] font-black text-white/40 uppercase tracking-widest">
-                            <span>Collected</span>
-                            <span>Outstanding</span>
+
+                        <div className="lg:w-80 flex flex-col justify-center p-8 bg-white/5 rounded-[2.5rem] border border-white/10 backdrop-blur-md">
+                            <div className="text-center mb-6">
+                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Capital Efficiency Ratio</p>
+                                <div className="relative inline-flex flex-col items-center">
+                                    <div className="text-4xl font-black italic text-secondary">
+                                        {financialStats.totalRevenue ? Math.round((financialStats.totalRevenue / (grossBusinessValue || 1)) * 100) : 0}%
+                                    </div>
+                                    <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Realization</span>
+                                </div>
+                            </div>
+                            <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden shadow-inner mb-4">
+                                <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${(financialStats.totalRevenue / (grossBusinessValue || 1)) * 100}%` }}
+                                    className="h-full bg-gradient-to-r from-secondary to-amber-500"
+                                />
+                            </div>
+                            <div className="flex justify-between text-[8px] font-black text-white/40 uppercase tracking-widest">
+                                <span>Collected</span>
+                                <span>Outstanding</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </motion.div>
 
             {/* 📊 High-Performance Analytics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                <StatCard title="Total Students" value={financialStats.totalStudents || stats.totalStudents} icon={Users} trend={12} color="secondary" subtext="Active Enrollment" />
-                <StatCard title="Financial Assets" value={`Rs. ${financialStats.totalRevenue?.toLocaleString()}`} icon={ArrowUpRight} trend={19} color="secondary" subtext="Realized Revenue" />
-                <StatCard title="Pending Credit" value={`Rs. ${financialStats.totalPending?.toLocaleString()}`} icon={ArrowDownLeft} color="primary" subtext="Recovery Pipeline" />
-                <StatCard title="Operational Burn" value={`Rs. ${financialStats.totalExpenses?.toLocaleString()}`} icon={Wallet} trend={-4} color="primary" subtext="Monthly Costs" />
-                <StatCard title="Net Yield" value={`Rs. ${financialStats.netProfit?.toLocaleString()}`} icon={DollarSign} trend={8} color={financialStats.netProfit >= 0 ? "secondary" : "primary"} subtext="Bottom Line Performance" />
-            </div>
+            {user?.role === 'accounts_manager' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <StatCard title="Total Students" value={financialStats.totalStudents || stats.totalStudents} icon={Users} trend={12} color="secondary" subtext="Active Enrollment" />
+                    <StatCard title="Monthly Revenue" value={`Rs. ${(financialStats.chartData?.[5]?.revenue || 0).toLocaleString()}`} icon={ArrowUpRight} trend={19} color="secondary" subtext="Collected This Month" />
+                    <StatCard title="Operational Burn" value={`Rs. ${financialStats.totalExpenses?.toLocaleString()}`} icon={Wallet} trend={-4} color="primary" subtext="Monthly Costs" />
+                    <StatCard title="Monthly Net Yield" value={`Rs. ${((financialStats.chartData?.[5]?.revenue || 0) - (financialStats.totalExpenses || 0)).toLocaleString()}`} icon={DollarSign} trend={8} color={((financialStats.chartData?.[5]?.revenue || 0) - (financialStats.totalExpenses || 0)) >= 0 ? "secondary" : "primary"} subtext="Monthly Profit Margin" />
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <StatCard title="Total Students" value={financialStats.totalStudents || stats.totalStudents} icon={Users} trend={12} color="secondary" subtext="Active Enrollment" />
+                    <StatCard title="Financial Assets" value={`Rs. ${financialStats.totalRevenue?.toLocaleString()}`} icon={ArrowUpRight} trend={19} color="secondary" subtext="Realized Revenue" />
+                    <StatCard title="Pending Credit" value={`Rs. ${financialStats.totalPending?.toLocaleString()}`} icon={ArrowDownLeft} color="primary" subtext="Recovery Pipeline" />
+                    <StatCard title="Operational Burn" value={`Rs. ${financialStats.totalExpenses?.toLocaleString()}`} icon={Wallet} trend={-4} color="primary" subtext="Monthly Costs" />
+                    <StatCard title="Net Yield" value={`Rs. ${financialStats.netProfit?.toLocaleString()}`} icon={DollarSign} trend={8} color={financialStats.netProfit >= 0 ? "secondary" : "primary"} subtext="Bottom Line Performance" />
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 {/* 🚨 Recovery Scroller Section */}

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const logoPath = '/Users/muzamilirfan/Desktop/Hunar Asaan CRM LOCAL FINAL/HunarAsaanLogo.jpg';
+const logoPath = path.join(__dirname, '../HunarAsaanLogo.jpg');
 const outputPath = path.join(__dirname, '../src/utils/logoBase64.js');
 
 try {

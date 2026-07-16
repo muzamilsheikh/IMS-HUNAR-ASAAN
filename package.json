@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/preload-logo.js && vite --host",
-    "build": "node scripts/preload-logo.js && vite build",
+    "dev": "node scripts/preload-logo.js && npx vite --host",
+    "build": "node scripts/preload-logo.js && npx vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "npx vite preview"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.2",

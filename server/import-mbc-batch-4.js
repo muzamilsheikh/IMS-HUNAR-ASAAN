@@ -332,7 +332,7 @@ async function importData() {
         if (!course) {
             course = await Course.create({
                 name: 'Medical Billing Course',
-                fee: 28000,
+                fee: 30000,
                 duration: '3 Months',
                 code: 'MBC',
                 durationValue: 3,
@@ -382,12 +382,11 @@ async function importData() {
             const cleanAddress = data.address === '-' ? null : data.address;
 
             // Calculations
-            // total fee of the course is standard 28000.
-            // if student has total = 25000, then discount = 3000.
-            // if student is demo, discount = 28000, net payable = 0.
-            // if student has total = 30000, we override standard course fee.
-            const studentTotalFee = data.total > 0 ? data.total : 28000;
-            const discount = data.feeStatus === 'Demo' ? 28000 : (studentTotalFee < 28000 ? (28000 - studentTotalFee) : 0);
+            // Standard Course Fee is 30000.
+            // If student's total is less, the difference is calculated as a discount.
+            // If student is on demo, discount is 30000, net payable is 0.
+            const studentTotalFee = 30000;
+            const discount = data.feeStatus === 'Demo' ? 30000 : (30000 - (data.total || 0));
             const netPayable = studentTotalFee - discount;
 
             // Calculate paid amount

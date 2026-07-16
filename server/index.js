@@ -230,8 +230,12 @@ function startServer() {
         `);
     }
 
-    // Try to listen on the port
-    server.listen(PORT, '0.0.0.0', onListening);
+    // Try to listen on the port (handles Unix socket paths for cPanel Passenger)
+    if (isNaN(PORT)) {
+        server.listen(PORT, onListening);
+    } else {
+        server.listen(PORT, '0.0.0.0', onListening);
+    }
 
     // Handle startup errors (keep port strict: 5001)
     server.on('error', (err) => {

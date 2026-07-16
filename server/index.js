@@ -196,8 +196,8 @@ function setupRoutes() {
         res.json({ status: 'Server is running ✅', port: PORT, timestamp: new Date() });
     });
 
-    // Fallback all non-API/non-static requests to React index.html (for client-side routing)
-    app.get('*', (req, res, next) => {
+    // Fallback all non-API/non-static requests to React index.html (for client-side routing) (Express 5 compatible wildcard)
+    app.get('/*', (req, res, next) => {
         if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
             return next();
         }

@@ -20,17 +20,24 @@ const getSettings = async (req, res) => {
             });
         }
 
+        const isAdmin = req.user && req.user.role && req.user.role.toLowerCase().trim() === 'admin';
+
         // Return in the shape the frontend expects
         res.json({
             instituteName: setting.instituteName,
             contact: setting.contact,
             address: setting.address,
             logoUrl: setting.logoUrl,
-            emailServer: {
+            emailServer: isAdmin ? {
                 host: setting.emailHost || '',
                 port: setting.emailPort || '587',
                 user: setting.emailUser || '',
                 pass: setting.emailPass || ''
+            } : {
+                host: '',
+                port: '587',
+                user: '',
+                pass: ''
             },
             bankName: setting.bankName || '',
             accountTitle: setting.accountTitle || '',

@@ -6,12 +6,12 @@ const {
     markSalaryPaid,
     getSalaryReport
 } = require('../controllers/paymentController');
-const { authenticateToken, adminMiddleware } = require('../middleware/auth');
+const { authenticateToken, adminManagerOrAccountsMiddleware } = require('../middleware/auth');
 
-// GET /api/salaries/report?month=MM-YYYY  — admin only
-router.get('/report', authenticateToken, adminMiddleware, getSalaryReport);
+// GET /api/salaries/report?month=MM-YYYY  — admin, manager, accounts_manager
+router.get('/report', authenticateToken, adminManagerOrAccountsMiddleware, getSalaryReport);
 
 // PATCH /api/salaries/:id/pay  — mark a salary record as disbursed
-router.patch('/:id/pay', authenticateToken, adminMiddleware, markSalaryPaid);
+router.patch('/:id/pay', authenticateToken, adminManagerOrAccountsMiddleware, markSalaryPaid);
 
 module.exports = router;

@@ -5,15 +5,15 @@ const {
     getMyPayroll,
     getStaffPayroll
 } = require('../controllers/payrollController');
-const { authenticateToken, adminMiddleware } = require('../middleware/auth');
+const { authenticateToken, adminManagerOrAccountsMiddleware } = require('../middleware/auth');
 
-// Create or update payroll record (Admin only)
-router.post('/', authenticateToken, adminMiddleware, createOrUpdatePayroll);
+// Create or update payroll record (Admin, Manager, Accounts Manager)
+router.post('/', authenticateToken, adminManagerOrAccountsMiddleware, createOrUpdatePayroll);
 
 // Get logged in user's own payroll history
 router.get('/my', authenticateToken, getMyPayroll);
 
-// Get specific staff user's payroll history (Admin only)
-router.get('/staff/:staffId', authenticateToken, adminMiddleware, getStaffPayroll);
+// Get specific staff user's payroll history (Admin, Manager, Accounts Manager)
+router.get('/staff/:staffId', authenticateToken, adminManagerOrAccountsMiddleware, getStaffPayroll);
 
 module.exports = router;

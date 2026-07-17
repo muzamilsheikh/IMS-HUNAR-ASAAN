@@ -7,12 +7,12 @@ const {
     updateExpense,
     deleteExpense
 } = require('../controllers/expenseController');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, adminManagerOrAccountsMiddleware } = require('../middleware/auth');
 
-router.get('/', authenticateToken, getAllExpenses);
-router.get('/:id', authenticateToken, getExpenseById);
-router.post('/', authenticateToken, createExpense);
-router.put('/:id', authenticateToken, updateExpense);
-router.delete('/:id', authenticateToken, deleteExpense);
+router.get('/', authenticateToken, adminManagerOrAccountsMiddleware, getAllExpenses);
+router.get('/:id', authenticateToken, adminManagerOrAccountsMiddleware, getExpenseById);
+router.post('/', authenticateToken, adminManagerOrAccountsMiddleware, createExpense);
+router.put('/:id', authenticateToken, adminManagerOrAccountsMiddleware, updateExpense);
+router.delete('/:id', authenticateToken, adminManagerOrAccountsMiddleware, deleteExpense);
 
 module.exports = router;

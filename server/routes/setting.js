@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { getSettings, updateSettings } = require('../controllers/settingController');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, adminMiddleware } = require('../middleware/auth');
 
 // 🔥 IMPROVED: Multer config for logo uploads with settings subdirectory
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -42,6 +42,6 @@ const upload = multer({
 });
 
 router.get('/', authenticateToken, getSettings);
-router.put('/', authenticateToken, upload.single('logo'), updateSettings);
+router.put('/', authenticateToken, adminMiddleware, upload.single('logo'), updateSettings);
 
 module.exports = router;

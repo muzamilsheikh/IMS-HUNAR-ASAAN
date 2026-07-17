@@ -26,6 +26,6 @@ router.post('/', authenticateToken, adminOrManagerMiddleware, createBatch);
 router.put('/:id', authenticateToken, adminOrManagerMiddleware, updateBatch);
 
 // Delete a batch
-router.delete('/:id', authenticateToken, deleteBatch);
+router.delete('/:id', authenticateToken, adminOrManagerMiddleware, deleteBatch);
 
 module.exports = router;

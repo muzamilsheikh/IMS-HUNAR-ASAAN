@@ -22,6 +22,6 @@ router.post('/', authenticateToken, adminOrManagerMiddleware, createCourse);
 router.put('/:id', authenticateToken, adminOrManagerMiddleware, updateCourse);
 
 // Delete a course
-router.delete('/:id', authenticateToken, deleteCourse);
+router.delete('/:id', authenticateToken, adminOrManagerMiddleware, deleteCourse);
 
 module.exports = router;

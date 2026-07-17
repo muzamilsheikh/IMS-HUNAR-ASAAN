@@ -34,9 +34,15 @@ const authenticateToken = async (req, res, next) => {
     }
 };
 
+const isRole = (userRole, targetRoles) => {
+    if (!userRole) return false;
+    const normalized = userRole.toLowerCase().trim();
+    return targetRoles.map(r => r.toLowerCase().trim()).includes(normalized);
+};
+
 const adminMiddleware = (req, res, next) => {
     // Requires authenticateToken to be run first so req.user exists
-    if (req.user && req.user.role === 'Admin') {
+    if (req.user && isRole(req.user.role, ['Admin', 'admin'])) {
         next();
     } else {
         return res.status(403).json({ error: 'Access denied: Admin role required' });
@@ -44,11 +50,25 @@ const adminMiddleware = (req, res, next) => {
 };
 
 const adminOrManagerMiddleware = (req, res, next) => {
-    if (req.user && (req.user.role === 'Admin' || req.user.role === 'Manager')) {
+    if (req.user && isRole(req.user.role, ['Admin', 'admin', 'Manager', 'manager'])) {
         next();
     } else {
         return res.status(403).json({ error: 'Access denied: Admin or Manager role required' });
     }
 };
 
-module.exports = { authenticateToken, adminMiddleware, adminOrManagerMiddleware };
+const adminManagerOrAccountsMiddleware = (req, res, next) => {
+    if (req.user && isRole(req.user.role, ['Admin', 'admin', 'Manager', 'manager', 'accounts_manager'])) {
+        next();
+    } else {
+        return res.status(403).json({ error: 'Access denied: Unauthorized access' });
+    }
+};
+
+module.exports = { 
+    authenticateToken, 
+    adminMiddleware, 
+    adminOrManagerMiddleware, 
+    adminManagerOrAccountsMiddleware,
+    isRole 
+};

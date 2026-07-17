@@ -27,8 +27,9 @@ import FeeChallanPage from './pages/FeeChallanPage';
 // Component to decide which dashboard to show based on user role
 const DashboardOrStudent = () => {
   const { user } = useApp();
-  if (user?.role === 'Student') return <StudentDashboard />;
-  if (user?.role === 'Staff') return <StaffDashboard />;
+  const role = user?.role ? user.role.toLowerCase().trim() : '';
+  if (role === 'student') return <StudentDashboard />;
+  if (role === 'staff') return <StaffDashboard />;
   return <Dashboard />;
 };
 
@@ -47,11 +48,11 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   if (!token || !user) return <Navigate to="/login" replace />;
 
-  const role = user?.role;
+  const role = user?.role ? user.role.toLowerCase().trim() : '';
   const currentPath = window.location.pathname;
 
-  // Student guards: block access to /batches, /expenses, /reports, /users, and student management (/students)
-  if (role === 'Student') {
+  // Student guards: block access to administrative features
+  if (role === 'student') {
     const blockedForStudent = ['/batches', '/expenses', '/reports', '/users', '/students', '/courses', '/roles', '/settings', '/payroll', '/video-vault-admin'];
     const isBlocked = blockedForStudent.some(path => currentPath === path || currentPath.startsWith(path + '/'));
     if (isBlocked) {
@@ -60,8 +61,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
   }
 
-  // Staff guards: permit entry ONLY to calendar slots and dashboards
-  if (role === 'Staff') {
+  // Staff guards: permit entry ONLY to calendar slots, live class, chat, video vault, and dashboard
+  if (role === 'staff') {
     const permittedForStaff = ['/', '/calendar', '/live-class', '/chat', '/video-vault'];
     const isPermitted = permittedForStaff.some(path => currentPath === path || currentPath.startsWith(path + '/'));
     if (!isPermitted) {
@@ -70,7 +71,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
   }
 
-  // Accounts Manager guards: permit entry ONLY to dashboard, calendar, students, batches, courses, reports, expenses, payroll, fee-challan
+  // Accounts Manager guards: permit entry ONLY to financial, student view, batches, courses, and reporting
   if (role === 'accounts_manager') {
     const permittedForAccounts = ['/', '/calendar', '/students', '/batches', '/courses', '/reports', '/expenses', '/payroll', '/fee-challan'];
     const isPermitted = permittedForAccounts.some(path => currentPath === path || currentPath.startsWith(path + '/'));
@@ -80,10 +81,23 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
   }
 
-  // Coarse-grained allowedRoles check for other roles
-  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-    toast.error('Access Denied: Unauthorized role.');
-    return <Navigate to="/" replace />;
+  // Manager guards: permit entry to all routes EXCEPT user management, global settings, and roles management
+  if (role === 'manager') {
+    const blockedForManager = ['/users', '/settings', '/roles', '/video-vault-admin'];
+    const isBlocked = blockedForManager.some(path => currentPath === path || currentPath.startsWith(path + '/'));
+    if (isBlocked) {
+      toast.error('Access Denied: Manager account is blocked from global configurations and user management.');
+      return <Navigate to="/" replace />;
+    }
+  }
+
+  // Coarse-grained allowedRoles check
+  if (allowedRoles.length > 0) {
+    const normalizedAllowed = allowedRoles.map(r => r.toLowerCase().trim());
+    if (!normalizedAllowed.includes(role)) {
+      toast.error('Access Denied: Unauthorized role.');
+      return <Navigate to="/" replace />;
+    }
   }
 
   return <Layout>{children}</Layout>;
@@ -119,91 +133,91 @@ function AppContent() {
         } />
 
         <Route path="/students" element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
             <Students />
           </ProtectedRoute>
         } />
 
         <Route path="/users" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin']}>
             <Users />
           </ProtectedRoute>
         } />
 
         <Route path="/batches" element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager', 'Staff', 'staff']}>
             <Batches />
           </ProtectedRoute>
         } />
 
         <Route path="/courses" element={
-          <ProtectedRoute allowedRoles={['Admin', 'accounts_manager']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
             <Courses />
           </ProtectedRoute>
         } />
 
         <Route path="/expenses" element={
-          <ProtectedRoute allowedRoles={['Admin', 'accounts_manager']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
             <Expenses />
           </ProtectedRoute>
         } />
 
         <Route path="/roles" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin']}>
             <Roles />
           </ProtectedRoute>
         } />
 
         <Route path="/settings" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin']}>
             <Settings />
           </ProtectedRoute>
         } />
 
         <Route path="/live-class" element={
-          <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Student']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student']}>
             <LiveClass />
           </ProtectedRoute>
         } />
 
         <Route path="/chat" element={
-          <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Student']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student']}>
             <Chat />
           </ProtectedRoute>
         } />
 
         <Route path="/reports" element={
-          <ProtectedRoute allowedRoles={['Admin', 'Staff', 'accounts_manager']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
             <Reports />
           </ProtectedRoute>
         } />
 
         <Route path="/video-vault" element={
-          <ProtectedRoute allowedRoles={['Student', 'Admin', 'Staff']}>
+          <ProtectedRoute allowedRoles={['Student', 'student', 'Admin', 'admin', 'Staff', 'staff', 'Manager', 'manager']}>
             <VideoVault />
           </ProtectedRoute>
         } />
 
         <Route path="/video-vault-admin" element={
-          <ProtectedRoute allowedRoles={['Admin']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin']}>
             <VideoVaultAdmin />
           </ProtectedRoute>
         } />
 
         <Route path="/calendar" element={
-          <ProtectedRoute allowedRoles={['Admin', 'Staff', 'Student', 'accounts_manager']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student', 'accounts_manager']}>
             <Calendar />
           </ProtectedRoute>
         } />
 
         <Route path="/payroll" element={
-          <ProtectedRoute allowedRoles={['Admin', 'accounts_manager']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
             <Payroll />
           </ProtectedRoute>
         } />
 
         <Route path="/fee-challan" element={
-          <ProtectedRoute allowedRoles={['Admin', 'Manager', 'Student', 'accounts_manager']}>
+          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Student', 'student', 'accounts_manager']}>
             <FeeChallanPage />
           </ProtectedRoute>
         } />

@@ -9,7 +9,7 @@ const {
     deleteStudent,
     checkStudentExists
 } = require('../controllers/studentController');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, adminOrManagerMiddleware } = require('../middleware/auth');
 
 // Multer for handling FormData (file uploads)
 const upload = multer();
@@ -21,6 +21,6 @@ router.get('/', authenticateToken, getAllStudents);
 router.get('/:id', authenticateToken, getStudentById);
 router.post('/', authenticateToken, upload.any(), createStudent); // Handle FormData
 router.put('/:id', authenticateToken, updateStudent);
-router.delete('/:id', authenticateToken, deleteStudent);
+router.delete('/:id', authenticateToken, adminOrManagerMiddleware, deleteStudent);
 
 module.exports = router;

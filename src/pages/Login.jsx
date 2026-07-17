@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { logoBase64 } from '../utils/logoBase64';
 import { LogIn, Mail, Lock, Sparkles, GraduationCap, ShieldCheck, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -52,8 +53,8 @@ const Login = () => {
                 className="w-full max-w-md relative z-10"
             >
                 <div className="glass-card p-12 bg-white flex flex-col items-center">
-                    <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center shadow-2xl mb-8 border border-white/20">
-                        <GraduationCap className="text-secondary" size={40} />
+                    <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-2xl mb-8 border border-slate-100 p-2">
+                        <img src={logoBase64} alt="Logo" className="w-full h-full object-contain" />
                     </div>
 
                     <div className="text-center mb-10">

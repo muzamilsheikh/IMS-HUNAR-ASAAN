@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { cn } from '../../utils/cn';
+import { logoBase64 } from '../../utils/logoBase64';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     const { settings, logout, user } = useApp();
@@ -64,12 +65,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                     alt="Logo" 
                                     className="w-6 h-6 object-contain"
                                     onError={(e) => {
-                                        console.error('Logo failed to load:', e.target.src);
-                                        e.target.style.display = 'none';
+                                        e.target.src = logoBase64;
                                     }}
                                 />
                             ) : (
-                                <GraduationCap className="text-secondary" size={20} />
+                                <img 
+                                    src={logoBase64} 
+                                    alt="Logo" 
+                                    className="w-6 h-6 object-contain" 
+                                />
                             )}
                         </div>
                         <span className="font-black text-sm">MENU</span>
@@ -93,12 +97,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                     alt="Logo" 
                                     className="w-10 h-10 object-contain"
                                     onError={(e) => {
-                                        console.error('Logo failed to load:', e.target.src);
-                                        e.target.style.display = 'none';
+                                        e.target.src = logoBase64;
                                     }}
                                 />
                             ) : (
-                                <GraduationCap className="text-secondary" size={28} />
+                                <img 
+                                    src={logoBase64} 
+                                    alt="Logo" 
+                                    className="w-10 h-10 object-contain" 
+                                />
                             )}
                         </div>
                         <div>

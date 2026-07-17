@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import {
-    Users, Wallet, ArrowUpRight, ArrowDownLeft, AlertCircle, Clock, UserPlus, Receipt, Layers, Sparkles, TrendingUp, MessageCircle, ExternalLink, DollarSign, TrendingDown, Calendar
+    Users, Wallet, ArrowUpRight, ArrowDownLeft, AlertCircle, Clock, UserPlus, Receipt, Layers, Sparkles, TrendingUp, MessageCircle, ExternalLink, DollarSign, TrendingDown, Calendar, Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import RegistrationForm from '../components/students/RegistrationForm';
@@ -40,7 +40,7 @@ const StatCard = ({ title, value, icon: Icon, trend, color, subtext }) => (
 );
 
 const Dashboard = () => {
-    const { students, getStats, loading, user } = useApp();
+    const { students, getStats, loading, user, batches, courses } = useApp();
     const [showRegModal, setShowRegModal] = useState(false);
     const [recoveryAlerts, setRecoveryAlerts] = useState([]);
     const [pendingFeesSummary, setPendingFeesSummary] = useState({});
@@ -55,6 +55,14 @@ const Dashboard = () => {
         chartData: [],
         feeDistribution: { collected: 0, outstanding: 0 }
     });
+    const [filters, setFilters] = useState({
+        courseId: 'all',
+        batchId: 'all',
+        month: 'all',
+        year: 'all'
+    });
+    const [activityLogs, setActivityLogs] = useState([]);
+    const [activityLogsLoading, setActivityLogsLoading] = useState(false);
     const [financialLoading, setFinancialLoading] = useState(false);
     const stats = getStats();
 
@@ -86,17 +94,34 @@ const Dashboard = () => {
     // 🔥 NEW: Calculate Gross Business Value (Combined Portfolio)
     const grossBusinessValue = (financialStats.totalRevenue || 0) + (financialStats.totalPending || 0);
 
+    const fetchActivityLogs = async () => {
+        try {
+            setActivityLogsLoading(true);
+            const response = await apiClient.get('/stats/activity');
+            if (response.success) {
+                setActivityLogs(response.logs || []);
+            }
+        } catch (err) {
+            console.error('Error fetching activity logs:', err);
+        } finally {
+            setActivityLogsLoading(false);
+        }
+    };
+
     // Fetch financial stats on component mount
     useEffect(() => {
         fetchFinancialStats();
         fetchRecoveryAlerts();
         fetchUpcomingSchedules();
+        if (user?.role?.toLowerCase() === 'admin') {
+            fetchActivityLogs();
+        }
 
         const interval = setInterval(() => {
             setCurrentTime(new Date());
         }, 10000);
         return () => clearInterval(interval);
-    }, []);
+    }, [user]);
 
     const fetchUpcomingSchedules = async () => {
         try {
@@ -116,10 +141,17 @@ const Dashboard = () => {
         }
     };
 
-    const fetchFinancialStats = async () => {
+    const fetchFinancialStats = async (currentFilters = filters) => {
         try {
             setFinancialLoading(true);
-            const response = await apiClient.get('/stats/financial-dashboard');
+            const queryParams = new URLSearchParams();
+            if (currentFilters.courseId !== 'all') queryParams.append('courseId', currentFilters.courseId);
+            if (currentFilters.batchId !== 'all') queryParams.append('batchId', currentFilters.batchId);
+            if (currentFilters.month !== 'all') queryParams.append('month', currentFilters.month);
+            if (currentFilters.year !== 'all') queryParams.append('year', currentFilters.year);
+
+            const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+            const response = await apiClient.get(`/stats/financial-dashboard${queryString}`);
             if (response.success) {
                 setFinancialStats(response.data);
             }
@@ -128,6 +160,12 @@ const Dashboard = () => {
         } finally {
             setFinancialLoading(false);
         }
+    };
+
+    const handleFilterChange = (key, value) => {
+        const updated = { ...filters, [key]: value };
+        setFilters(updated);
+        fetchFinancialStats(updated);
     };
 
     const fetchRecoveryAlerts = async () => {
@@ -176,6 +214,60 @@ const Dashboard = () => {
                         <UserPlus size={20} />
                         <span className="font-black tracking-tight">Launch Admission</span>
                     </button>
+                </div>
+            </div>
+
+            {/* 💎 Professional Filter Dashboard Panel */}
+            <div className="glass-card p-6 bg-white border border-slate-100 flex flex-wrap items-center gap-4 shadow-sm mb-6">
+                <div className="flex-1 min-w-[200px]">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Course Filter</label>
+                    <select
+                        className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary font-bold text-slate-700 text-xs"
+                        value={filters.courseId}
+                        onChange={(e) => handleFilterChange('courseId', e.target.value)}
+                    >
+                        <option value="all">All Courses</option>
+                        {courses && courses.map(c => <option key={c.id} value={c.id}>{c.name} ({c.code})</option>)}
+                    </select>
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Batch Filter</label>
+                    <select
+                        className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary font-bold text-slate-700 text-xs"
+                        value={filters.batchId}
+                        onChange={(e) => handleFilterChange('batchId', e.target.value)}
+                    >
+                        <option value="all">All Batches</option>
+                        {batches && batches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                    </select>
+                </div>
+                <div className="w-32 min-w-[120px]">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Month</label>
+                    <select
+                        className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary font-bold text-slate-700 text-xs"
+                        value={filters.month}
+                        onChange={(e) => handleFilterChange('month', e.target.value)}
+                    >
+                        <option value="all">All Months</option>
+                        {Array.from({ length: 12 }, (_, i) => {
+                            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                            return <option key={i + 1} value={String(i + 1).padStart(2, '0')}>{months[i]}</option>;
+                        })}
+                    </select>
+                </div>
+                <div className="w-32 min-w-[120px]">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Year</label>
+                    <select
+                        className="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary font-bold text-slate-700 text-xs"
+                        value={filters.year}
+                        onChange={(e) => handleFilterChange('year', e.target.value)}
+                    >
+                        <option value="all">All Years</option>
+                        {Array.from({ length: 5 }, (_, i) => {
+                            const yearOption = new Date().getFullYear() - 2 + i;
+                            return <option key={yearOption} value={String(yearOption)}>{yearOption}</option>;
+                        })}
+                    </select>
                 </div>
             </div>
 
@@ -629,6 +721,47 @@ const Dashboard = () => {
             >
                 <RegistrationForm onSuccess={() => { setShowRegModal(false); fetchFinancialStats(); fetchRecoveryAlerts(); }} />
             </Modal>
+            {/* 📋 System Activity Log Feed (Admin Only) */}
+            {user?.role?.toLowerCase() === 'admin' && (
+                <div className="space-y-6 pt-10 border-t border-slate-100 mt-10">
+                    <div className="flex justify-between items-center px-2">
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tight italic uppercase font-serif">Audit & Activity Logs</h3>
+                        <div className="flex items-center gap-3 py-2 px-4 bg-white rounded-full shadow-sm border border-slate-100">
+                            <Activity size={14} className="text-secondary animate-pulse" />
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Enterprise Logs</span>
+                        </div>
+                    </div>
+
+                    <div className="glass-card p-10 bg-white border border-slate-100 shadow-2xl">
+                        {activityLogsLoading ? (
+                            <div className="text-center py-10 font-bold text-slate-400">Syncing System Logs...</div>
+                        ) : activityLogs.length > 0 ? (
+                            <div className="divide-y divide-slate-100 max-h-[300px] overflow-y-auto pr-4 scrollbar-thin space-y-3">
+                                {activityLogs.map((log) => (
+                                    <div key={log.id} className="py-3 first:pt-0 last:pb-0 flex items-start gap-4 hover:bg-slate-50/50 transition-colors px-3 rounded-2xl">
+                                        <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary flex-shrink-0 mt-0.5">
+                                            <Activity size={14} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-slate-700 text-sm">{log.details}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[9px] font-black uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded text-slate-500">
+                                                    {log.action}
+                                                </span>
+                                                <span className="text-[9px] text-slate-400 font-bold">
+                                                    {new Date(log.createdAt).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-10 font-bold text-slate-400">No activity logged in this period.</div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

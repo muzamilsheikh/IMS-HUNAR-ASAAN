@@ -1,6 +1,7 @@
 const { Student, User, Course, Batch, ChatGroup, Op, InstallmentSchedule, Payment, Enrollment, Installment } = require('../models');
 const bcrypt = require('bcryptjs');
 const { sendEmail, generateRandomPassword } = require('../utils/email');
+const { logActivity } = require('../utils/activity');
 
 // Live uniqueness check - GET /api/students/check-exists?field=email&value=...
 const checkStudentExists = async (req, res) => {
@@ -105,6 +106,7 @@ const getStudentById = async (req, res) => {
       include: [
         { model: Course, attributes: ['id', 'name', 'fee', 'code', 'duration'] },
         { model: Batch, attributes: ['id', 'name', 'time'] },
+        { model: User, as: 'creator', attributes: ['id', 'name', 'email', 'role'] },
         {
           model: Enrollment,
           as: 'Enrollments',
@@ -378,8 +380,15 @@ const createStudent = async (req, res) => {
         status: 'Active',
         totalInstallments: Number(totalInstallments),
         commencementDate: effectiveCommencementDate,
-        next_due_date: nextDueDate
+        next_due_date: nextDueDate,
+        createdBy: req.user ? req.user.id : null
       });
+
+      await logActivity(
+        req.user ? req.user.id : null,
+        'Student Registration',
+        `Student "${name}" (${student.customId || `ID: ${student.id}`}) was registered by ${req.user ? req.user.name : 'System'}.`
+      );
     }
 
     // Now inject enrollment & installments for the course
@@ -550,6 +559,12 @@ const deleteStudent = async (req, res) => {
 
     // Commit transaction
     await transaction.commit();
+
+    await logActivity(
+      req.user ? req.user.id : null,
+      'Student Deletion',
+      `Student "${studentName}" (Email: ${studentEmail || 'N/A'}) was deleted by ${req.user ? req.user.name : 'System'}.`
+    );
 
     res.json({ 
       success: true,

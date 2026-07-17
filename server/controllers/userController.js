@@ -1,6 +1,7 @@
 const { User, Student, CourseInstructor, Op } = require('../models');
 const bcrypt = require('bcryptjs');
 const { sendEmail, generateRandomPassword } = require('../utils/email');
+const { logActivity } = require('../utils/activity');
 
 // Get all users (both staff and students)
 const getAllUsers = async (req, res) => {
@@ -133,6 +134,12 @@ const createUser = async (req, res) => {
         // Return user without password
         const { password: _, ...userResponse } = newUser.toJSON();
 
+        await logActivity(
+            req.user ? req.user.id : null,
+            'User Authorisation',
+            `Staff member "${name}" was authorized with role "${role}" by ${req.user ? req.user.name : 'System'}.`
+        );
+
         res.status(201).json({
             success: true,
             message: 'User created successfully',
@@ -238,6 +245,12 @@ const resetPassword = async (req, res) => {
 
         await user.update({ password: hashedPassword });
 
+        await logActivity(
+            user.id,
+            'Password Reset',
+            `User "${user.name}" (${user.email}) successfully reset their account password.`
+        );
+
         // Send email with new password (fire and forget)
         sendEmail(
             user.email,
@@ -332,6 +345,12 @@ const resetPasswordAdmin = async (req, res) => {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
         await user.update({ password: hashedPassword });
+
+        await logActivity(
+            req.user ? req.user.id : null,
+            'Password Reset (Admin)',
+            `Password for account "${user.name}" (${user.email}) was reset by Admin ${req.user ? req.user.name : 'System'}.`
+        );
 
         res.json({
             success: true,

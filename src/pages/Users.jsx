@@ -15,7 +15,8 @@ import {
     CheckCircle2,
     XCircle,
     UserPlus,
-    ChevronDown
+    ChevronDown,
+    Wallet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../utils/cn';
@@ -142,7 +143,7 @@ const Users = () => {
         const matchesSearch = user.name.toLowerCase().includes(filters.search.toLowerCase()) ||
             user.email.toLowerCase().includes(filters.search.toLowerCase());
 
-        const matchesRole = filters.role ? user.role === filters.role : true;
+        const matchesRole = filters.role ? user.role?.toLowerCase().trim() === filters.role.toLowerCase().trim() : true;
         const matchesStatus = filters.status ? user.status === filters.status : true;
 
         return matchesSearch && matchesRole && matchesStatus;
@@ -150,16 +151,19 @@ const Users = () => {
 
     // Get role icon
     const getRoleIcon = (role) => {
-        switch (role) {
-            case 'Admin':
+        const normalized = role ? role.toLowerCase().trim() : '';
+        switch (normalized) {
+            case 'admin':
                 return <ShieldCheck size={16} className="text-red-500" />;
-            case 'Manager':
+            case 'manager':
                 return <Shield size={16} className="text-blue-500" />;
-            case 'Ads Manager':
+            case 'accounts_manager':
+                return <Wallet size={16} className="text-indigo-500" />;
+            case 'ads manager':
                 return <ShieldAlert size={16} className="text-orange-500" />;
-            case 'Staff':
+            case 'staff':
                 return <UsersIcon size={16} className="text-green-500" />;
-            case 'Student':
+            case 'student':
                 return <UserPlus size={16} className="text-purple-500" />;
             default:
                 return <UsersIcon size={16} className="text-gray-500" />;
@@ -261,8 +265,9 @@ const Users = () => {
                         onChange={(e) => setFilters(prev => ({ ...prev, role: e.target.value }))}
                     >
                         <option value="">All Roles</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Manager">Manager</option>
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                        <option value="accounts_manager">Accounts Manager</option>
                         <option value="Ads Manager">Ads Manager</option>
                         <option value="Staff">Staff</option>
                         <option value="Student">Student</option>
@@ -304,7 +309,9 @@ const Users = () => {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             {getRoleIcon(user.role)}
-                                            <span className="text-sm font-bold text-slate-600">{user.role}</span>
+                                            <span className="text-sm font-bold text-slate-600">
+                                                {user.role === 'accounts_manager' ? 'Accounts Manager' : user.role}
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

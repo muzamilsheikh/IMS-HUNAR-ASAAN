@@ -1,5 +1,6 @@
 const { Payment, Student, Batch, Course, Enrollment, Installment, SalaryPayment, User } = require('../models');
 const { v4: uuidv4 } = require('uuid');
+const { logActivity } = require('../utils/activity');
 const { sequelize, Op } = require('../models');
 const { Sequelize } = require('sequelize');
 
@@ -209,6 +210,12 @@ const createPayment = async (req, res) => {
 
         // Commit transaction 
         await transaction.commit();
+
+        await logActivity(
+            req.user ? req.user.id : null,
+            'Payment Processing',
+            `Fee payment of Rs. ${parseFloat(amountPaid).toLocaleString()} for student "${student.name}" (Receipt: ${receiptNo}) processed by ${req.user ? req.user.name : 'System'}.`
+        );
 
         // Return payment with UPDATED student info
         const paymentWithStudent = await Payment.findByPk(payment.id, {
@@ -608,6 +615,13 @@ const markSalaryPaid = async (req, res) => {
             status:        'PAID',
             disbursal_date: today
         });
+
+        const staffUser = await User.findByPk(record.staff_id);
+        await logActivity(
+            req.user ? req.user.id : null,
+            'Salary Disbursal',
+            `Salary payment of Rs. ${parseFloat(record.base_pay).toLocaleString()} for "${staffUser ? staffUser.name : `Staff #${record.staff_id}`}" (Month: ${record.month_year}) was disbursed by ${req.user ? req.user.name : 'System'}.`
+        );
 
         return res.json({
             success: true,

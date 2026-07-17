@@ -102,6 +102,7 @@ const Student = sequelize.define('Student', {
     },
     courseId: { type: DataTypes.INTEGER, allowNull: true },
     batchId: { type: DataTypes.INTEGER, allowNull: true },
+    createdBy: { type: DataTypes.INTEGER, allowNull: true },
     // Monthly billing fields
     commencementDate: { type: DataTypes.DATEONLY, allowNull: true },
     next_due_date: { type: DataTypes.DATEONLY, allowNull: true }
@@ -447,6 +448,14 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
     ]
 });
 
+// ============ ACTIVITY LOG MODEL ============
+const ActivityLog = sequelize.define('ActivityLog', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    userId: { type: DataTypes.INTEGER, allowNull: true },
+    action: { type: DataTypes.STRING(255), allowNull: false },
+    details: { type: DataTypes.TEXT, allowNull: true }
+}, { timestamps: true, tableName: 'ActivityLogs' });
+
 // ============ ASSOCIATIONS ============
 // Keep only essential associations to avoid MySQL key limit
 Course.hasMany(Batch, { foreignKey: 'courseId', onDelete: 'SET NULL' });
@@ -543,6 +552,14 @@ EnrollmentRequest.belongsTo(Student, { foreignKey: 'studentId' });
 Course.hasMany(EnrollmentRequest, { foreignKey: 'courseId', onDelete: 'CASCADE' });
 EnrollmentRequest.belongsTo(Course, { foreignKey: 'courseId' });
 
+// Student creator association
+Student.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+User.hasMany(Student, { foreignKey: 'createdBy', as: 'CreatedStudents' });
+
+// Activity log association
+User.hasMany(ActivityLog, { foreignKey: 'userId', onDelete: 'SET NULL' });
+ActivityLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 // ============ EXPORTS ============
 module.exports = {
     sequelize,
@@ -567,6 +584,7 @@ module.exports = {
     EnrollmentRequest,
     CourseInstructor,
     SalaryPayment,
+    ActivityLog,
     Op
 };
 

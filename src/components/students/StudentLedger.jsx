@@ -557,6 +557,17 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                             <div className="flex items-center gap-2"><Hash size={14} className="text-secondary flex-shrink-0" /><span className="font-bold uppercase tracking-widest">{student?.id || 'N/A'}</span></div>
                             <div className="w-1.5 h-1.5 rounded-full bg-slate-200 hidden sm:block" />
                             <div className="flex items-center gap-2"><Phone size={14} className="text-secondary flex-shrink-0" /><span className="font-bold uppercase tracking-widest">{student?.phone || 'NO CONTACT'}</span></div>
+                            {student?.creator && (
+                                <>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-200 hidden sm:block" />
+                                    <div className="flex items-center gap-2">
+                                        <User size={14} className="text-secondary flex-shrink-0" />
+                                        <span className="font-bold uppercase tracking-widest text-slate-500">
+                                            Created by {student.creator.name} ({student.creator.role === 'accounts_manager' ? 'Accounts Manager' : student.creator.role})
+                                        </span>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

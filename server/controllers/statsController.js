@@ -1,4 +1,4 @@
-const { Student, Payment, Expense } = require('../models');
+const { Student, Payment, Expense, ActivityLog, User } = require('../models');
 const { sequelize } = require('../models');
 const { Sequelize } = require('sequelize');
 
@@ -19,11 +19,46 @@ const calculateCumulativeTotalPaid = async (studentId) => {
     }
 };
 
-// GET /api/stats/financial-dashboard - Main financial dashboard endpoint
+// GET /api/stats/financial-dashboard - Main financial dashboard endpoint with filters
 const getFinancialDashboardStats = async (req, res) => {
     try {
-        // ── 1. Pending fees: single JOIN query (no correlated subquery per student) ──
-        const pendingResult = await sequelize.query(`
+        const { batchId, courseId, month, year } = req.query;
+
+        // Build where conditions for Student filtering
+        const studentWhere = {};
+        if (batchId && batchId !== 'all') studentWhere.batchId = parseInt(batchId);
+        if (courseId && courseId !== 'all') studentWhere.courseId = parseInt(courseId);
+
+        // Build where conditions for Payment filtering
+        const paymentWhere = { status: 'Paid' };
+        if (batchId && batchId !== 'all') paymentWhere['$Student.batchId$'] = parseInt(batchId);
+        if (courseId && courseId !== 'all') paymentWhere['$Student.courseId$'] = parseInt(courseId);
+
+        // Date calculations for monthly/yearly filters
+        let startDate, endDate;
+        if (year && year !== 'all') {
+            const y = parseInt(year);
+            if (month && month !== 'all') {
+                const m = parseInt(month) - 1; // 0-indexed
+                startDate = new Date(y, m, 1);
+                endDate = new Date(y, m + 1, 0, 23, 59, 59, 999);
+            } else {
+                startDate = new Date(y, 0, 1);
+                endDate = new Date(y, 11, 31, 23, 59, 59, 999);
+            }
+        } else if (month && month !== 'all') {
+            const currentYear = new Date().getFullYear();
+            const m = parseInt(month) - 1;
+            startDate = new Date(currentYear, m, 1);
+            endDate = new Date(currentYear, m + 1, 0, 23, 59, 59, 999);
+        }
+
+        if (startDate && endDate) {
+            paymentWhere.paymentDate = { [Sequelize.Op.between]: [startDate, endDate] };
+        }
+
+        // 1. Pending fees SQL query with optional batch/course parameters
+        let pendingSql = `
             SELECT
                 COALESCE(SUM(
                     GREATEST(0,
@@ -38,24 +73,45 @@ const getFinancialDashboardStats = async (req, res) => {
                 WHERE status = 'Paid'
                 GROUP BY studentId
             ) p ON p.studentId = s.id
-        `, { type: sequelize.QueryTypes.SELECT });
+            WHERE 1=1
+        `;
+        const replacements = {};
+        if (batchId && batchId !== 'all') {
+            pendingSql += ` AND s.batchId = :batchId`;
+            replacements.batchId = parseInt(batchId);
+        }
+        if (courseId && courseId !== 'all') {
+            pendingSql += ` AND s.courseId = :courseId`;
+            replacements.courseId = parseInt(courseId);
+        }
+        
+        const pendingResult = await sequelize.query(pendingSql, {
+            replacements,
+            type: sequelize.QueryTypes.SELECT
+        });
         const totalPending = parseFloat(pendingResult[0]?.totalPending || 0);
 
-        // ── 2. Total revenue (single aggregate query) ──
+        // 2. Total revenue (Join with Student model to filter by batch/course)
         const totalRevenueResult = await Payment.findOne({
             attributes: [
                 [Sequelize.fn('COALESCE', Sequelize.fn('SUM', Sequelize.col('amountPaid')), 0), 'totalRevenue']
             ],
-            where: { status: 'Paid' },
+            where: paymentWhere,
+            include: [{ model: Student, attributes: [] }],
             raw: true
         });
         const totalRevenue = parseFloat(totalRevenueResult?.totalRevenue || 0);
 
-        // ── 3. Total expenses (single aggregate query) ──
+        // 3. Total expenses (institute-wide, filter only by date)
+        const expenseWhere = {};
+        if (startDate && endDate) {
+            expenseWhere.date = { [Sequelize.Op.between]: [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]] };
+        }
         const totalExpensesResult = await Expense.findOne({
             attributes: [
                 [Sequelize.fn('COALESCE', Sequelize.fn('SUM', Sequelize.col('amount')), 0), 'totalExpenses']
             ],
+            where: expenseWhere,
             raw: true
         });
         const totalExpenses = parseFloat(totalExpensesResult?.totalExpenses || 0);
@@ -63,29 +119,34 @@ const getFinancialDashboardStats = async (req, res) => {
         const netProfit = totalRevenue - totalExpenses;
         const grossPortfolioValue = totalRevenue + totalPending;
 
-        // ── 4. Total students (single count query) ──
-        const totalStudents = await Student.count();
+        // 4. Total students
+        const totalStudents = await Student.count({ where: studentWhere });
 
-        // ── 5. Chart data: 2 GROUP BY queries instead of 12 individual queries ──
+        // 5. Chart data (Historical monthly metrics)
         const now = new Date();
         const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
-        // Revenue per month — single GROUP BY
         const revenueByMonth = await sequelize.query(`
             SELECT
-                DATE_FORMAT(paymentDate, '%b %Y') AS month,
-                DATE_FORMAT(paymentDate, '%Y-%m') AS sort_key,
-                COALESCE(SUM(amountPaid), 0) AS revenue
-            FROM Payments
-            WHERE status = 'Paid'
-              AND paymentDate >= :sixMonthsAgo
-            GROUP BY DATE_FORMAT(paymentDate, '%b %Y'), DATE_FORMAT(paymentDate, '%Y-%m')
+                DATE_FORMAT(py.paymentDate, '%b %Y') AS month,
+                DATE_FORMAT(py.paymentDate, '%Y-%m') AS sort_key,
+                COALESCE(SUM(py.amountPaid), 0) AS revenue
+            FROM Payments py
+            JOIN Students st ON py.studentId = st.id
+            WHERE py.status = 'Paid'
+              AND py.paymentDate >= :sixMonthsAgo
+              ${batchId && batchId !== 'all' ? 'AND st.batchId = :batchId' : ''}
+              ${courseId && courseId !== 'all' ? 'AND st.courseId = :courseId' : ''}
+            GROUP BY DATE_FORMAT(py.paymentDate, '%b %Y'), DATE_FORMAT(py.paymentDate, '%Y-%m')
         `, {
-            replacements: { sixMonthsAgo: sixMonthsAgo.toISOString().slice(0, 10) },
+            replacements: { 
+                sixMonthsAgo: sixMonthsAgo.toISOString().slice(0, 10),
+                batchId: batchId ? parseInt(batchId) : null,
+                courseId: courseId ? parseInt(courseId) : null
+            },
             type: sequelize.QueryTypes.SELECT
         });
 
-        // Expenses per month — single GROUP BY
         const expensesByMonth = await sequelize.query(`
             SELECT
                 DATE_FORMAT(date, '%b %Y') AS month,
@@ -99,7 +160,6 @@ const getFinancialDashboardStats = async (req, res) => {
             type: sequelize.QueryTypes.SELECT
         });
 
-        // Build a complete 6-month array, filling months with no data as 0
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const chartData = [];
         for (let i = 5; i >= 0; i--) {
@@ -140,6 +200,22 @@ const getFinancialDashboardStats = async (req, res) => {
     }
 };
 
+// GET /api/stats/activity - Fetch recent system activity logs
+const getActivityLogs = async (req, res) => {
+    try {
+        const logs = await ActivityLog.findAll({
+            include: [{ model: User, as: 'user', attributes: ['id', 'name', 'role'] }],
+            order: [['createdAt', 'DESC']],
+            limit: 50
+        });
+        res.json({ success: true, logs });
+    } catch (error) {
+        console.error('Get activity logs error:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+};
+
 module.exports = {
-    getFinancialDashboardStats
+    getFinancialDashboardStats,
+    getActivityLogs
 };

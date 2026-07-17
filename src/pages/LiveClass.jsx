@@ -17,7 +17,7 @@ const LiveClass = () => {
     const [socketConnected, setSocketConnected] = useState(false);
     const messagesEndRef = useRef(null);
 
-    const isAdmin = user?.role === 'Admin' || user?.role === 'Staff';
+    const isAdmin = user?.role && ['admin', 'manager', 'staff'].includes(user.role.toLowerCase().trim());
 
     // Fetch live classes for all batches (admin) or current user's batch (student)
     useEffect(() => {

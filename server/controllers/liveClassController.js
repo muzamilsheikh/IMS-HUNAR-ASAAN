@@ -241,7 +241,7 @@ const getLiveSessionForStudent = async (req, res) => {
     const user = req.user;
     
     // Check if the user is a student by checking their role
-    if (user.role !== 'Student') {
+    if (user.role.toLowerCase().trim() !== 'student') {
       return res.status(403).json({ 
         error: 'Access denied. Only students can access this endpoint.' 
       });

@@ -11,7 +11,7 @@ const {
 const { authenticateToken, adminMiddleware } = require('../middleware/auth');
 
 // Get all users (staff + students)
-router.get('/', authenticateToken, adminMiddleware, getAllUsers);
+router.get('/', authenticateToken, getAllUsers);
 
 // Search active students by Name, Email, or Phone
 router.get('/search', authenticateToken, searchStudents);

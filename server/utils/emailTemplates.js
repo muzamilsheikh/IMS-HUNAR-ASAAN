@@ -155,9 +155,44 @@ const getInstallmentDueTemplate = (name, courseName, batchName, amountDue, dueDa
 </div>
 `;
 
+const getStaffWelcomeTemplate = (name, email, password, role) => `
+<div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; padding: 45px 20px; text-align: center; color: #1e293b;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 45px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #0ea5e9;">
+            <h1 style="margin: 0; font-size: 32px; font-weight: 900; tracking: -0.05em; font-style: italic;">HUNAR ASAAN</h1>
+            <p style="margin: 5px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #38bdf8; font-weight: 700;">Staff Access Provisioned</p>
+        </div>
+        <div style="padding: 45px; text-align: left;">
+            <h2 style="font-size: 22px; font-weight: 900; color: #0f172a; margin-top: 0; text-transform: uppercase; tracking: -0.03em;">Welcome to the Team!</h2>
+            <p style="font-size: 14px; line-height: 1.6; color: #475569;">Hello <strong>${name}</strong>,</p>
+            <p style="font-size: 14px; line-height: 1.6; color: #475569;">Your staff account has been successfully created and provisioned on the Hunar Asaan CRM Management Portal. Below are your credentials to establish access:</p>
+            
+            <div style="background: #f1f5f9; padding: 25px; border-radius: 16px; margin: 25px 0; border-left: 5px solid #0ea5e9;">
+                <h3 style="margin-top: 0; color: #0f172a; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 900;">Portal Settings</h3>
+                <p style="margin: 8px 0; font-size: 13px; color: #334155;"><strong>Authorized Role:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #0ea5e9;">${role === 'accounts_manager' ? 'Accounts Manager' : role}</span></p>
+                <p style="margin: 8px 0; font-size: 13px; color: #334155;"><strong>Login URL:</strong> <a href="https://ims.hunarasaan.com" style="color: #0ea5e9; font-weight: bold; text-decoration: none;">ims.hunarasaan.com</a></p>
+                <p style="margin: 8px 0; font-size: 13px; color: #334155;"><strong>Email/Username:</strong> ${email}</p>
+                <p style="margin: 8px 0; font-size: 13px; color: #334155;"><strong>Temporary Password:</strong> <code style="background: #e2e8f0; padding: 3px 6px; border-radius: 4px; font-weight: bold; color: #0f172a; font-size: 12px;">${password}</code></p>
+            </div>
+            
+            <div style="text-align: center; margin: 35px 0 20px 0;">
+                <a href="https://ims.hunarasaan.com" style="background: #0f172a; color: #ffffff; padding: 16px 32px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; text-decoration: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,0.2); display: inline-block;">Login to Portal</a>
+            </div>
+            
+            <p style="font-size: 11px; line-height: 1.5; color: #94a3b8; margin-top: 30px; text-align: center;">Please reset your password immediately upon establishing your first session to ensure secure credential storage.</p>
+        </div>
+        <div style="background: #0f172a; color: #64748b; padding: 25px; text-align: center; font-size: 11px; border-top: 1px solid #1e293b;">
+            <p style="margin: 0; font-weight: bold; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em;">Hunar Asaan Operations Registry</p>
+            <p style="margin: 5px 0 0 0;">This email is auto-dispatched to provision secure terminal access. If you are not the intended recipient, notify support@hunarasaan.com.</p>
+        </div>
+    </div>
+</div>
+`;
+
 module.exports = {
     getWelcomeTemplate,
     getStaffLoginAlertTemplate,
     getFeePaidTemplate,
-    getInstallmentDueTemplate
+    getInstallmentDueTemplate,
+    getStaffWelcomeTemplate
 };

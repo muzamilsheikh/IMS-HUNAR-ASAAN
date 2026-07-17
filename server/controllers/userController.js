@@ -2,6 +2,7 @@ const { User, Student, CourseInstructor, Op } = require('../models');
 const bcrypt = require('bcryptjs');
 const { sendEmail, generateRandomPassword } = require('../utils/email');
 const { logActivity } = require('../utils/activity');
+const { getStaffWelcomeTemplate } = require('../utils/emailTemplates');
 
 // Get all users (both staff and students)
 const getAllUsers = async (req, res) => {
@@ -122,11 +123,12 @@ const createUser = async (req, res) => {
             await CourseInstructor.bulkCreate(mappings);
         }
 
-        // Send welcome email with credentials (fire and forget)
+        // Send welcome email with credentials using HTML template (fire and forget)
+        const welcomeHtml = getStaffWelcomeTemplate(name, email, userPassword, role);
         sendEmail(
             email,
-            'Welcome to Hunar Asaan CRM',
-            `Welcome ${name}!\n\nYour account has been created successfully.\n\nEmail: ${email}\nPassword: ${userPassword}\n\nPlease change your password after first login.\n\nBest regards,\nHunar Asaan Team`
+            'Authorized Staff Credentials - Hunar Asaan CRM',
+            welcomeHtml
         ).catch(emailError => {
             console.warn('Failed to send welcome email:', emailError.message);
         });

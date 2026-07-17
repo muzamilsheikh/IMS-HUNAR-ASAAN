@@ -2,8 +2,10 @@ require('dotenv').config({ path: __dirname + '/../.env' });
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { User } = require('../models');
+const { sendAdminManagerNotification } = require('../utils/email');
+const { getStaffLoginAlertTemplate } = require('../utils/emailTemplates');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'hunar_secret_2025';
+JWT_SECRET = process.env.JWT_SECRET || 'hunar_secret_2025';
 
 // ============ LOGIN ============
 const login = async (req, res) => {
@@ -30,6 +32,14 @@ const login = async (req, res) => {
             JWT_SECRET,
             { expiresIn: '7d' }
         );
+
+        // Security Alert: Email notifications for staff logins (Non-students)
+        if (user.role && user.role.toLowerCase() !== 'student') {
+            const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            const alertSubject = `Security Alert: Staff Session Established (${user.name})`;
+            const alertHtml = getStaffLoginAlertTemplate(user.name, user.email, user.role, new Date(), ip);
+            sendAdminManagerNotification(alertSubject, alertHtml);
+        }
 
         res.json({
             message: 'Login successful',

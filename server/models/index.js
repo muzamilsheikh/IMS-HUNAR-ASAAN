@@ -142,7 +142,8 @@ const Setting = sequelize.define('Setting', {
     accountTitle: { type: DataTypes.STRING(255), allowNull: true },
     accountNo: { type: DataTypes.STRING(100), allowNull: true },
     ibanCode: { type: DataTypes.STRING(100), allowNull: true },
-    paymentInstructions: { type: DataTypes.TEXT, allowNull: true }
+    paymentInstructions: { type: DataTypes.TEXT, allowNull: true },
+    emailNotificationsEnabled: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: true }
 }, { timestamps: true, tableName: 'Settings' });
 
 // ============ LIVE CLASSES MODEL ============

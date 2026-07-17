@@ -8,7 +8,8 @@ const {
     getRemainingBalance,
     getRecoveryAlerts,
     getPendingFeesSummary,
-    getStudentLedger
+    getStudentLedger,
+    sendDueReminder
 } = require('../controllers/paymentController');
 const { authenticateToken } = require('../middleware/auth');
 const multer = require('multer');
@@ -34,6 +35,9 @@ const upload = multer({ storage });
 
 // Create a new payment
 router.post('/', authenticateToken, upload.single('slip'), createPayment);
+
+// Send due reminder email
+router.post('/due-reminder/:studentId', authenticateToken, sendDueReminder);
 
 // 🔥 Get recovery alerts (students with overdue fees) — must be before /:param routes
 router.get('/alerts/recovery', authenticateToken, getRecoveryAlerts);

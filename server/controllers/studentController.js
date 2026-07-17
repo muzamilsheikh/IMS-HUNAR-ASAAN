@@ -1,7 +1,8 @@
 const { Student, User, Course, Batch, ChatGroup, Op, InstallmentSchedule, Payment, Enrollment, Installment } = require('../models');
 const bcrypt = require('bcryptjs');
-const { sendEmail, generateRandomPassword } = require('../utils/email');
+const { sendEmail, sendAdminManagerNotification, generateRandomPassword } = require('../utils/email');
 const { logActivity } = require('../utils/activity');
+const { getWelcomeTemplate } = require('../utils/emailTemplates');
 
 // Live uniqueness check - GET /api/students/check-exists?field=email&value=...
 const checkStudentExists = async (req, res) => {
@@ -356,13 +357,48 @@ const createStudent = async (req, res) => {
       });
 
       // Send welcome email with credentials
-      sendEmail(
-        email,
-        'Welcome to Hunar Asaan CRM',
-        `Welcome ${name}!\n\nYour student account has been created successfully.\n\nEmail: ${email}\nPassword: ${userPassword}\n\nPlease change your password after logging in.\n\nBest regards,\nHunar Asaan Team`
-      ).catch(emailError => {
-        console.warn('Failed to send welcome email:', emailError.message);
-      });
+      const welcomeHtml = getWelcomeTemplate(
+          name,
+          email,
+          userPassword,
+          course.name,
+          batch ? batch.name : 'Unassigned'
+      );
+      sendEmail(email, 'Welcome to Hunar Asaan Skills Center', welcomeHtml)
+        .catch(emailError => {
+            console.warn('Failed to send welcome email:', emailError.message);
+        });
+
+      // Admin & Manager Alert Notification
+      const registrationAlertSubject = `New Admission Registered: ${name}`;
+      const registrationAlertHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+              <h2 style="color: #0f172a; border-bottom: 2px solid #0ea5e9; padding-bottom: 10px; margin-top: 0; font-size: 20px; font-weight: 800;">New Student Admission</h2>
+              <p style="font-size: 14px; color: #475569; line-height: 1.6;">A new student has registered on the platform:</p>
+              <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">
+                  <tr style="border-bottom: 1px solid #f1f5f9;">
+                      <td style="padding: 10px 0; font-weight: bold; color: #475569; width: 100px;">Name:</td>
+                      <td style="padding: 10px 0; color: #1e293b; font-weight: bold;">${name}</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #f1f5f9;">
+                      <td style="padding: 10px 0; font-weight: bold; color: #475569;">Email:</td>
+                      <td style="padding: 10px 0; color: #1e293b;">${email}</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #f1f5f9;">
+                      <td style="padding: 10px 0; font-weight: bold; color: #475569;">Course:</td>
+                      <td style="padding: 10px 0; color: #1e293b; font-weight: bold; color: #0ea5e9;">${course.name}</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #f1f5f9;">
+                      <td style="padding: 10px 0; font-weight: bold; color: #475569;">Batch:</td>
+                      <td style="padding: 10px 0; color: #1e293b;">${batch ? batch.name : 'Unassigned'}</td>
+                  </tr>
+              </table>
+              <div style="margin-top: 30px; text-align: center;">
+                  <a href="https://ims.hunarasaan.com" style="background: #0f172a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; display: inline-block;">Access CRM Portal</a>
+              </div>
+          </div>
+      `;
+      sendAdminManagerNotification(registrationAlertSubject, registrationAlertHtml);
 
       // Create student record
       student = await Student.create({

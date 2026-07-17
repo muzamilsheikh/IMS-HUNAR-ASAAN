@@ -18,7 +18,8 @@ const Settings = () => {
         accountTitle: '',
         accountNo: '',
         ibanCode: '',
-        paymentInstructions: ''
+        paymentInstructions: '',
+        emailNotificationsEnabled: true
     });
 
     useEffect(() => {
@@ -32,7 +33,8 @@ const Settings = () => {
                 accountTitle: settings.accountTitle || '',
                 accountNo: settings.accountNo || '',
                 ibanCode: settings.ibanCode || '',
-                paymentInstructions: settings.paymentInstructions || ''
+                paymentInstructions: settings.paymentInstructions || '',
+                emailNotificationsEnabled: settings.emailNotificationsEnabled !== false
             });
             if (settings.logoUrl) {
                 setLogoPreview(settings.logoUrl);
@@ -230,6 +232,23 @@ const Settings = () => {
                             <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner"><Mail size={24} /></div>
                             Automation SMTP logic
                         </h3>
+
+                        <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
+                            <div>
+                                <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Email Notifications Status</p>
+                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Enable or disable all automated email alerts globally</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={formData.emailNotificationsEnabled} 
+                                    onChange={e => setFormData({ ...formData, emailNotificationsEnabled: e.target.checked })}
+                                    className="sr-only peer" 
+                                />
+                                <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                            </label>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
                                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Provider Host</label>

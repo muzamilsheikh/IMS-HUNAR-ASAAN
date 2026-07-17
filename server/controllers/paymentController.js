@@ -1,6 +1,8 @@
-const { Payment, Student, Batch, Course, Enrollment, Installment, SalaryPayment, User } = require('../models');
+const { Payment, Student, Batch, Course, Enrollment, Installment, SalaryPayment, User, Setting } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 const { logActivity } = require('../utils/activity');
+const { sendEmail, sendAdminManagerNotification } = require('../utils/email');
+const { getFeePaidTemplate, getInstallmentDueTemplate } = require('../utils/emailTemplates');
 const { sequelize, Op } = require('../models');
 const { Sequelize } = require('sequelize');
 
@@ -68,8 +70,14 @@ const createPayment = async (req, res) => {
             });
         }
 
-        // Fetch student
-        const student = await Student.findByPk(studentId, { transaction });
+        // Fetch student with Course and Batch details for email templates
+        const student = await Student.findByPk(studentId, {
+            include: [
+                { model: Course, attributes: ['name'] },
+                { model: Batch, attributes: ['name'] }
+            ],
+            transaction
+        });
         if (!student) {
             await transaction.rollback();
             return res.status(404).json({ error: 'Student not found' });
@@ -216,6 +224,64 @@ const createPayment = async (req, res) => {
             'Payment Processing',
             `Fee payment of Rs. ${parseFloat(amountPaid).toLocaleString()} for student "${student.name}" (Receipt: ${receiptNo}) processed by ${req.user ? req.user.name : 'System'}.`
         );
+
+        // Disptach Fee Paid Email Notifications
+        const courseName = student.Course?.name || 'Enrolled Course';
+        const batchName = student.Batch?.name || 'Assigned Batch';
+        
+        const paidHtml = getFeePaidTemplate(
+            student.name,
+            receiptNo,
+            amountPaid,
+            newRemainingBalance,
+            courseName,
+            batchName,
+            paymentMethod
+        );
+
+        if (student.email) {
+            sendEmail(student.email, `Fee Payment Receipt - ${receiptNo}`, paidHtml)
+                .catch(emailErr => console.warn('Failed to send payment receipt to student:', emailErr.message));
+        }
+
+        // Notify Admins & Managers
+        const alertSubject = `Fee Payment Processed: Rs. ${parseFloat(amountPaid).toLocaleString()} (${student.name})`;
+        const alertHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <h2 style="color: #115e59; border-bottom: 2px solid #10b981; padding-bottom: 10px; margin-top: 0; font-size: 20px; font-weight: 800;">Payment Recorded</h2>
+                <p style="font-size: 14px; color: #475569; line-height: 1.6;">A fee payment has been successfully recorded on the platform:</p>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 0; font-weight: bold; color: #475569; width: 120px;">Student Name:</td>
+                        <td style="padding: 10px 0; color: #1e293b; font-weight: bold;">${student.name}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 0; font-weight: bold; color: #475569;">Course & Batch:</td>
+                        <td style="padding: 10px 0; color: #1e293b;">${courseName} (${batchName})</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 0; font-weight: bold; color: #475569;">Receipt No:</td>
+                        <td style="padding: 10px 0; color: #0f172a; font-weight: bold;">${receiptNo}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 0; font-weight: bold; color: #475569;">Payment Method:</td>
+                        <td style="padding: 10px 0; color: #1e293b; text-transform: uppercase;">${paymentMethod}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9; background-color: #ecfdf5;">
+                        <td style="padding: 10px; font-weight: bold; color: #047857;">Amount Paid:</td>
+                        <td style="padding: 10px; color: #065f46; font-weight: bold; font-size: 15px;">Rs. ${parseFloat(amountPaid).toLocaleString()}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 0; font-weight: bold; color: #475569;">Remaining Due:</td>
+                        <td style="padding: 10px 0; color: #ef4444; font-weight: bold;">Rs. ${parseFloat(newRemainingBalance).toLocaleString()}</td>
+                    </tr>
+                </table>
+                <div style="margin-top: 30px; text-align: center;">
+                    <a href="https://ims.hunarasaan.com" style="background: #0f172a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; display: inline-block;">Access CRM Portal</a>
+                </div>
+            </div>
+        `;
+        sendAdminManagerNotification(alertSubject, alertHtml);
 
         // Return payment with UPDATED student info
         const paymentWithStudent = await Payment.findByPk(payment.id, {
@@ -682,6 +748,60 @@ const getSalaryReport = async (req, res) => {
     }
 };
 
+// POST /api/payments/due-reminder/:studentId
+const sendDueReminder = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const { amountDue, dueDate } = req.body;
+
+        const student = await Student.findByPk(studentId, {
+            include: [
+                { model: Course, attributes: ['name'] },
+                { model: Batch, attributes: ['name'] }
+            ]
+        });
+
+        if (!student) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+
+        const setting = await Setting.findOne();
+        const bankDetails = {
+            bankName: setting?.bankName || 'Askari Bank Limited',
+            accountTitle: setting?.accountTitle || 'HUNAR ASAAN SKILLS ACADEMY',
+            accountNo: setting?.accountNo || '04000200002132',
+            ibanCode: setting?.ibanCode || 'N/A'
+        };
+
+        const dueHtml = getInstallmentDueTemplate(
+            student.name,
+            student.Course?.name || 'Enrolled Course',
+            student.Batch?.name || 'Assigned Batch',
+            amountDue || 3000,
+            dueDate || new Date(),
+            bankDetails,
+            setting?.paymentInstructions || ''
+        );
+
+        const emailSubject = `Fee Installment Due Reminder - Hunar Asaan`;
+        const emailRes = await sendEmail(student.email, emailSubject, dueHtml);
+
+        if (!emailRes.success && !emailRes.skipped) {
+            return res.status(500).json({ error: emailRes.error || 'Failed to dispatch email reminder' });
+        }
+
+        res.json({ 
+            success: true, 
+            message: emailRes.skipped 
+                ? 'Reminder skipped (notifications globally disabled)' 
+                : 'Fee due reminder email dispatched successfully.' 
+        });
+    } catch (error) {
+        console.error('Send due reminder error:', error);
+        res.status(500).json({ error: error.message || 'Server error' });
+    }
+};
+
 module.exports = {
     createPayment,
     getPaymentsByStudent,
@@ -692,5 +812,6 @@ module.exports = {
     getPendingFeesSummary,
     getStudentLedger,
     markSalaryPaid,
-    getSalaryReport
+    getSalaryReport,
+    sendDueReminder
 };

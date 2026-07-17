@@ -16,7 +16,8 @@ const getSettings = async (req, res) => {
                 emailHost: '',
                 emailPort: '587',
                 emailUser: '',
-                emailPass: ''
+                emailPass: '',
+                emailNotificationsEnabled: true
             });
         }
 
@@ -28,6 +29,7 @@ const getSettings = async (req, res) => {
             contact: setting.contact,
             address: setting.address,
             logoUrl: setting.logoUrl,
+            emailNotificationsEnabled: setting.emailNotificationsEnabled !== false,
             emailServer: isAdmin ? {
                 host: setting.emailHost || '',
                 port: setting.emailPort || '587',
@@ -65,7 +67,7 @@ const updateSettings = async (req, res) => {
             try { formData = JSON.parse(req.body.data); } catch (e) { formData = req.body; }
         }
 
-        const { instituteName, contact, address, emailServer, bankName, accountTitle, accountNo, ibanCode, paymentInstructions } = formData;
+        const { instituteName, contact, address, emailServer, bankName, accountTitle, accountNo, ibanCode, paymentInstructions, emailNotificationsEnabled } = formData;
 
         const updatePayload = {
             instituteName: instituteName || setting.instituteName,
@@ -76,6 +78,7 @@ const updateSettings = async (req, res) => {
             accountNo: accountNo !== undefined ? accountNo : setting.accountNo,
             ibanCode: ibanCode !== undefined ? ibanCode : setting.ibanCode,
             paymentInstructions: paymentInstructions !== undefined ? paymentInstructions : setting.paymentInstructions,
+            emailNotificationsEnabled: emailNotificationsEnabled !== undefined ? emailNotificationsEnabled : setting.emailNotificationsEnabled,
         };
 
         if (emailServer) {
@@ -85,7 +88,7 @@ const updateSettings = async (req, res) => {
             updatePayload.emailPass = emailServer.pass || setting.emailPass;
         }
 
-        // 🔥 FIXED: Handle logo file upload with proper directory structure
+        // Handle logo file upload with proper directory structure
         if (req.file) {
             // Ensure settings directory exists
             const uploadsDir = path.join(__dirname, '../uploads');
@@ -132,6 +135,7 @@ const updateSettings = async (req, res) => {
             contact: setting.contact,
             address: setting.address,
             logoUrl: setting.logoUrl,
+            emailNotificationsEnabled: setting.emailNotificationsEnabled !== false,
             emailServer: {
                 host: setting.emailHost || '',
                 port: setting.emailPort || '587',

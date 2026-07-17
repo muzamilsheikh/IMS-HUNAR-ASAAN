@@ -126,6 +126,36 @@ const createSchedule = async (req, res) => {
             status: status || 'Scheduled'
         });
 
+        // Dynamic Collaboration - Fixed Rate Per Class trigger
+        if (newSchedule.status === 'Completed') {
+            const { Collaboration, Expense } = require('../models');
+            const { Op } = require('sequelize');
+
+            const batch = await Batch.findByPk(newSchedule.batchId);
+            if (batch) {
+                const activeContract = await Collaboration.findOne({
+                    where: {
+                        status: 'Active',
+                        payoutType: 'fixed_per_class',
+                        [Op.or]: [
+                            { batchId: batch.id || null },
+                            { courseId: batch.courseId || null }
+                        ]
+                    },
+                    order: [['batchId', 'DESC']]
+                });
+
+                if (activeContract) {
+                    await Expense.create({
+                        description: `${activeContract.partnerName} Per-Class Remuneration`,
+                        amount: parseFloat(activeContract.rateValue || 0),
+                        category: 'Collaboration Share',
+                        date: newSchedule.date || new Date().toISOString().split('T')[0]
+                    });
+                }
+            }
+        }
+
         const scheduleWithDetails = await Schedule.findByPk(newSchedule.id, {
             include: [
                 {
@@ -163,6 +193,7 @@ const updateSchedule = async (req, res) => {
             return res.status(404).json({ error: 'Schedule not found' });
         }
 
+        const oldStatus = schedule.status;
         await schedule.update({
             batchId: batchId ? parseInt(batchId) : schedule.batchId,
             topic: topic || schedule.topic,
@@ -171,6 +202,36 @@ const updateSchedule = async (req, res) => {
             endTime: endTime || schedule.endTime,
             status: status || schedule.status
         });
+
+        // Dynamic Collaboration - Fixed Rate Per Class trigger
+        if (status === 'Completed' && oldStatus !== 'Completed') {
+            const { Collaboration, Expense } = require('../models');
+            const { Op } = require('sequelize');
+
+            const batch = await Batch.findByPk(schedule.batchId);
+            if (batch) {
+                const activeContract = await Collaboration.findOne({
+                    where: {
+                        status: 'Active',
+                        payoutType: 'fixed_per_class',
+                        [Op.or]: [
+                            { batchId: batch.id || null },
+                            { courseId: batch.courseId || null }
+                        ]
+                    },
+                    order: [['batchId', 'DESC']]
+                });
+
+                if (activeContract) {
+                    await Expense.create({
+                        description: `${activeContract.partnerName} Per-Class Remuneration`,
+                        amount: parseFloat(activeContract.rateValue || 0),
+                        category: 'Collaboration Share',
+                        date: schedule.date || new Date().toISOString().split('T')[0]
+                    });
+                }
+            }
+        }
 
         const scheduleWithDetails = await Schedule.findByPk(schedule.id, {
             include: [

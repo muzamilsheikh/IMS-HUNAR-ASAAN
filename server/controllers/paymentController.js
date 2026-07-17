@@ -235,13 +235,29 @@ const createPayment = async (req, res) => {
 
         if (activeContract) {
             const partnerName = activeContract.partnerName;
-            const percentage = parseFloat(activeContract.percentage || 0);
-            const collabAmount = (amountPaid * percentage) / 100;
+            const rate = parseFloat(activeContract.rateValue || 0);
+            let collabAmount = 0;
+            let title = '';
+
+            switch (activeContract.payoutType) {
+                case 'percentage':
+                    collabAmount = (amountPaid * rate) / 100;
+                    title = `${partnerName} Share (${rate}%) - Student ID: ${student.customId || student.id}`;
+                    break;
+                case 'fixed_per_student':
+                    collabAmount = rate;
+                    title = `${partnerName} Fixed Fee - Student ID: ${student.customId || student.id}`;
+                    break;
+                case 'fixed_per_class':
+                    // Skipped during payment creation as class calculations are handled via schedule conduction updates.
+                    break;
+                default:
+                    break;
+            }
 
             if (collabAmount > 0) {
-                const courseName = student.Course ? student.Course.name : 'Course';
                 await Expense.create({
-                    description: `${partnerName} Share - ${courseName} (Student ID: ${student.customId || student.id})`,
+                    description: title,
                     amount: collabAmount,
                     category: 'Collaboration Share',
                     date: new Date().toISOString().split('T')[0]

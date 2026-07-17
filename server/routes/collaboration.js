@@ -23,16 +23,17 @@ router.get('/', authenticateToken, adminManagerOrAccountsMiddleware, async (req,
 // POST new collaboration
 router.post('/', authenticateToken, adminManagerOrAccountsMiddleware, async (req, res) => {
     try {
-        const { partnerName, courseId, batchId, percentage, status } = req.body;
-        if (!partnerName || percentage === undefined) {
-            return res.status(400).json({ error: 'Partner name and percentage are required' });
+        const { partnerName, courseId, batchId, payoutType, rateValue, status } = req.body;
+        if (!partnerName || rateValue === undefined || !payoutType) {
+            return res.status(400).json({ error: 'Partner name, payout type, and rate value are required' });
         }
 
         const newCollab = await Collaboration.create({
             partnerName: partnerName.trim(),
             courseId: courseId ? parseInt(courseId, 10) : null,
             batchId: batchId ? parseInt(batchId, 10) : null,
-            percentage: parseFloat(percentage) || 0,
+            payoutType,
+            rateValue: parseFloat(rateValue) || 0,
             status: status || 'Active'
         });
 
@@ -53,7 +54,7 @@ router.post('/', authenticateToken, adminManagerOrAccountsMiddleware, async (req
 // PUT update collaboration
 router.put('/:id', authenticateToken, adminManagerOrAccountsMiddleware, async (req, res) => {
     try {
-        const { partnerName, courseId, batchId, percentage, status } = req.body;
+        const { partnerName, courseId, batchId, payoutType, rateValue, status } = req.body;
         const collab = await Collaboration.findByPk(req.params.id);
         if (!collab) {
             return res.status(404).json({ error: 'Collaboration contract not found' });
@@ -63,7 +64,8 @@ router.put('/:id', authenticateToken, adminManagerOrAccountsMiddleware, async (r
             partnerName: partnerName !== undefined ? partnerName.trim() : collab.partnerName,
             courseId: courseId !== undefined ? (courseId ? parseInt(courseId, 10) : null) : collab.courseId,
             batchId: batchId !== undefined ? (batchId ? parseInt(batchId, 10) : null) : collab.batchId,
-            percentage: percentage !== undefined ? parseFloat(percentage) : collab.percentage,
+            payoutType: payoutType !== undefined ? payoutType : collab.payoutType,
+            rateValue: rateValue !== undefined ? parseFloat(rateValue) : collab.rateValue,
             status: status !== undefined ? status : collab.status
         });
 

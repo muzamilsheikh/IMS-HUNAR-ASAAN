@@ -11,7 +11,7 @@ const Expenses = () => {
     const [activeTab, setActiveTab] = useState('expenses');
     const [collaborations, setCollaborations] = useState([]);
     const [showCollabModal, setShowCollabModal] = useState(false);
-    const [newCollab, setNewCollab] = useState({ partnerName: '', courseId: '', batchId: '', percentage: '', status: 'Active' });
+    const [newCollab, setNewCollab] = useState({ partnerName: '', courseId: '', batchId: '', payoutType: 'percentage', rateValue: '', status: 'Active' });
     const [showModal, setShowModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [newExpense, setNewExpense] = useState({
@@ -58,12 +58,13 @@ const Expenses = () => {
                 partnerName: newCollab.partnerName,
                 courseId: newCollab.courseId ? parseInt(newCollab.courseId, 10) : null,
                 batchId: newCollab.batchId ? parseInt(newCollab.batchId, 10) : null,
-                percentage: parseFloat(newCollab.percentage) || 0,
+                payoutType: newCollab.payoutType,
+                rateValue: parseFloat(newCollab.rateValue) || 0,
                 status: newCollab.status
             };
             await api.post('/collaborations', payload);
             setShowCollabModal(false);
-            setNewCollab({ partnerName: '', courseId: '', batchId: '', percentage: '', status: 'Active' });
+            setNewCollab({ partnerName: '', courseId: '', batchId: '', payoutType: 'percentage', rateValue: '', status: 'Active' });
             fetchCollaborations();
         } catch (error) {
             console.error('Error creating collaboration:', error);
@@ -213,7 +214,7 @@ const Expenses = () => {
                                     <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                         <th className="px-8 py-5 text-left">Partner Name</th>
                                         <th className="px-8 py-5 text-left">Course / Batch Target</th>
-                                        <th className="px-8 py-5 text-right">Share %</th>
+                                        <th className="px-8 py-5 text-right">Payout Structure</th>
                                         <th className="px-8 py-5 text-center">Status</th>
                                         <th className="px-8 py-5 text-right">Actions</th>
                                     </tr>
@@ -233,11 +234,21 @@ const Expenses = () => {
                                             } else if (collab.Course) {
                                                 targetName = `Course: ${collab.Course.name}`;
                                             }
+
+                                            let payoutLabel = '';
+                                            if (collab.payoutType === 'percentage') {
+                                                payoutLabel = `${collab.rateValue}% Split`;
+                                            } else if (collab.payoutType === 'fixed_per_student') {
+                                                payoutLabel = `Rs. ${parseFloat(collab.rateValue).toLocaleString()} / Student`;
+                                            } else if (collab.payoutType === 'fixed_per_class') {
+                                                payoutLabel = `Rs. ${parseFloat(collab.rateValue).toLocaleString()} / Class`;
+                                            }
+
                                             return (
                                                 <tr key={collab.id || collab._id} className="hover:bg-slate-50/30 transition-colors">
                                                     <td className="px-8 py-5 font-bold text-slate-800">{collab.partnerName}</td>
                                                     <td className="px-8 py-5 text-xs font-semibold text-slate-500">{targetName}</td>
-                                                    <td className="px-8 py-5 text-right font-black text-slate-700">{collab.percentage}%</td>
+                                                    <td className="px-8 py-5 text-right font-black text-slate-700">{payoutLabel}</td>
                                                     <td className="px-8 py-5 text-center">
                                                         <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
                                                             collab.status === 'Active' 
@@ -341,7 +352,7 @@ const Expenses = () => {
                         isOpen={showCollabModal}
                         onClose={() => {
                             setShowCollabModal(false);
-                            setNewCollab({ partnerName: '', courseId: '', batchId: '', percentage: '', status: 'Active' });
+                            setNewCollab({ partnerName: '', courseId: '', batchId: '', payoutType: 'percentage', rateValue: '', status: 'Active' });
                         }}
                         title="Draft Collaboration Agreement"
                         maxWidth="max-w-lg"
@@ -391,19 +402,67 @@ const Expenses = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Share Percentage (%)</label>
-                                <input 
-                                    type="number" 
-                                    required 
-                                    min="0" 
-                                    max="100" 
-                                    step="0.01"
-                                    className="input-field" 
-                                    placeholder="e.g. 65" 
-                                    value={newCollab.percentage} 
-                                    onChange={e => setNewCollab({ ...newCollab, percentage: e.target.value })} 
-                                />
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Payout Structure</label>
+                                <select 
+                                    required
+                                    className="input-field bg-white" 
+                                    value={newCollab.payoutType} 
+                                    onChange={e => setNewCollab({ ...newCollab, payoutType: e.target.value, rateValue: '' })}
+                                >
+                                    <option value="percentage">Percentage Split (%)</option>
+                                    <option value="fixed_per_student">Fixed Amount Per Student (PKR)</option>
+                                    <option value="fixed_per_class">Fixed Rate Per Class (PKR)</option>
+                                </select>
                             </div>
+
+                            {newCollab.payoutType === 'percentage' && (
+                                <div className="space-y-2 animate-in fade-in duration-200">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Collaboration Percentage (%)</label>
+                                    <input 
+                                        type="number" 
+                                        required 
+                                        min="1" 
+                                        max="100" 
+                                        step="0.01"
+                                        className="input-field" 
+                                        placeholder="e.g. 65" 
+                                        value={newCollab.rateValue} 
+                                        onChange={e => setNewCollab({ ...newCollab, rateValue: e.target.value })} 
+                                    />
+                                </div>
+                            )}
+
+                            {newCollab.payoutType === 'fixed_per_student' && (
+                                <div className="space-y-2 animate-in fade-in duration-200">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Amount Per Enrolled Student (PKR)</label>
+                                    <input 
+                                        type="number" 
+                                        required 
+                                        min="0" 
+                                        step="1"
+                                        className="input-field" 
+                                        placeholder="e.g. 2000" 
+                                        value={newCollab.rateValue} 
+                                        onChange={e => setNewCollab({ ...newCollab, rateValue: e.target.value })} 
+                                    />
+                                </div>
+                            )}
+
+                            {newCollab.payoutType === 'fixed_per_class' && (
+                                <div className="space-y-2 animate-in fade-in duration-200">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Rate Per Conducted Class (PKR)</label>
+                                    <input 
+                                        type="number" 
+                                        required 
+                                        min="0" 
+                                        step="1"
+                                        className="input-field" 
+                                        placeholder="e.g. 1500" 
+                                        value={newCollab.rateValue} 
+                                        onChange={e => setNewCollab({ ...newCollab, rateValue: e.target.value })} 
+                                    />
+                                </div>
+                            )}
 
                             <button type="submit" className="btn-secondary w-full py-4 text-base font-black tracking-tight mt-4 uppercase">
                                 Activate Contract

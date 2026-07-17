@@ -136,7 +136,8 @@ const Collaboration = sequelize.define('Collaboration', {
     partnerName: { type: DataTypes.STRING(255), allowNull: false },
     courseId: { type: DataTypes.INTEGER, allowNull: true },
     batchId: { type: DataTypes.INTEGER, allowNull: true },
-    percentage: { type: DataTypes.DECIMAL(5, 2), allowNull: false },
+    payoutType: { type: DataTypes.ENUM('percentage', 'fixed_per_student', 'fixed_per_class'), allowNull: false, defaultValue: 'percentage' },
+    rateValue: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
     status: {
         type: DataTypes.ENUM('Active', 'Inactive'),
         defaultValue: 'Active'

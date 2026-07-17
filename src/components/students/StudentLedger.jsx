@@ -14,6 +14,7 @@ import { cn } from '../../utils/cn';
 import apiClient from '../../utils/api';
 import toast from 'react-hot-toast';
 import Modal from '../layout/Modal';
+import RegistrationForm from './RegistrationForm';
 import { 
     GraduationCap, 
     Trophy, 
@@ -207,12 +208,15 @@ const getFullLogoUrl = (logoUrl) => {
 };
 
 const StudentLedger = ({ studentId, onUpdate }) => {
-    const { students, settings, api, courses, batches, refreshFinancialStats, socket } = useApp();
+    const { students, settings, api, courses, batches, refreshFinancialStats, socket, user } = useApp();
     const contextStudent = students?.find(s => (s?._id === studentId || s?.id === studentId));
     
     // Use local state to ensure latest student data is displayed
     const [localStudent, setLocalStudent] = useState(null);
     const student = localStudent || contextStudent; // Prefer local state if available
+
+    // Edit Profile states
+    const [showEditModal, setShowEditModal] = useState(false);
 
     // Password reset states
     const [showPasswordReset, setShowPasswordReset] = useState(false);
@@ -594,6 +598,15 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    {(user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'manager') && (
+                        <button 
+                            onClick={() => setShowEditModal(true)}
+                            className="group bg-amber-50 hover:bg-amber-100 text-amber-600 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all border border-amber-100 shadow-sm active:scale-95"
+                        >
+                            <Edit3 size={18} className="text-amber-500 group-hover:scale-110 transition-transform" />
+                            Edit Profile
+                        </button>
+                    )}
                     <button 
                         onClick={() => setShowPasswordReset(true)}
                         className="group bg-blue-50 hover:bg-blue-100 text-blue-600 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all border border-blue-100 shadow-sm active:scale-95"
@@ -1628,6 +1641,27 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                                 {isResettingPassword ? 'Resetting...' : 'Reset Password'}
                             </button>
                         </form>
+                    </Modal>
+                )}
+            </AnimatePresence>
+            {/* Edit Student Profile Modal */}
+            <AnimatePresence>
+                {showEditModal && (
+                    <Modal
+                        isOpen={showEditModal}
+                        onClose={() => setShowEditModal(false)}
+                        title="Edit Student Profile Protocol"
+                        maxWidth="max-w-5xl"
+                    >
+                        <RegistrationForm 
+                            editingStudent={student} 
+                            onSuccess={() => {
+                                setShowEditModal(false);
+                                fetchStudentDetails();
+                                fetchPayments();
+                                if (onUpdate) onUpdate();
+                            }} 
+                        />
                     </Modal>
                 )}
             </AnimatePresence>

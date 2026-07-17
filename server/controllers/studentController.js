@@ -1,8 +1,9 @@
-const { Student, User, Course, Batch, ChatGroup, Op, InstallmentSchedule, Payment, Enrollment, Installment } = require('../models');
+const { Student, User, Course, Batch, ChatGroup, Op, InstallmentSchedule, Payment, Enrollment, Installment, Setting } = require('../models');
 const bcrypt = require('bcryptjs');
 const { sendEmail, sendAdminManagerNotification, generateRandomPassword } = require('../utils/email');
 const { logActivity } = require('../utils/activity');
 const { getWelcomeTemplate } = require('../utils/emailTemplates');
+const { generateChallanPDF } = require('../utils/pdfGenerator');
 
 // Live uniqueness check - GET /api/students/check-exists?field=email&value=...
 const checkStudentExists = async (req, res) => {
@@ -364,7 +365,34 @@ const createStudent = async (req, res) => {
           course.name,
           batch ? batch.name : 'Unassigned'
       );
-      sendEmail(email, 'Welcome to Hunar Asaan Skills Center', welcomeHtml)
+
+      // Generate initial registration PDF challan
+      let welcomeAttachments = [];
+      try {
+          const setting = await Setting.findOne();
+          const initialDue = parseFloat(course.fee || 0) - parseFloat(discountAmount || 0);
+          const studentObj = {
+              name,
+              email,
+              Course: course,
+              Batch: batch
+          };
+          const challanBuffer = await generateChallanPDF(
+              studentObj,
+              initialDue,
+              new Date(),
+              setting
+          );
+          welcomeAttachments.push({
+              filename: `Registration_Challan_${name.replace(/\s+/g, '_')}.pdf`,
+              content: challanBuffer,
+              contentType: 'application/pdf'
+          });
+      } catch (pdfErr) {
+          console.error('Failed to generate initial welcome challan PDF:', pdfErr.message);
+      }
+
+      sendEmail(email, 'Welcome to Hunar Asaan Skills Center', welcomeHtml, welcomeAttachments)
         .catch(emailError => {
             console.warn('Failed to send welcome email:', emailError.message);
         });

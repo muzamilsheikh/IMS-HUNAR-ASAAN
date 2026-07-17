@@ -1,13 +1,15 @@
 /**
- * Email templates for automated CRM messaging with premium visual styling.
+ * Email templates for automated CRM messaging with premium visual styling and inline logo integration.
  */
 
 const getWelcomeTemplate = (name, email, password, courseName, batchName) => `
 <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; padding: 45px 20px; text-align: center; color: #1e293b;">
     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
-        <!-- Header banner -->
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 45px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #0ea5e9;">
-            <h1 style="margin: 0; font-size: 32px; font-weight: 900; tracking: -0.05em; font-style: italic;">HUNAR ASAAN</h1>
+        <!-- Header banner with inline logo -->
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 35px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #0ea5e9;">
+            <div style="margin-bottom: 15px;">
+                <img src="cid:hunar_asaan_logo" alt="Hunar Asaan Logo" style="max-height: 75px; width: auto; display: inline-block; vertical-align: middle;" />
+            </div>
             <p style="margin: 5px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #38bdf8; font-weight: 700;">Scholar Registration Protocol</p>
         </div>
         <!-- Body -->
@@ -45,7 +47,10 @@ const getWelcomeTemplate = (name, email, password, courseName, batchName) => `
 const getStaffLoginAlertTemplate = (name, email, role, time, ip) => `
 <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; padding: 45px 20px; color: #1e293b;">
     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
-        <div style="background: #ef4444; padding: 25px 40px; color: #ffffff;">
+        <div style="background: #ef4444; padding: 25px 40px; color: #ffffff; text-align: center;">
+            <div style="margin-bottom: 12px;">
+                <img src="cid:hunar_asaan_logo" alt="Hunar Asaan Logo" style="max-height: 60px; width: auto; display: inline-block; vertical-align: middle;" />
+            </div>
             <div style="font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; font-style: italic;">🚨 SECURITY ACCESS ALERT</div>
         </div>
         <div style="padding: 40px;">
@@ -73,13 +78,16 @@ const getStaffLoginAlertTemplate = (name, email, role, time, ip) => `
 const getFeePaidTemplate = (name, receiptNo, amountPaid, remainingBalance, courseName, batchName, paymentMethod) => `
 <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; padding: 45px 20px; color: #1e293b;">
     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #115e59 100%); padding: 40px; text-align: center; color: #ffffff; border-bottom: 4px solid #10b981;">
-            <h1 style="margin: 0; font-size: 32px; font-weight: 900; tracking: -0.05em; font-style: italic;">FEE RECEIPT</h1>
-            <p style="margin: 5px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #34d399; font-weight: 700;">Verified Transaction</p>
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #115e59 100%); padding: 35px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #10b981;">
+            <div style="margin-bottom: 15px;">
+                <img src="cid:hunar_asaan_logo" alt="Hunar Asaan Logo" style="max-height: 70px; width: auto; display: inline-block; vertical-align: middle;" />
+            </div>
+            <h1 style="margin: 0; font-size: 26px; font-weight: 900; tracking: -0.02em; text-transform: uppercase; color: #ffffff; font-style: italic;">FEE RECEIPT</h1>
+            <p style="margin: 5px 0 0 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; color: #34d399; font-weight: 700;">Verified Transaction</p>
         </div>
         <div style="padding: 40px;">
             <p style="font-size: 14px; line-height: 1.6; color: #475569;">Hello <strong>${name}</strong>,</p>
-            <p style="font-size: 14px; line-height: 1.6; color: #475569;">Thank you! Your fee payment has been successfully recorded and processed. Below are your official receipt details:</p>
+            <p style="font-size: 14px; line-height: 1.6; color: #475569;">Thank you! Your fee payment has been successfully recorded and processed. Below are your official receipt details. We have also attached your detailed PDF receipt to this email.</p>
             
             <div style="background: #f8fafc; padding: 25px; border-radius: 16px; margin: 25px 0; border: 1px solid #e2e8f0;">
                 <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 12px;">
@@ -117,13 +125,16 @@ const getFeePaidTemplate = (name, receiptNo, amountPaid, remainingBalance, cours
 const getInstallmentDueTemplate = (name, courseName, batchName, amountDue, dueDate, bankDetails, instructions) => `
 <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; padding: 45px 20px; color: #1e293b;">
     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 40px; text-align: center; color: #ffffff; border-bottom: 4px solid #ef4444;">
-            <h1 style="margin: 0; font-size: 32px; font-weight: 900; tracking: -0.05em; font-style: italic;">FEE DUE REMINDER</h1>
-            <p style="margin: 5px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #f87171; font-weight: 700;">Action Required</p>
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 35px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #ef4444;">
+            <div style="margin-bottom: 15px;">
+                <img src="cid:hunar_asaan_logo" alt="Hunar Asaan Logo" style="max-height: 70px; width: auto; display: inline-block; vertical-align: middle;" />
+            </div>
+            <h1 style="margin: 0; font-size: 26px; font-weight: 900; tracking: -0.02em; text-transform: uppercase; color: #ffffff; font-style: italic;">FEE DUE CHALLAN</h1>
+            <p style="margin: 5px 0 0 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; color: #f87171; font-weight: 700;">Action Required</p>
         </div>
         <div style="padding: 40px;">
             <p style="font-size: 14px; line-height: 1.6; color: #475569;">Hello <strong>${name}</strong>,</p>
-            <p style="font-size: 14px; line-height: 1.6; color: #475569;">This is a friendly reminder that an installment is scheduled/due for your enrollment at Hunar Asaan:</p>
+            <p style="font-size: 14px; line-height: 1.6; color: #475569;">This is a friendly reminder that a fee installment is due for your enrollment. We have attached the official PDF challan to this email.</p>
             
             <div style="background: #fef2f2; padding: 25px; border-radius: 16px; margin: 25px 0; border: 1px solid #fecaca;">
                 <p style="margin: 8px 0; font-size: 13px; color: #1f2937;"><strong>Course:</strong> ${courseName || 'N/A'}</p>
@@ -158,8 +169,10 @@ const getInstallmentDueTemplate = (name, courseName, batchName, amountDue, dueDa
 const getStaffWelcomeTemplate = (name, email, password, role) => `
 <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; padding: 45px 20px; text-align: center; color: #1e293b;">
     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 45px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #0ea5e9;">
-            <h1 style="margin: 0; font-size: 32px; font-weight: 900; tracking: -0.05em; font-style: italic;">HUNAR ASAAN</h1>
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); padding: 35px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #0ea5e9;">
+            <div style="margin-bottom: 15px;">
+                <img src="cid:hunar_asaan_logo" alt="Hunar Asaan Logo" style="max-height: 75px; width: auto; display: inline-block; vertical-align: middle;" />
+            </div>
             <p style="margin: 5px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #38bdf8; font-weight: 700;">Staff Access Provisioned</p>
         </div>
         <div style="padding: 45px; text-align: left;">

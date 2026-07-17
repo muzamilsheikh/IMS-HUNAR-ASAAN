@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { logActivity } = require('../utils/activity');
 const { sendEmail, sendAdminManagerNotification } = require('../utils/email');
 const { getFeePaidTemplate, getInstallmentDueTemplate } = require('../utils/emailTemplates');
+const { generateReceiptPDF, generateChallanPDF } = require('../utils/pdfGenerator');
 const { sequelize, Op } = require('../models');
 const { Sequelize } = require('sequelize');
 
@@ -239,8 +240,26 @@ const createPayment = async (req, res) => {
             paymentMethod
         );
 
+        // Generate PDF receipt attachment
+        let pdfAttachments = [];
+        try {
+            const settingRecord = await Setting.findOne();
+            const pdfBuffer = await generateReceiptPDF(
+                { receiptNo, amountPaid, paymentMethod },
+                student,
+                settingRecord
+            );
+            pdfAttachments.push({
+                filename: `Receipt_${receiptNo}.pdf`,
+                content: pdfBuffer,
+                contentType: 'application/pdf'
+            });
+        } catch (pdfErr) {
+            console.error('Failed to generate PDF receipt attachment:', pdfErr.message);
+        }
+
         if (student.email) {
-            sendEmail(student.email, `Fee Payment Receipt - ${receiptNo}`, paidHtml)
+            sendEmail(student.email, `Fee Payment Receipt - ${receiptNo}`, paidHtml, pdfAttachments)
                 .catch(emailErr => console.warn('Failed to send payment receipt to student:', emailErr.message));
         }
 
@@ -248,7 +267,7 @@ const createPayment = async (req, res) => {
         const alertSubject = `Fee Payment Processed: Rs. ${parseFloat(amountPaid).toLocaleString()} (${student.name})`;
         const alertHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <h2 style="color: #115e59; border-bottom: 2px solid #10b981; padding-bottom: 10px; margin-top: 0; font-size: 20px; font-weight: 800;">Payment Recorded</h2>
+                <h2 style="color: #115e59; border-bottom: 2px solid #10b981; padding-bottom: 10px; margin-top: 0; font-size: 20px; font-weight: 800; color: #0f172a;">Payment Recorded</h2>
                 <p style="font-size: 14px; color: #475569; line-height: 1.6;">A fee payment has been successfully recorded on the platform:</p>
                 <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">
                     <tr style="border-bottom: 1px solid #f1f5f9;">
@@ -281,7 +300,7 @@ const createPayment = async (req, res) => {
                 </div>
             </div>
         `;
-        sendAdminManagerNotification(alertSubject, alertHtml);
+        sendAdminManagerNotification(alertSubject, alertHtml, pdfAttachments);
 
         // Return payment with UPDATED student info
         const paymentWithStudent = await Payment.findByPk(payment.id, {
@@ -783,8 +802,26 @@ const sendDueReminder = async (req, res) => {
             setting?.paymentInstructions || ''
         );
 
+        // Generate PDF Challan attachment
+        let challanAttachments = [];
+        try {
+            const challanBuffer = await generateChallanPDF(
+                student,
+                amountDue,
+                dueDate,
+                setting
+            );
+            challanAttachments.push({
+                filename: `Challan_${student.name.replace(/\s+/g, '_')}.pdf`,
+                content: challanBuffer,
+                contentType: 'application/pdf'
+            });
+        } catch (pdfErr) {
+            console.error('Failed to generate PDF challan attachment:', pdfErr.message);
+        }
+
         const emailSubject = `Fee Installment Due Reminder - Hunar Asaan`;
-        const emailRes = await sendEmail(student.email, emailSubject, dueHtml);
+        const emailRes = await sendEmail(student.email, emailSubject, dueHtml, challanAttachments);
 
         if (!emailRes.success && !emailRes.skipped) {
             return res.status(500).json({ error: emailRes.error || 'Failed to dispatch email reminder' });

@@ -278,6 +278,9 @@ const createPayment = async (req, res) => {
         const alertSubject = `Fee Payment Processed: Rs. ${parseFloat(amountPaid).toLocaleString()} (${student.name})`;
         const alertHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+                    <img src="__LOGO_URL_PLACEHOLDER__" alt="Hunar Asaan" style="max-height: 50px; width: auto;" />
+                </div>
                 <h2 style="color: #115e59; border-bottom: 2px solid #10b981; padding-bottom: 10px; margin-top: 0; font-size: 20px; font-weight: 800; color: #0f172a;">Payment Recorded</h2>
                 <p style="font-size: 14px; color: #475569; line-height: 1.6;">A fee payment has been successfully recorded on the platform:</p>
                 <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px;">

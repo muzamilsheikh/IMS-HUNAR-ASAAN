@@ -28,7 +28,7 @@ const getSMTPConfig = async () => {
     };
 };
 
-// Send single email function with inline logo integration and arbitrary attachments
+// Send single email function with inline logo template replacement
 const sendEmail = async (to, subject, htmlContent, attachments = []) => {
     try {
         const config = await getSMTPConfig();
@@ -58,56 +58,25 @@ const sendEmail = async (to, subject, htmlContent, attachments = []) => {
             }
         });
 
-        // ─── LOGO CID INJECTION ───
-        const finalAttachments = [...attachments];
-        let logoPath = null;
-
-        if (setting && setting.logoUrl) {
-            logoPath = path.join(__dirname, '..', setting.logoUrl);
-        }
-
-        // If no custom logo path or file doesn't exist, check/copy HunarAsaanLogo.jpg
-        if (!logoPath || !fs.existsSync(logoPath)) {
-            const possibleLogo = path.join(__dirname, '../uploads/settings/logo.jpg');
-            if (fs.existsSync(possibleLogo)) {
-                logoPath = possibleLogo;
-            } else {
-                const rootLogo = path.join(__dirname, '../../HunarAsaanLogo.jpg');
-                if (fs.existsSync(rootLogo)) {
-                    // Ensure uploads/settings folders exist
-                    const settingsDir = path.join(__dirname, '../uploads/settings');
-                    if (!fs.existsSync(settingsDir)) {
-                        fs.mkdirSync(settingsDir, { recursive: true });
-                    }
-                    try {
-                        fs.copyFileSync(rootLogo, possibleLogo);
-                        logoPath = possibleLogo;
-                        // Save to setting database
-                        if (setting && !setting.logoUrl) {
-                            await setting.update({ logoUrl: '/uploads/settings/logo.jpg' });
-                        }
-                    } catch (e) {
-                        console.error('Failed to copy root logo to settings folder:', e.message);
-                    }
-                }
-            }
-        }
-
-        // Attach logo if found on disk
-        if (logoPath && fs.existsSync(logoPath)) {
-            finalAttachments.push({
-                filename: 'logo.jpg',
-                path: logoPath,
-                cid: 'hunar_asaan_logo' // Matches the src="cid:hunar_asaan_logo" in HTML templates
-            });
-        }
+        // ─── DYNAMIC LOGO HOSTED URL SUBSTITUTION ───
+        // By serving the logo directly from the public web server url, it displays perfectly in templates
+        // and NEVER appears as a downloadable attachment at the bottom of the email!
+        const baseWebUrl = 'https://ims.hunarasaan.com';
+        
+        // If settings has a custom logo path, use it. Otherwise fallback to root image path.
+        const logoUrl = setting && setting.logoUrl 
+            ? `${baseWebUrl}${setting.logoUrl}` 
+            : `${baseWebUrl}/HunarAsaanLogo.jpg`;
+            
+        // Substitute placeholder inside HTML content
+        const processedHtml = htmlContent.replace(/__LOGO_URL_PLACEHOLDER__/g, logoUrl);
 
         const mailOptions = {
             from: `"Hunar Asaan" <${config.user}>`,
             to: to,
             subject: subject,
-            html: htmlContent,
-            attachments: finalAttachments
+            html: processedHtml,
+            attachments: attachments // Contains only the PDF receipt/challan
         };
 
         const info = await transporter.sendMail(mailOptions);

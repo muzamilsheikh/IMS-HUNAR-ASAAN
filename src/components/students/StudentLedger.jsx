@@ -207,7 +207,7 @@ const getFullLogoUrl = (logoUrl) => {
 };
 
 const StudentLedger = ({ studentId, onUpdate }) => {
-    const { students, settings, api, courses, batches, refreshFinancialStats } = useApp();
+    const { students, settings, api, courses, batches, refreshFinancialStats, socket } = useApp();
     const contextStudent = students?.find(s => (s?._id === studentId || s?.id === studentId));
     
     // Use local state to ensure latest student data is displayed
@@ -331,6 +331,28 @@ const StudentLedger = ({ studentId, onUpdate }) => {
            fetchStudentDetails();
         }
     }, [student?.id]);
+
+    // Real-time payments sync for this specific student's ledger via Socket.io
+    useEffect(() => {
+        if (!socket || !student?.id) return;
+
+        const handleRealTimePayment = (data) => {
+            if (data && (Number(data.studentId) === Number(student?.id))) {
+                console.log('📡 Real-time payment event detected for active student ledger:', student?.id);
+                fetchPayments();
+                fetchStudentDetails();
+                if (refreshFinancialStats) {
+                    refreshFinancialStats();
+                }
+            }
+        };
+
+        socket.on('fee-payment-recorded', handleRealTimePayment);
+
+        return () => {
+            socket.off('fee-payment-recorded', handleRealTimePayment);
+        };
+    }, [socket, student?.id]);
 
    const fetchPayments = async() => {
        try {

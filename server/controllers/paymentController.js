@@ -4,6 +4,7 @@ const { logActivity } = require('../utils/activity');
 const { sendEmail, sendAdminManagerNotification } = require('../utils/email');
 const { getFeePaidTemplate, getInstallmentDueTemplate } = require('../utils/emailTemplates');
 const { generateReceiptPDF, generateChallanPDF } = require('../utils/pdfGenerator');
+const { emitToAll } = require('../utils/socket');
 const { sequelize, Op } = require('../models');
 const { Sequelize } = require('sequelize');
 
@@ -225,6 +226,16 @@ const createPayment = async (req, res) => {
             'Payment Processing',
             `Fee payment of Rs. ${parseFloat(amountPaid).toLocaleString()} for student "${student.name}" (Receipt: ${receiptNo}) processed by ${req.user ? req.user.name : 'System'}.`
         );
+
+        // Broadcast real-time payment notification via Socket.io
+        emitToAll('fee-payment-recorded', {
+            paymentId: payment.id,
+            studentId,
+            studentName: student.name,
+            amountPaid,
+            receiptNo,
+            timestamp: new Date().toISOString()
+        });
 
         // Disptach Fee Paid Email Notifications
         const courseName = student.Course?.name || 'Enrolled Course';

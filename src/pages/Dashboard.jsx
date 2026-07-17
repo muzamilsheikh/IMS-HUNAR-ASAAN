@@ -40,7 +40,7 @@ const StatCard = ({ title, value, icon: Icon, trend, color, subtext }) => (
 );
 
 const Dashboard = () => {
-    const { students, getStats, loading, user, batches, courses } = useApp();
+    const { students, getStats, loading, user, batches, courses, socket } = useApp();
     const [showRegModal, setShowRegModal] = useState(false);
     const [recoveryAlerts, setRecoveryAlerts] = useState([]);
     const [pendingFeesSummary, setPendingFeesSummary] = useState({});
@@ -122,6 +122,26 @@ const Dashboard = () => {
         }, 10000);
         return () => clearInterval(interval);
     }, [user]);
+
+    // Real-time updates via Socket.io when any fee payment is recorded
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleRealTimePayment = (data) => {
+            console.log('📡 Real-time fee payment detected via socket:', data);
+            fetchFinancialStats();
+            fetchRecoveryAlerts();
+            if (user?.role?.toLowerCase() === 'admin') {
+                fetchActivityLogs();
+            }
+        };
+
+        socket.on('fee-payment-recorded', handleRealTimePayment);
+
+        return () => {
+            socket.off('fee-payment-recorded', handleRealTimePayment);
+        };
+    }, [socket, user]);
 
     const fetchUpcomingSchedules = async () => {
         try {

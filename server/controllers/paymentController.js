@@ -1,4 +1,4 @@
-const { Payment, Student, Batch, Course, Enrollment, Installment, SalaryPayment, User, Setting } = require('../models');
+const { Payment, Student, Batch, Course, Enrollment, Installment, SalaryPayment, User, Setting, Expense } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 const { logActivity } = require('../utils/activity');
 const { sendEmail, sendAdminManagerNotification } = require('../utils/email');
@@ -72,11 +72,11 @@ const createPayment = async (req, res) => {
             });
         }
 
-        // Fetch student with Course and Batch details for email templates
+        // Fetch student with Course and Batch details for email templates and collaboration checks
         const student = await Student.findByPk(studentId, {
             include: [
                 { model: Course, attributes: ['name'] },
-                { model: Batch, attributes: ['name'] }
+                { model: Batch, attributes: ['name', 'hasCollaboration', 'collabPartnerName', 'collabPercentage'] }
             ],
             transaction
         });
@@ -215,6 +215,22 @@ const createPayment = async (req, res) => {
                 // If payment covers the entire installment amount (or close to it)
                 // For now, we'll mark one as 'Paid' per payment event
                 await earliestPending.update({ status: 'Paid' }, { transaction });
+            }
+        }
+
+        // Dynamic Collaboration & Revenue-Sharing Logic
+        if (student.Batch && student.Batch.hasCollaboration) {
+            const partnerName = student.Batch.collabPartnerName || 'Collaboration Partner';
+            const percentage = parseFloat(student.Batch.collabPercentage || 0);
+            const collabAmount = (amountPaid * percentage) / 100;
+
+            if (collabAmount > 0) {
+                await Expense.create({
+                    description: `${partnerName} Share - Batch: ${student.Batch.name} (Student ID: ${student.id})`,
+                    amount: collabAmount,
+                    category: 'Collaboration Share',
+                    date: new Date().toISOString().split('T')[0]
+                }, { transaction });
             }
         }
 

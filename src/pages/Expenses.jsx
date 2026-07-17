@@ -159,6 +159,7 @@ const Expenses = () => {
                                         <option>Rent</option>
                                         <option>Salaries</option>
                                         <option>Maintenance</option>
+                                        <option>Collaboration Share</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">

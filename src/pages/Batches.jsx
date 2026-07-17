@@ -20,7 +20,10 @@ const Batches = () => {
         startDate: '',
         scheduleDays: [],
         startTime: '',
-        endTime: ''
+        endTime: '',
+        hasCollaboration: false,
+        collabPartnerName: '',
+        collabPercentage: ''
     });
 
     const filteredBatches = batches.filter(b =>
@@ -63,7 +66,10 @@ const Batches = () => {
             startDate: batch.startDate || '',
             scheduleDays: daysArray,
             startTime: batch.startTime || '',
-            endTime: batch.endTime || ''
+            endTime: batch.endTime || '',
+            hasCollaboration: batch.hasCollaboration || false,
+            collabPartnerName: batch.collabPartnerName || '',
+            collabPercentage: batch.collabPercentage || ''
         });
         setShowModal(true);
     };
@@ -74,7 +80,9 @@ const Batches = () => {
         // Convert courseId to integer (Sequelize expects integer, not string)
         const batchData = {
             ...newBatch,
-            courseId: parseInt(newBatch.courseId) || null
+            courseId: parseInt(newBatch.courseId) || null,
+            collabPartnerName: newBatch.hasCollaboration ? newBatch.collabPartnerName : null,
+            collabPercentage: newBatch.hasCollaboration ? parseFloat(newBatch.collabPercentage || 0) : null
         };
         
         if (editingBatch) {
@@ -91,7 +99,10 @@ const Batches = () => {
             startDate: '',
             scheduleDays: [],
             startTime: '',
-            endTime: ''
+            endTime: '',
+            hasCollaboration: false,
+            collabPartnerName: '',
+            collabPercentage: ''
         });
     };
 
@@ -300,6 +311,51 @@ const Batches = () => {
                                     })}
                                 </div>
                                 <p className="text-[10px] text-slate-400 font-medium ml-1">Schedules are auto-populated inside the calendar matrix for the lifetime of the course on these days.</p>
+                            </div>
+
+                            {/* Collaboration & Revenue Sharing */}
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <div className="flex items-center gap-3">
+                                    <input 
+                                        type="checkbox" 
+                                        id="hasCollaboration"
+                                        className="h-4.5 w-4.5 text-secondary border-slate-300 rounded focus:ring-secondary"
+                                        checked={newBatch.hasCollaboration} 
+                                        onChange={e => setNewBatch({ ...newBatch, hasCollaboration: e.target.checked })} 
+                                    />
+                                    <label htmlFor="hasCollaboration" className="text-[10px] font-black uppercase text-slate-500 tracking-widest cursor-pointer select-none">
+                                        Is this a Collaboration Batch?
+                                    </label>
+                                </div>
+
+                                {newBatch.hasCollaboration && (
+                                    <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Partner Name</label>
+                                            <input 
+                                                required 
+                                                className="input-field" 
+                                                placeholder="e.g. OPHY CARE" 
+                                                value={newBatch.collabPartnerName} 
+                                                onChange={e => setNewBatch({ ...newBatch, collabPartnerName: e.target.value })} 
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Share Percentage (%)</label>
+                                            <input 
+                                                type="number" 
+                                                required 
+                                                min="0" 
+                                                max="100" 
+                                                step="0.01" 
+                                                className="input-field" 
+                                                placeholder="e.g. 65" 
+                                                value={newBatch.collabPercentage} 
+                                                onChange={e => setNewBatch({ ...newBatch, collabPercentage: e.target.value })} 
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <button type="submit" className="btn-secondary w-full py-4 text-base font-black tracking-tight mt-4 uppercase shadow-xl shadow-secondary/20">

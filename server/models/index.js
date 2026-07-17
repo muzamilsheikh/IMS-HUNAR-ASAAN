@@ -72,7 +72,10 @@ const Batch = sequelize.define('Batch', {
     startDate: { type: DataTypes.DATEONLY, allowNull: true },
     scheduleDays: { type: DataTypes.STRING(500), allowNull: true }, // e.g. "Monday,Wednesday"
     startTime: { type: DataTypes.STRING(50), allowNull: true },
-    endTime: { type: DataTypes.STRING(50), allowNull: true }
+    endTime: { type: DataTypes.STRING(50), allowNull: true },
+    hasCollaboration: { type: DataTypes.BOOLEAN, defaultValue: false },
+    collabPartnerName: { type: DataTypes.STRING(255), allowNull: true },
+    collabPercentage: { type: DataTypes.DECIMAL(5, 2), allowNull: true }
 }, { 
     timestamps: true, 
     tableName: 'Batches',
@@ -121,7 +124,7 @@ const Expense = sequelize.define('Expense', {
     description: { type: DataTypes.STRING(500), allowNull: false },
     amount: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
     category: {
-        type: DataTypes.ENUM('Marketing', 'Utilities', 'Rent', 'Salaries', 'Maintenance', 'Other'),
+        type: DataTypes.ENUM('Marketing', 'Utilities', 'Rent', 'Salaries', 'Maintenance', 'Collaboration Share', 'Other'),
         defaultValue: 'Other'
     },
     date: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW }

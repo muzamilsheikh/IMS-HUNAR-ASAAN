@@ -186,6 +186,7 @@ function setupRoutes() {
     app.use('/api/schedules', require('./routes/schedule')); // 🔥 NEW: Schedules API
     app.use('/api/payroll', require('./routes/payroll')); // 🔥 NEW: Payroll API
     app.use('/api/salaries', require('./routes/salaries')); // 🔥 NEW: Salary Disbursement API
+    app.use('/api/collaborations', require('./routes/collaboration'));
 
     // Serve static files from frontend build
     const distPath = path.join(__dirname, '../dist');

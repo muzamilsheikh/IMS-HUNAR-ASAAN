@@ -1,4 +1,4 @@
-const { Payment, Student, Batch, Course, Enrollment, Installment, SalaryPayment, User, Setting, Expense } = require('../models');
+const { Payment, Student, Batch, Course, Enrollment, Installment, SalaryPayment, User, Setting, Expense, Collaboration } = require('../models');
 const { v4: uuidv4 } = require('uuid');
 const { logActivity } = require('../utils/activity');
 const { sendEmail, sendAdminManagerNotification } = require('../utils/email');
@@ -76,7 +76,7 @@ const createPayment = async (req, res) => {
         const student = await Student.findByPk(studentId, {
             include: [
                 { model: Course, attributes: ['name'] },
-                { model: Batch, attributes: ['name', 'hasCollaboration', 'collabPartnerName', 'collabPercentage'] }
+                { model: Batch, attributes: ['name'] }
             ],
             transaction
         });
@@ -218,15 +218,30 @@ const createPayment = async (req, res) => {
             }
         }
 
-        // Dynamic Collaboration & Revenue-Sharing Logic
-        if (student.Batch && student.Batch.hasCollaboration) {
-            const partnerName = student.Batch.collabPartnerName || 'Collaboration Partner';
-            const percentage = parseFloat(student.Batch.collabPercentage || 0);
+        // Centralized Collaboration & Revenue-Sharing Logic
+        const activeContract = await Collaboration.findOne({
+            where: {
+                status: 'Active',
+                [Op.or]: [
+                    { batchId: student.batchId || null },
+                    { courseId: student.courseId || null }
+                ]
+            },
+            order: [
+                ['batchId', 'DESC'] // More specific batch contracts take precedence
+            ],
+            transaction
+        });
+
+        if (activeContract) {
+            const partnerName = activeContract.partnerName;
+            const percentage = parseFloat(activeContract.percentage || 0);
             const collabAmount = (amountPaid * percentage) / 100;
 
             if (collabAmount > 0) {
+                const courseName = student.Course ? student.Course.name : 'Course';
                 await Expense.create({
-                    description: `${partnerName} Share - Batch: ${student.Batch.name} (Student ID: ${student.id})`,
+                    description: `${partnerName} Share - ${courseName} (Student ID: ${student.customId || student.id})`,
                     amount: collabAmount,
                     category: 'Collaboration Share',
                     date: new Date().toISOString().split('T')[0]

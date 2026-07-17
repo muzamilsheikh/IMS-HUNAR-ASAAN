@@ -130,6 +130,26 @@ const Expense = sequelize.define('Expense', {
     date: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW }
 }, { timestamps: true, tableName: 'Expenses' });
 
+// ============ COLLABORATION MODEL ============
+const Collaboration = sequelize.define('Collaboration', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    partnerName: { type: DataTypes.STRING(255), allowNull: false },
+    courseId: { type: DataTypes.INTEGER, allowNull: true },
+    batchId: { type: DataTypes.INTEGER, allowNull: true },
+    percentage: { type: DataTypes.DECIMAL(5, 2), allowNull: false },
+    status: {
+        type: DataTypes.ENUM('Active', 'Inactive'),
+        defaultValue: 'Active'
+    }
+}, { 
+    timestamps: true, 
+    tableName: 'Collaborations',
+    indexes: [
+        { fields: ['courseId'] },
+        { fields: ['batchId'] }
+    ]
+});
+
 // ============ SETTING MODEL ============
 const Setting = sequelize.define('Setting', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -564,6 +584,12 @@ User.hasMany(Student, { foreignKey: 'createdBy', as: 'CreatedStudents' });
 User.hasMany(ActivityLog, { foreignKey: 'userId', onDelete: 'SET NULL' });
 ActivityLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+// Collaboration associations
+Collaboration.belongsTo(Course, { foreignKey: 'courseId' });
+Collaboration.belongsTo(Batch, { foreignKey: 'batchId' });
+Course.hasMany(Collaboration, { foreignKey: 'courseId' });
+Batch.hasMany(Collaboration, { foreignKey: 'batchId' });
+
 // ============ EXPORTS ============
 module.exports = {
     sequelize,
@@ -589,6 +615,7 @@ module.exports = {
     CourseInstructor,
     SalaryPayment,
     ActivityLog,
+    Collaboration,
     Op
 };
 

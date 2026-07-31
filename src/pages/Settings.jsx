@@ -32,7 +32,8 @@ const Settings = () => {
         staffRecipients: '[]',
         globalCcEmails: '',
         backupFrequency: 'manual',
-        backupEmail: ''
+        backupEmail: '',
+        notificationRules: '{}'
     });
 
     useEffect(() => {
@@ -57,7 +58,10 @@ const Settings = () => {
                 staffRecipients: settings.staffRecipients || '[]',
                 globalCcEmails: settings.globalCcEmails || '',
                 backupFrequency: settings.backupFrequency || 'manual',
-                backupEmail: settings.backupEmail || ''
+                backupEmail: settings.backupEmail || '',
+                notificationRules: typeof settings.notificationRules === 'string'
+                    ? settings.notificationRules
+                    : JSON.stringify(settings.notificationRules || {})
             });
             if (settings.logoUrl) {
                 setLogoPreview(settings.logoUrl);

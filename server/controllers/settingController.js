@@ -140,18 +140,8 @@ const updateSettings = async (req, res) => {
                 }
             }
 
-            // Save new logo with relative path
-            updatePayload.logoUrl = `/uploads/settings/logo_${Date.now()}${path.extname(req.file.originalname)}`;
-            
-            // Move file to settings directory
-            const newPath = path.join(settingsDir, path.basename(updatePayload.logoUrl));
-            try {
-                fs.renameSync(req.file.path, newPath);
-            } catch (err) {
-                console.error('File move error:', err);
-                // Fallback: save the path as-is
-                updatePayload.logoUrl = `/uploads/${req.file.filename}`;
-            }
+            // Save new logo with relative path (Multer already saved it to settingsDir)
+            updatePayload.logoUrl = `/uploads/settings/${req.file.filename}`;
         }
 
         await setting.update(updatePayload);

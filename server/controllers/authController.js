@@ -1,7 +1,7 @@
 require('dotenv').config({ path: __dirname + '/../.env' });
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { User } = require('../models');
+const { User, Setting } = require('../models');
 const { sendAdminManagerNotification } = require('../utils/email');
 const { getStaffLoginAlertTemplate } = require('../utils/emailTemplates');
 
@@ -35,10 +35,15 @@ const login = async (req, res) => {
 
         // Security Alert: Email notifications for staff logins (Non-students)
         if (user.role && user.role.toLowerCase() !== 'student') {
-            const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-            const alertSubject = `Security Alert: Staff Session Established (${user.name})`;
-            const alertHtml = getStaffLoginAlertTemplate(user.name, user.email, user.role, new Date(), ip);
-            sendAdminManagerNotification(alertSubject, alertHtml);
+            const sysSetting = await Setting.findOne();
+            const alertsEnabled = !sysSetting || sysSetting.enableLoginEmailAlerts !== false;
+
+            if (alertsEnabled) {
+                const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+                const alertSubject = `Security Alert: Staff Session Established (${user.name})`;
+                const alertHtml = getStaffLoginAlertTemplate(user.name, user.email, user.role, new Date(), ip);
+                sendAdminManagerNotification(alertSubject, alertHtml);
+            }
         }
 
         res.json({

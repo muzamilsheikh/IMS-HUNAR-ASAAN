@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -9,7 +9,7 @@
   --color-secondary: #0d9488;
   --color-secondary-light: #14b8a6;
   --color-secondary-dark: #0f766e;
-  --font-family-sans: 'Inter', 'Roboto', sans-serif;
+  --font-family-sans: 'Poppins', 'Inter', sans-serif;
   --shadow-premium: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
   --shadow-premium-hover: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.1);
 }
@@ -24,11 +24,17 @@
 
 body {
   margin: 0;
-  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+  letter-spacing: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-light);
   color: var(--text-main);
+}
+
+label, th, button, .title-case {
+  text-transform: capitalize;
+  letter-spacing: normal;
 }
 
 @layer components {

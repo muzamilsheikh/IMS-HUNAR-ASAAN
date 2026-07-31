@@ -17,7 +17,8 @@ const getSettings = async (req, res) => {
                 emailPort: '587',
                 emailUser: '',
                 emailPass: '',
-                emailNotificationsEnabled: true
+                emailNotificationsEnabled: true,
+                enableLoginEmailAlerts: true
             });
         }
 
@@ -30,6 +31,9 @@ const getSettings = async (req, res) => {
             address: setting.address,
             logoUrl: setting.logoUrl,
             emailNotificationsEnabled: setting.emailNotificationsEnabled !== false,
+            enableLoginEmailAlerts: setting.enableLoginEmailAlerts !== false,
+            isStudentPortalMaintenance: setting.isStudentPortalMaintenance === true,
+            maintenanceNoticeMessage: setting.maintenanceNoticeMessage || 'Student Portal is currently under scheduled maintenance. We will be back online shortly!',
             emailServer: isAdmin ? {
                 host: setting.emailHost || '',
                 port: setting.emailPort || '587',
@@ -67,7 +71,7 @@ const updateSettings = async (req, res) => {
             try { formData = JSON.parse(req.body.data); } catch (e) { formData = req.body; }
         }
 
-        const { instituteName, contact, address, emailServer, bankName, accountTitle, accountNo, ibanCode, paymentInstructions, emailNotificationsEnabled } = formData;
+        const { instituteName, contact, address, emailServer, bankName, accountTitle, accountNo, ibanCode, paymentInstructions, emailNotificationsEnabled, enableLoginEmailAlerts, isStudentPortalMaintenance, maintenanceNoticeMessage } = formData;
 
         const updatePayload = {
             instituteName: instituteName || setting.instituteName,
@@ -79,6 +83,9 @@ const updateSettings = async (req, res) => {
             ibanCode: ibanCode !== undefined ? ibanCode : setting.ibanCode,
             paymentInstructions: paymentInstructions !== undefined ? paymentInstructions : setting.paymentInstructions,
             emailNotificationsEnabled: emailNotificationsEnabled !== undefined ? emailNotificationsEnabled : setting.emailNotificationsEnabled,
+            enableLoginEmailAlerts: enableLoginEmailAlerts !== undefined ? enableLoginEmailAlerts : setting.enableLoginEmailAlerts,
+            isStudentPortalMaintenance: isStudentPortalMaintenance !== undefined ? isStudentPortalMaintenance : setting.isStudentPortalMaintenance,
+            maintenanceNoticeMessage: maintenanceNoticeMessage !== undefined ? maintenanceNoticeMessage : setting.maintenanceNoticeMessage,
         };
 
         if (emailServer) {

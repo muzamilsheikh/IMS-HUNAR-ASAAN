@@ -19,14 +19,15 @@ import {
 } from 'lucide-react';
 import RegistrationForm from '../components/students/RegistrationForm';
 import StudentLedger from '../components/students/StudentLedger';
-import { Pencil } from 'lucide-react'; // ✅ Import Edit icon
+import { Pencil, Printer } from 'lucide-react'; // ✅ Import Edit and Printer icons
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../utils/cn';
 import toast from 'react-hot-toast';
 import apiClient from '../utils/api';
+import generateReceipt from '../utils/generateReceipt';
 
 const Students = () => {
-    const { students, courses, batches, loading, user } = useApp();
+    const { students, courses, batches, loading, user, settings } = useApp();
     const location = useLocation();
     const [view, setView] = useState('grid');
     const [showRegForm, setShowRegForm] = useState(false);
@@ -45,6 +46,32 @@ const Students = () => {
     const handleCloseForm = () => {
       setShowRegForm(false);
       setEditingStudent(null);
+    };
+
+    // ✅ Handle Print Challan
+    const handlePrintChallan = (student, course) => {
+      const studentTotalFee = Number(student.totalFee) || 0;
+      const studentDiscount = Number(student.discount) || 0;
+      const studentPaidAmount = Number(student.paidAmount) || 0;
+      const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
+
+      const latestPayment = student.Payments && student.Payments.length > 0
+        ? student.Payments[student.Payments.length - 1]
+        : null;
+
+      const challanData = {
+        studentName: student.name,
+        studentId: student.customId || `STU-${student.id || student._id}`,
+        course: course?.name || 'Assigned Course',
+        amount: unpaidBalance > 0 ? unpaidBalance : studentPaidAmount,
+        balance: unpaidBalance,
+        method: latestPayment?.method || 'Bank Transfer / Cash',
+        date: latestPayment?.date || new Date().toISOString().split('T')[0],
+        receiptNo: latestPayment?.id ? `REC-${latestPayment.id}` : `CHL-${student.id || student._id}`
+      };
+
+      const challanStatus = unpaidBalance === 0 ? 'PAID' : 'NOT PAID';
+      generateReceipt(challanData, challanStatus, settings);
     };
 
     // ✅ Handle Delete Student with confirmation
@@ -191,156 +218,278 @@ const Students = () => {
                 </div>
             </div>
 
-            <div className={view === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" : "space-y-6"}>
-                {filteredStudents.map((student) => {
-                    const studentCourseId = student.courseId?._id || student.courseId;
-                    const course = courses.find(c => (c._id === studentCourseId || c.id === studentCourseId));
-                    const studentTotalFee = Number(student.totalFee) || 0;
-                    const studentDiscount = Number(student.discount) || 0;
-                    const studentPaidAmount = Number(student.paidAmount) || 0;
-                    
-                    const netPayable = studentTotalFee - studentDiscount;
-                    let progress = 0;
-                    if (netPayable > 0) {
-                        progress = Math.min(100, Math.max(0, (studentPaidAmount / netPayable) * 100));
-                    } else if (studentPaidAmount > 0) {
-                        progress = 100;
-                    }
-                    
-                    const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
+            {view === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    {filteredStudents.map((student) => {
+                        const studentCourseId = student.courseId?._id || student.courseId;
+                        const course = courses.find(c => (c._id === studentCourseId || c.id === studentCourseId));
+                        const studentTotalFee = Number(student.totalFee) || 0;
+                        const studentDiscount = Number(student.discount) || 0;
+                        const studentPaidAmount = Number(student.paidAmount) || 0;
+                        
+                        const netPayable = studentTotalFee - studentDiscount;
+                        let progress = 0;
+                        if (netPayable > 0) {
+                            progress = Math.min(100, Math.max(0, (studentPaidAmount / netPayable) * 100));
+                        } else if (studentPaidAmount > 0) {
+                            progress = 100;
+                        }
+                        
+                        const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
 
-                    const today = new Date().toISOString().split('T')[0];
-                    const hasOverdue = student.Payments?.some(p => p.status === 'Pending' && p.date < today);
-                    const hasPending = student.Payments?.some(p => p.status === 'Pending');
+                        const today = new Date().toISOString().split('T')[0];
+                        const hasOverdue = student.Payments?.some(p => p.status === 'Pending' && p.date < today);
+                        const hasPending = student.Payments?.some(p => p.status === 'Pending');
 
-                    return view === 'grid' ? (
-                        <motion.div
-                            layout
-                            key={student._id || student.id}
-                            className="glass-card group hover:border-secondary transition-all cursor-pointer bg-white relative p-1 leading-none shadow-xl hover:shadow-2xl"
-                            onClick={() => setSelectedStudentId(student._id || student.id)}
-                        >
-                            <div className="p-10">
-                                <div className="flex justify-between items-start mb-10">
-                                    <div className="w-20 h-20 rounded-[2rem] bg-slate-50 text-slate-300 flex items-center justify-center font-black text-4xl border border-slate-100 group-hover:bg-primary group-hover:text-secondary transition-all duration-700 shadow-inner group-hover:rotate-6">
-                                        {student.name.charAt(0)}
-                                    </div>
-                                    <div className="flex flex-col items-end gap-3">
-                                        <div className={cn(
-                                            "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border shadow-sm",
-                                            hasOverdue ? 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse' :
-                                                !hasPending ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                    'bg-amber-50 text-amber-600 border-amber-100'
-                                        )}>
-                                            {hasOverdue ? 'Overdue' : !hasPending ? 'Settled' : 'Cycle Active'}
+                        return (
+                            <motion.div
+                                layout
+                                key={student._id || student.id}
+                                className="glass-card group hover:border-secondary transition-all cursor-pointer bg-white relative p-1 leading-none shadow-xl hover:shadow-2xl"
+                                onClick={() => setSelectedStudentId(student._id || student.id)}
+                            >
+                                <div className="p-10">
+                                    <div className="flex justify-between items-start mb-10">
+                                        <div className="w-20 h-20 rounded-[2rem] bg-slate-50 text-slate-300 flex items-center justify-center font-black text-4xl border border-slate-100 group-hover:bg-primary group-hover:text-secondary transition-all duration-700 shadow-inner group-hover:rotate-6">
+                                            {student.name.charAt(0)}
                                         </div>
-                                        <p className="text-[10px] font-black text-slate-300 tracking-[0.4em] italic">{student.customId}</p>
+                                        <div className="flex flex-col items-end gap-3">
+                                            <div className={cn(
+                                                "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border shadow-sm",
+                                                hasOverdue ? 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse' :
+                                                    !hasPending ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                        'bg-amber-50 text-amber-600 border-amber-100'
+                                            )}>
+                                                {hasOverdue ? 'Overdue' : !hasPending ? 'Settled' : 'Cycle Active'}
+                                            </div>
+                                            <p className="text-[10px] font-black text-slate-300 tracking-[0.4em] italic">{student.customId}</p>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <h4 className="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-4 uppercase">{student.name}</h4>
-                                <div className="flex items-center gap-4 text-slate-400 mb-10">
-                                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                                        <Phone size={12} className="text-secondary" />
-                                        <span className="text-[10px] font-black tracking-widest text-slate-600">{student.phone || 'N/A'}</span>
+                                    <h4 className="text-3xl font-black text-slate-800 tracking-tighter leading-none mb-4 uppercase">{student.name}</h4>
+                                    <div className="flex items-center gap-4 text-slate-400 mb-10">
+                                        <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                                            <Phone size={12} className="text-secondary" />
+                                            <span className="text-[10px] font-black tracking-widest text-slate-600">{student.phone || 'N/A'}</span>
+                                        </div>
+                                        <span className="text-[10px] font-black text-secondary/60 uppercase tracking-widest italic">{course?.name}</span>
                                     </div>
-                                    <span className="text-[10px] font-black text-secondary/60 uppercase tracking-widest italic">{course?.name}</span>
-                                </div>
 
-                                <div className="space-y-4">
-                                    <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                                        <span>Tuition Clearance</span>
-                                        <span className="text-slate-800">{Math.round(progress)}% Verified</span>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                                            <span>Tuition Clearance</span>
+                                            <span className="text-slate-800">{Math.round(progress)}% Verified</span>
+                                        </div>
+                                        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner p-0.5">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${progress}%` }}
+                                                className={cn("h-full rounded-full transition-all duration-1000", hasOverdue ? 'bg-rose-500' : 'bg-secondary')}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner p-0.5">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${progress}%` }}
-                                            className={cn("h-full rounded-full transition-all duration-1000", hasOverdue ? 'bg-rose-500' : 'bg-secondary')}
-                                        />
-                                    </div>
-                                </div>
 
-                                <div className="mt-12 flex items-center justify-between pt-10 border-t border-slate-50">
-                                    <div>
-                                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.5em] mb-2 leading-none">Unpaid Balance</p>
-                                        <p className="font-black text-slate-800 text-2xl tracking-tighter italic leading-none">Rs. {unpaidBalance.toLocaleString()}</p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        {/* ✅ Edit Button */}
-                                        <button
-                                            onClick={(e) => {
-                                               e.stopPropagation();
-                                                handleEditStudent(student);
-                                            }}
-                                            className="w-12 h-12 bg-blue-50 text-blue-500 rounded-[1.2rem] flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm border border-blue-100 hover:shadow-md"
-                                        >
-                                            <Pencil size={18} />
-                                        </button>
-                                        {/* ✅ Delete Button */}
-                                        {user?.role !== 'accounts_manager' && (
+                                    <div className="mt-12 flex items-center justify-between pt-10 border-t border-slate-50">
+                                        <div>
+                                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.5em] mb-2 leading-none">Unpaid Balance</p>
+                                            <p className="font-black text-slate-800 text-2xl tracking-tighter italic leading-none">Rs. {unpaidBalance.toLocaleString()}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {/* ✅ Edit Button */}
                                             <button
                                                 onClick={(e) => {
                                                    e.stopPropagation();
-                                                    setDeleteConfirm(student);
+                                                    handleEditStudent(student);
                                                 }}
-                                                className="w-12 h-12 bg-red-50 text-red-500 rounded-[1.2rem] flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm border border-red-100 hover:shadow-md active:scale-95"
+                                                className="w-12 h-12 bg-blue-50 text-blue-500 rounded-[1.2rem] flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm border border-blue-100 hover:shadow-md"
+                                                title="Edit Student"
                                             >
-                                                <Trash2 size={18} />
+                                                <Pencil size={18} />
                                             </button>
-                                        )}
-                                        {/* View Button */}
-                                        <div className="w-14 h-14 bg-slate-50 text-slate-300 rounded-[1.2rem] flex items-center justify-center group-hover:bg-secondary group-hover:text-white transition-all shadow-sm border border-slate-100 group-hover:translate-x-1 group-hover:-translate-y-1">
-                                            <Eye size={24} />
+                                            {/* ✅ Print Challan Button */}
+                                            <button
+                                                onClick={(e) => {
+                                                   e.stopPropagation();
+                                                    handlePrintChallan(student, course);
+                                                }}
+                                                className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-[1.2rem] flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all shadow-sm border border-emerald-100 hover:shadow-md"
+                                                title="Print Fee Challan"
+                                            >
+                                                <Printer size={18} />
+                                            </button>
+                                            {/* ✅ Delete Button */}
+                                            {user?.role !== 'accounts_manager' && (
+                                                <button
+                                                    onClick={(e) => {
+                                                       e.stopPropagation();
+                                                        setDeleteConfirm(student);
+                                                    }}
+                                                    className="w-12 h-12 bg-red-50 text-red-500 rounded-[1.2rem] flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm border border-red-100 hover:shadow-md active:scale-95"
+                                                    title="Delete Student"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            )}
+                                            {/* View Button */}
+                                            <div className="w-14 h-14 bg-slate-50 text-slate-300 rounded-[1.2rem] flex items-center justify-center group-hover:bg-secondary group-hover:text-white transition-all shadow-sm border border-slate-100 group-hover:translate-x-1 group-hover:-translate-y-1">
+                                                <Eye size={24} />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            layout
-                            key={student._id || student.id}
-                            className="glass-card flex items-center justify-between p-8 hover:border-secondary cursor-pointer bg-white group shadow-xl hover:shadow-2xl transition-all border border-slate-50 rounded-[2rem]"
-                            onClick={() => setSelectedStudentId(student._id || student.id)}
-                        >
-                            <div className="flex items-center gap-8 flex-1">
-                                <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center font-black text-2xl text-slate-200 border border-slate-100 group-hover:bg-primary group-hover:text-secondary transition-all shadow-inner group-hover:rotate-12">
-                                    {student.name.charAt(0)}
-                                </div>
-                                <div>
-                                    <p className="font-black text-slate-800 text-2xl tracking-tight leading-none mb-2 uppercase">{student.name}</p>
-                                    <div className="flex items-center gap-4">
-                                        <p className="text-[10px] text-secondary font-black uppercase tracking-[0.3em] italic">{student.customId}</p>
-                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-                                        <div className="flex items-center gap-2">
-                                            <Phone size={12} className="text-slate-300" />
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{student.phone}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex-1 hidden md:block">
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 opacity-60">Settled Amount</p>
-                                <p className="font-black text-slate-800 text-lg tracking-tight italic">Rs. {(student.paidAmount || 0).toLocaleString()}</p>
-                            </div>
-                            <div className="flex items-center gap-12">
-                                <div className={cn(
-                                    "px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border shadow-sm",
-                                    hasOverdue ? 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse' :
-                                        !hasPending ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                            'bg-amber-50 text-amber-600 border-amber-100'
-                                )}>
-                                    {hasOverdue ? 'Overdue Status' : !hasPending ? 'Fully Cleared' : 'Cycle Pending'}
-                                </div>
-                                <div className="p-4 bg-slate-50 text-slate-200 rounded-2xl group-hover:bg-secondary group-hover:text-white transition-all shadow-sm">
-                                    <Eye size={24} />
-                                </div>
-                            </div>
-                        </motion.div>
-                    );
-                })}
-            </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            ) : (
+                /* Data Table Layout */
+                <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider">
+                                    <th className="py-4 px-6">Student Name</th>
+                                    <th className="py-4 px-6">Contact</th>
+                                    <th className="py-4 px-6">Enrollment Status</th>
+                                    <th className="py-4 px-6">Fee Status</th>
+                                    <th className="py-4 px-6 text-right">Pending Amount (PKR)</th>
+                                    <th className="py-4 px-6 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 text-sm">
+                                {filteredStudents.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="py-12 text-center text-slate-400 font-bold">
+                                            No student records found matching your filters.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredStudents.map((student) => {
+                                        const studentCourseId = student.courseId?._id || student.courseId;
+                                        const course = courses.find(c => (c._id === studentCourseId || c.id === studentCourseId));
+                                        const studentTotalFee = Number(student.totalFee) || 0;
+                                        const studentDiscount = Number(student.discount) || 0;
+                                        const studentPaidAmount = Number(student.paidAmount) || 0;
+                                        const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
+
+                                        const today = new Date().toISOString().split('T')[0];
+                                        const hasOverdue = student.Payments?.some(p => p.status === 'Pending' && p.date < today);
+                                        const hasPending = student.Payments?.some(p => p.status === 'Pending');
+
+                                        // Enrollment Status: Enrolled vs Lead / Pending / Passout
+                                        const isEnrolled = student.status === 'Active' || student.status === 'Settled' || !student.status;
+                                        const enrollmentLabel = student.status ? student.status : (isEnrolled ? 'Enrolled' : 'Lead');
+
+                                        // Fee Status badge
+                                        let feeStatusText = 'Paid';
+                                        let feeStatusStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                                        if (hasOverdue) {
+                                            feeStatusText = 'Overdue';
+                                            feeStatusStyle = 'bg-rose-50 text-rose-700 border-rose-200 animate-pulse';
+                                        } else if (unpaidBalance > 0 && studentPaidAmount > 0) {
+                                            feeStatusText = 'Partial';
+                                            feeStatusStyle = 'bg-amber-50 text-amber-700 border-amber-200';
+                                        } else if (unpaidBalance > 0 && studentPaidAmount === 0) {
+                                            feeStatusText = 'Unpaid';
+                                            feeStatusStyle = 'bg-red-50 text-red-700 border-red-200';
+                                        }
+
+                                        return (
+                                            <tr key={student._id || student.id} className="hover:bg-slate-50/80 transition-colors">
+                                                {/* 1. Student Name */}
+                                                <td className="py-4 px-6 font-bold text-slate-800">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center font-black text-base border border-secondary/20">
+                                                            {student.name.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-extrabold text-slate-800">{student.name}</div>
+                                                            <div className="text-xs text-slate-400 font-semibold">{student.customId || 'N/A'} • {course?.name || 'No Course'}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                {/* 2. Contact */}
+                                                <td className="py-4 px-6 font-medium text-slate-600">
+                                                    <div className="flex items-center gap-2">
+                                                        <Phone size={14} className="text-secondary" />
+                                                        <span>{student.phone || 'N/A'}</span>
+                                                    </div>
+                                                    {student.email && (
+                                                        <div className="text-xs text-slate-400 mt-0.5">{student.email}</div>
+                                                    )}
+                                                </td>
+
+                                                {/* 3. Enrollment Status */}
+                                                <td className="py-4 px-6">
+                                                    <span className={cn(
+                                                        "px-3 py-1 rounded-lg text-xs font-extrabold uppercase border inline-block",
+                                                        student.status === 'Active' || student.status === 'Settled'
+                                                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                                            : student.status === 'Dropped'
+                                                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                                                            : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                                    )}>
+                                                        {enrollmentLabel}
+                                                    </span>
+                                                </td>
+
+                                                {/* 4. Fee Status */}
+                                                <td className="py-4 px-6">
+                                                    <span className={cn("px-3 py-1 rounded-lg text-xs font-extrabold uppercase border inline-block", feeStatusStyle)}>
+                                                        {feeStatusText}
+                                                    </span>
+                                                </td>
+
+                                                {/* 5. Pending Amount (PKR) */}
+                                                <td className="py-4 px-6 text-right font-extrabold text-slate-800">
+                                                    Rs. {unpaidBalance.toLocaleString()}
+                                                </td>
+
+                                                {/* 6. Actions (Edit / View / Print Challan) */}
+                                                <td className="py-4 px-6">
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <button
+                                                            onClick={() => handleEditStudent(student)}
+                                                            className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all border border-blue-100"
+                                                            title="Edit Student"
+                                                        >
+                                                            <Pencil size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setSelectedStudentId(student._id || student.id)}
+                                                            className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-secondary hover:text-white transition-all border border-slate-200"
+                                                            title="View Student Details"
+                                                        >
+                                                            <Eye size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handlePrintChallan(student, course)}
+                                                            className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100"
+                                                            title="Print Challan"
+                                                        >
+                                                            <Printer size={16} />
+                                                        </button>
+                                                        {user?.role !== 'accounts_manager' && (
+                                                            <button
+                                                                onClick={() => setDeleteConfirm(student)}
+                                                                className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all border border-red-100"
+                                                                title="Delete Student"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             <AnimatePresence>
                 {showRegForm && (

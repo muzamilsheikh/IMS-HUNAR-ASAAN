@@ -228,6 +228,36 @@ const StudentDashboard = () => {
         generateReceipt(data, 'NOT PAID', settings);
     };
 
+    if (settings?.isStudentPortalMaintenance) {
+        return (
+            <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500">
+                <div className="max-w-2xl w-full glass-card p-12 bg-white rounded-[3rem] shadow-2xl border border-slate-100 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600" />
+                    
+                    <div className="w-24 h-24 bg-amber-50 rounded-3xl flex items-center justify-center mx-auto mb-8 text-amber-500 shadow-inner border border-amber-100 animate-pulse">
+                        <Clock size={48} />
+                    </div>
+
+                    <span className="inline-block px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 text-xs font-black uppercase tracking-widest mb-6">
+                        System Maintenance / Coming Soon
+                    </span>
+
+                    <h2 className="text-4xl font-black text-slate-800 tracking-tight mb-4">
+                        We'll Be Right Back!
+                    </h2>
+
+                    <p className="text-slate-600 font-medium text-base leading-relaxed mb-8 max-w-lg mx-auto">
+                        {settings?.maintenanceNoticeMessage || 'Student Portal is currently under scheduled maintenance. We will be back online shortly!'}
+                    </p>
+
+                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        Thank you for your patience • Hunar Asaan Academic Operations
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-96 space-y-4">

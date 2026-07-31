@@ -127,8 +127,17 @@ const Expense = sequelize.define('Expense', {
         type: DataTypes.ENUM('Marketing', 'Utilities', 'Rent', 'Salaries', 'Maintenance', 'Collaboration Share', 'Other'),
         defaultValue: 'Other'
     },
+    courseId: { type: DataTypes.INTEGER, allowNull: true },
+    batchId: { type: DataTypes.INTEGER, allowNull: true },
     date: { type: DataTypes.DATEONLY, allowNull: false, defaultValue: DataTypes.NOW }
-}, { timestamps: true, tableName: 'Expenses' });
+}, { 
+    timestamps: true, 
+    tableName: 'Expenses',
+    indexes: [
+        { fields: ['courseId'] },
+        { fields: ['batchId'] }
+    ]
+});
 
 // ============ COLLABORATION MODEL ============
 const Collaboration = sequelize.define('Collaboration', {
@@ -167,7 +176,10 @@ const Setting = sequelize.define('Setting', {
     accountNo: { type: DataTypes.STRING(100), allowNull: true },
     ibanCode: { type: DataTypes.STRING(100), allowNull: true },
     paymentInstructions: { type: DataTypes.TEXT, allowNull: true },
-    emailNotificationsEnabled: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: true }
+    emailNotificationsEnabled: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: true },
+    enableLoginEmailAlerts: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: true },
+    isStudentPortalMaintenance: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },
+    maintenanceNoticeMessage: { type: DataTypes.TEXT, allowNull: true, defaultValue: 'Student Portal is currently under scheduled maintenance. We will be back online shortly!' }
 }, { timestamps: true, tableName: 'Settings' });
 
 // ============ LIVE CLASSES MODEL ============
@@ -567,8 +579,14 @@ VideoViewLog.belongsTo(VideoRecording, { foreignKey: 'recordingId' });
 
 // Video Session associations
 Student.hasMany(VideoSession, { foreignKey: 'studentId', onDelete: 'CASCADE' });
-VideoSession.belongsTo(Student, { foreignKey: 'studentId' });
 VideoRecording.hasMany(VideoSession, { foreignKey: 'recordingId', onDelete: 'CASCADE' });
+VideoSession.belongsTo(VideoRecording, { foreignKey: 'recordingId' });
+
+// Expense associations
+Course.hasMany(Expense, { foreignKey: 'courseId', onDelete: 'SET NULL' });
+Expense.belongsTo(Course, { foreignKey: 'courseId' });
+Batch.hasMany(Expense, { foreignKey: 'batchId', onDelete: 'SET NULL' });
+Expense.belongsTo(Batch, { foreignKey: 'batchId' });
 VideoSession.belongsTo(VideoRecording, { foreignKey: 'recordingId' });
 
 // EnrollmentRequest associations

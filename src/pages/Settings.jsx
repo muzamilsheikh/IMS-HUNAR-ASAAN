@@ -19,7 +19,10 @@ const Settings = () => {
         accountNo: '',
         ibanCode: '',
         paymentInstructions: '',
-        emailNotificationsEnabled: true
+        emailNotificationsEnabled: true,
+        enableLoginEmailAlerts: true,
+        isStudentPortalMaintenance: false,
+        maintenanceNoticeMessage: 'Student Portal is currently under scheduled maintenance. We will be back online shortly!'
     });
 
     useEffect(() => {
@@ -34,7 +37,10 @@ const Settings = () => {
                 accountNo: settings.accountNo || '',
                 ibanCode: settings.ibanCode || '',
                 paymentInstructions: settings.paymentInstructions || '',
-                emailNotificationsEnabled: settings.emailNotificationsEnabled !== false
+                emailNotificationsEnabled: settings.emailNotificationsEnabled !== false,
+                enableLoginEmailAlerts: settings.enableLoginEmailAlerts !== false,
+                isStudentPortalMaintenance: settings.isStudentPortalMaintenance === true,
+                maintenanceNoticeMessage: settings.maintenanceNoticeMessage || 'Student Portal is currently under scheduled maintenance. We will be back online shortly!'
             });
             if (settings.logoUrl) {
                 setLogoPreview(settings.logoUrl);
@@ -227,13 +233,48 @@ const Settings = () => {
                         </div>
                     </div>
 
+                    {/* ── Student Portal Maintenance Control ── */}
+                    <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100 relative">
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase mb-8">
+                            <span className="p-3 bg-amber-500/10 text-amber-600 rounded-2xl"><Shield size={24} /></span>
+                            Student Portal Control
+                        </h3>
+
+                        <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
+                            <div>
+                                <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Maintenance / Coming Soon Mode</p>
+                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Enable maintenance screen for all student portal visitors</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={formData.isStudentPortalMaintenance} 
+                                    onChange={e => setFormData({ ...formData, isStudentPortalMaintenance: e.target.checked })}
+                                    className="sr-only peer" 
+                                />
+                                <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Maintenance Notice Message</label>
+                            <textarea
+                                value={formData.maintenanceNoticeMessage}
+                                onChange={e => setFormData({ ...formData, maintenanceNoticeMessage: e.target.value })}
+                                rows="3"
+                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all resize-none"
+                                placeholder="Dynamic message shown on student maintenance screen..."
+                            />
+                        </div>
+                    </div>
+
                     <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100">
                         <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase mb-12">
                             <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner"><Mail size={24} /></div>
                             Automation SMTP logic
                         </h3>
 
-                        <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
+                        <div className="flex justify-between items-center mb-6 pb-6 border-b border-slate-100">
                             <div>
                                 <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Email Notifications Status</p>
                                 <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Enable or disable all automated email alerts globally</p>
@@ -243,6 +284,22 @@ const Settings = () => {
                                     type="checkbox" 
                                     checked={formData.emailNotificationsEnabled} 
                                     onChange={e => setFormData({ ...formData, emailNotificationsEnabled: e.target.checked })}
+                                    className="sr-only peer" 
+                                />
+                                <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                            </label>
+                        </div>
+
+                        <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
+                            <div>
+                                <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Staff Session Email Alerts</p>
+                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Send email security notifications on staff & admin logins</p>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={formData.enableLoginEmailAlerts} 
+                                    onChange={e => setFormData({ ...formData, enableLoginEmailAlerts: e.target.checked })}
                                     className="sr-only peer" 
                                 />
                                 <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>

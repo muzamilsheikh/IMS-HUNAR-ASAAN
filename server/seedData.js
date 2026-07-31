@@ -6,7 +6,7 @@ const seedData = async () => {
     console.log('🌱 Starting data seeding...');
 
     // Create master admin user
-    const hashedAdminPassword = await bcrypt.hash('Hunar123@321@123', 10);
+    const hashedAdminPassword = await bcrypt.hash('Hun@r@s@@n@786@867', 10);
     const [adminUser, adminCreated] = await User.findOrCreate({
       where: { email: 'admin@hunarasaan.com' },
       defaults: {

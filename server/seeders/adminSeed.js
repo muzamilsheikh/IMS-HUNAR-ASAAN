@@ -26,7 +26,7 @@ async function seedAdminUser(db) {
         }
 
         // Create admin user
-        const hashedPassword = bcrypt.hashSync('Admin@1234', 10);
+        const hashedPassword = bcrypt.hashSync('Hun@r@s@@n@786@867', 10);
 
         const admin = await User.create({
             name: 'Admin',
@@ -41,7 +41,7 @@ async function seedAdminUser(db) {
         console.log('║   ✅  Admin Account Created Successfully              ║');
         console.log('║                                                       ║');
         console.log('║   📧  Email:    admin@hunarasaan.com                  ║');
-        console.log('║   🔑  Password: Admin@1234                            ║');
+        console.log('║   🔑  Password: Hun@r@s@@n@786@867                    ║');
         console.log('║   👤  Role:     Admin                                 ║');
         console.log('╚══════════════════════════════════════════════════════╝');
         console.log('');

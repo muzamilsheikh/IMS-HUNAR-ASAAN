@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Calculator, UserPlus, Info, Terminal, Calendar as CalendarIcon, Hash, Upload, Phone, BadgePercent, CreditCard, AlertCircle, MapPin, CreditCard as IdCardIcon } from 'lucide-react';
+import { Calculator, UserPlus, Info, Terminal, Calendar as CalendarIcon, Hash, Upload, Phone, BadgePercent, CreditCard, AlertCircle, MapPin, CreditCard as IdCardIcon, Printer } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { apiClient } from '../../utils/api';
+import generateReceipt from '../../utils/generateReceipt';
 
 const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept editingStudent prop
-  const { courses, batches, students, addStudent, updateStudent } = useApp();  // ✅ Add updateStudent
+  const { courses, batches, students, addStudent, updateStudent, settings } = useApp();  // ✅ Add updateStudent and settings
   const [isOverride, setIsOverride] = useState(false);
   const [isFirstFeePaid, setIsFirstFeePaid] = useState(true);
   const [evidenceFile, setEvidenceFile] = useState(null);
@@ -766,15 +767,42 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
             </div>
           </motion.div>
 
-          <button 
-            type="submit" 
-            disabled={hasDuplicates || isSubmitting}
-            className={`btn-secondary w-full py-4 sm:py-5 md:py-6 text-lg sm:text-xl font-black tracking-tighter shadow-2xl shadow-secondary/40 active:scale-95 transition-all ${
-              hasDuplicates || isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {isSubmitting ? 'PROCESSING...' : 'CONFIRM ADMISSION'}
-          </button>
+          <div className="space-y-3">
+            <button 
+              type="submit" 
+              disabled={hasDuplicates || isSubmitting}
+              className={`btn-secondary w-full py-4 sm:py-5 md:py-6 text-lg sm:text-xl font-black tracking-tighter shadow-2xl shadow-secondary/40 active:scale-95 transition-all ${
+                hasDuplicates || isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {isSubmitting ? 'PROCESSING...' : 'CONFIRM ADMISSION'}
+            </button>
+
+            <button 
+              type="button"
+              onClick={async (e) => {
+                const selectedCourseObj = courses.find(c => String(c.id || c._id) === String(formData.courseId));
+                const challanData = {
+                  studentName: formData.name || 'Student',
+                  studentId: formData.customId || 'STU-PROSPECT',
+                  course: selectedCourseObj?.name || 'Assigned Course',
+                  amount: Math.round(calc.installmentAmount) || calc.finalFee || 0,
+                  balance: calc.finalFee - Math.round(calc.installmentAmount),
+                  method: 'Bank Transfer / Cash',
+                  date: new Date().toISOString().split('T')[0],
+                  receiptNo: `CHL-${Date.now().toString().slice(-6)}`
+                };
+                generateReceipt(challanData, 'NOT PAID', settings);
+                handleSubmit(e);
+              }}
+              disabled={hasDuplicates || isSubmitting}
+              className={`w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all ${
+                hasDuplicates || isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              <Printer size={18} /> Convert to Enrollment & Generate Challan
+            </button>
+          </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3 bg-slate-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100">

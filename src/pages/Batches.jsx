@@ -152,7 +152,12 @@ const Batches = () => {
                     });
 
                     return (
-                        <motion.div key={batch.id || batch._id} whileHover={{ y: -5 }} className="glass-card group border-l-8 border-l-secondary bg-white shadow-lg overflow-hidden">
+                        <motion.div 
+                            key={batch.id || batch._id} 
+                            whileHover={{ y: -5 }} 
+                            onClick={() => handleSeeStudents(batch.id || batch._id)}
+                            className="glass-card group border-l-8 border-l-secondary bg-white shadow-lg overflow-hidden cursor-pointer"
+                        >
                             <div className="p-8">
                                 <div className="flex justify-between items-start mb-6">
                                     <div className="w-14 h-14 bg-secondary/5 text-secondary rounded-2xl flex items-center justify-center border border-secondary/10">
@@ -161,14 +166,20 @@ const Batches = () => {
                                     {user?.role !== 'accounts_manager' && (
                                         <div className="flex gap-2">
                                             <button 
-                                                onClick={() => handleEditClick(batch)} 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleEditClick(batch);
+                                                }} 
                                                 className="p-2 text-slate-400 hover:text-secondary hover:bg-slate-100 rounded-lg transition-all"
                                                 title="Edit Batch"
                                             >
                                                 <Edit3 size={18} />
                                             </button>
                                             <button 
-                                                onClick={() => deleteBatch(batch.id || batch._id)} 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    deleteBatch(batch.id || batch._id);
+                                                }} 
                                                 className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
                                                 title="Delete Batch"
                                             >

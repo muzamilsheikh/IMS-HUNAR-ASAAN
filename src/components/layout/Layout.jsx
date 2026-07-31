@@ -101,7 +101,7 @@ const Layout = ({ children }) => {
     };
 
     return (
-        <div className="flex min-h-screen bg-slate-50">
+        <div className="min-h-screen w-full bg-[#0d1322] flex">
             <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
             {/* Mobile Floating Menu Button - Fixed positioning to avoid overlap */}
@@ -113,9 +113,9 @@ const Layout = ({ children }) => {
             </button>
 
             <main className={cn(
-                "flex-1 transition-all duration-300 ease-in-out",
+                "flex-1 min-h-screen transition-all duration-300 ease-in-out bg-slate-50",
                 sidebarOpen ? "ml-0 lg:ml-72" : "ml-0 lg:ml-72",
-                "p-4 sm:p-6 md:p-8 pt-20 sm:pt-8" // Responsive padding with top spacing for mobile
+                "p-4 md:p-6 lg:p-8 pt-20 lg:pt-8 overflow-y-auto w-full min-w-0"
             )}>
                 <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                     <div className="relative w-full sm:w-1/2 group">

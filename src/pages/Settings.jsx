@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import {
-    Settings as SettingsIcon, Globe, Mail, Shield, Save, Upload, Image as ImageIcon, Sparkles, Terminal, Phone, MapPin, Building, User, Hash, CreditCard
+    Settings as SettingsIcon, Globe, Mail, Shield, Save, Upload, Image as ImageIcon, Sparkles, Terminal, Phone, MapPin, Building, User, Hash, CreditCard, ShieldAlert, Database
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import EmailSettings from './Settings/EmailSettings';
+import BackupSettings from './Settings/BackupSettings';
 
 const Settings = () => {
-    const { settings, updateSettings, loading } = useApp();
+    const { user, settings, updateSettings, loading } = useApp();
     const [logoPreview, setLogoPreview] = useState(null);
     const [logoFile, setLogoFile] = useState(null);
+    const [activeTab, setActiveTab] = useState('general'); // 'general', 'email', 'backup'
     const [formData, setFormData] = useState({
         instituteName: '',
         contact: '',
@@ -22,7 +25,14 @@ const Settings = () => {
         emailNotificationsEnabled: true,
         enableLoginEmailAlerts: true,
         isStudentPortalMaintenance: false,
-        maintenanceNoticeMessage: 'Student Portal is currently under scheduled maintenance. We will be back online shortly!'
+        maintenanceNoticeMessage: 'Student Portal is currently under scheduled maintenance. We will be back online shortly!',
+        primaryAdminEmail: '',
+        accountsEmail: '',
+        operationsEmail: '',
+        staffRecipients: '[]',
+        globalCcEmails: '',
+        backupFrequency: 'manual',
+        backupEmail: ''
     });
 
     useEffect(() => {
@@ -40,7 +50,14 @@ const Settings = () => {
                 emailNotificationsEnabled: settings.emailNotificationsEnabled !== false,
                 enableLoginEmailAlerts: settings.enableLoginEmailAlerts !== false,
                 isStudentPortalMaintenance: settings.isStudentPortalMaintenance === true,
-                maintenanceNoticeMessage: settings.maintenanceNoticeMessage || 'Student Portal is currently under scheduled maintenance. We will be back online shortly!'
+                maintenanceNoticeMessage: settings.maintenanceNoticeMessage || 'Student Portal is currently under scheduled maintenance. We will be back online shortly!',
+                primaryAdminEmail: settings.primaryAdminEmail || '',
+                accountsEmail: settings.accountsEmail || '',
+                operationsEmail: settings.operationsEmail || '',
+                staffRecipients: settings.staffRecipients || '[]',
+                globalCcEmails: settings.globalCcEmails || '',
+                backupFrequency: settings.backupFrequency || 'manual',
+                backupEmail: settings.backupEmail || ''
             });
             if (settings.logoUrl) {
                 setLogoPreview(settings.logoUrl);
@@ -78,262 +95,366 @@ const Settings = () => {
                 </div>
             </div>
 
-            <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                <div className="lg:col-span-1 space-y-8">
-                    <div className="glass-card p-10 bg-white border border-slate-100 shadow-2xl relative overflow-hidden group">
-                        <div className="absolute top-0 left-0 w-full h-2 bg-secondary" />
-                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] mb-8">Brand Vitals</p>
-
-                        <div className="relative aspect-square rounded-[2.5rem] overflow-hidden bg-slate-50 border-4 border-dashed border-slate-100 group-hover:border-secondary/20 transition-all flex flex-col items-center justify-center">
-                            {logoPreview ? (
-                                <img src={logoPreview} alt="Logo" className="w-full h-full object-contain p-4" />
-                            ) : (
-                                <ImageIcon size={60} className="text-slate-200" />
-                            )}
-                            <label className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-all gap-4">
-                                <div className="w-14 h-14 bg-secondary rounded-2xl flex items-center justify-center text-white shadow-xl"><Upload size={24} /></div>
-                                <span className="text-xs font-black text-white uppercase tracking-widest">Update Identity</span>
-                                <input type="file" className="hidden" onChange={handleLogoChange} />
-                            </label>
-                        </div>
-
-                        <div className="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 italic text-center">Current Institute Name</p>
-                            <p className="font-black text-slate-800 text-center uppercase tracking-tighter text-lg">{formData.instituteName || 'Not Set'}</p>
-                        </div>
+            <form onSubmit={handleSave} className="space-y-10">
+                {/* Custom Tabs Navigation */}
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-200 pb-2">
+                    <div className="flex gap-4">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('general')}
+                            className={`pb-3 px-4 text-xs font-black uppercase tracking-[0.2em] transition-all relative border-b-2 ${
+                                activeTab === 'general'
+                                    ? "text-secondary border-secondary"
+                                    : "text-slate-400 border-transparent hover:text-slate-600"
+                            }`}
+                        >
+                            General Settings
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('email')}
+                            className={`pb-3 px-4 text-xs font-black uppercase tracking-[0.2em] transition-all relative border-b-2 ${
+                                activeTab === 'email'
+                                    ? "text-secondary border-secondary"
+                                    : "text-slate-400 border-transparent hover:text-slate-600"
+                            }`}
+                        >
+                            Email & CC Settings
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('backup')}
+                            className={`pb-3 px-4 text-xs font-black uppercase tracking-[0.2em] transition-all relative border-b-2 ${
+                                activeTab === 'backup'
+                                    ? "text-secondary border-secondary"
+                                    : "text-slate-400 border-transparent hover:text-slate-600"
+                            }`}
+                        >
+                            Backup & Restore
+                        </button>
                     </div>
 
-                    <div className="bg-primary p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
-                        <Sparkles className="absolute -right-4 -bottom-4 text-white/5" size={200} />
-                        <h4 className="font-black text-2xl tracking-tighter italic mb-6">Safe Mode</h4>
-                        <p className="text-xs font-bold text-white/40 uppercase tracking-widest leading-loose">
-                            Administrative overrides are locked to your secure session. Changes here reflect globally across all scholar vouchers and system logic.
-                        </p>
-                    </div>
+                    {/* Don't show deploy button if non-admin is trying to access email or backup tabs */}
+                    {!( (activeTab === 'email' || activeTab === 'backup') && user?.role?.toLowerCase() !== 'admin') && (
+                        <button type="submit" className="btn-secondary py-3.5 px-8 font-black text-xs uppercase tracking-widest shadow-xl shadow-secondary/30 active:scale-95 transition-all flex items-center gap-2">
+                            <Save size={16} /> Deploy Config
+                        </button>
+                    )}
                 </div>
 
-                <div className="lg:col-span-2 space-y-10">
-                    <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100 relative">
-                        <div className="flex justify-between items-center mb-12">
-                            <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase">
-                                <div className="w-12 h-12 bg-secondary/10 text-secondary rounded-2xl flex items-center justify-center shadow-inner"><Building size={24} /></div>
-                                Institute Identity
-                            </h3>
-                            <button type="submit" className="btn-secondary py-4 px-10 font-black text-sm uppercase tracking-widest shadow-xl shadow-secondary/30 active:scale-95 transition-all flex items-center gap-3">
-                                <Save size={20} /> Deploy Config
-                            </button>
+                {/* Tab content renders below */}
+                {activeTab === 'general' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                        {/* Left column */}
+                        <div className="lg:col-span-1 space-y-8">
+                            <div className="glass-card p-10 bg-white border border-slate-100 shadow-2xl relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 w-full h-2 bg-secondary" />
+                                <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] mb-8">Brand Vitals</p>
+
+                                <div className="relative aspect-square rounded-[2.5rem] overflow-hidden bg-slate-50 border-4 border-dashed border-slate-100 group-hover:border-secondary/20 transition-all flex flex-col items-center justify-center">
+                                    {logoPreview ? (
+                                        <img src={logoPreview} alt="Logo" className="w-full h-full object-contain p-4" />
+                                    ) : (
+                                        <ImageIcon size={60} className="text-slate-200" />
+                                    )}
+                                    <label className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-all gap-4">
+                                        <div className="w-14 h-14 bg-secondary rounded-2xl flex items-center justify-center text-white shadow-xl"><Upload size={24} /></div>
+                                        <span className="text-xs font-black text-white uppercase tracking-widest">Update Identity</span>
+                                        <input type="file" className="hidden" onChange={handleLogoChange} />
+                                    </label>
+                                </div>
+
+                                <div className="mt-10 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1 italic text-center">Current Institute Name</p>
+                                    <p className="font-black text-slate-800 text-center uppercase tracking-tighter text-lg">{formData.instituteName || 'Not Set'}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-primary p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+                                <Sparkles className="absolute -right-4 -bottom-4 text-white/5" size={200} />
+                                <h4 className="font-black text-2xl tracking-tighter italic mb-6">Safe Mode</h4>
+                                <p className="text-xs font-bold text-white/40 uppercase tracking-widest leading-loose">
+                                    Administrative overrides are locked to your secure session. Changes here reflect globally across all scholar vouchers and system logic.
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Official Name</label>
-                                <div className="relative">
-                                    <Terminal className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
-                                    <input className="input-field pl-12 bg-slate-50 focus:bg-white border-transparent focus:border-secondary/20" value={formData.instituteName} onChange={e => setFormData({ ...formData, instituteName: e.target.value })} />
+                        {/* Right column */}
+                        <div className="lg:col-span-2 space-y-10">
+                            {/* Institute Identity */}
+                            <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100 relative">
+                                <div className="flex justify-between items-center mb-12">
+                                    <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase">
+                                        <div className="w-12 h-12 bg-secondary/10 text-secondary rounded-2xl flex items-center justify-center shadow-inner"><Building size={24} /></div>
+                                        Institute Identity
+                                    </h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Official Name</label>
+                                        <div className="relative">
+                                            <Terminal className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                            <input className="input-field pl-12 bg-slate-50 focus:bg-white border-transparent focus:border-secondary/20" value={formData.instituteName} onChange={e => setFormData({ ...formData, instituteName: e.target.value })} />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Headquarters Contact</label>
+                                        <div className="relative">
+                                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                            <input className="input-field pl-12 bg-slate-50 focus:bg-white border-transparent focus:border-secondary/20" value={formData.contact} onChange={e => setFormData({ ...formData, contact: e.target.value })} />
+                                        </div>
+                                    </div>
+                                    <div className="md:col-span-2 space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Geographic Registry (Address)</label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                            <input className="input-field pl-12 bg-slate-50 focus:bg-white border-transparent focus:border-secondary/20" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Headquarters Contact</label>
-                                <div className="relative">
-                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
-                                    <input className="input-field pl-12 bg-slate-50 focus:bg-white border-transparent focus:border-secondary/20" value={formData.contact} onChange={e => setFormData({ ...formData, contact: e.target.value })} />
+
+                            {/* Payment & Bank Configuration */}
+                            <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100 relative">
+                                <div className="flex justify-between items-center mb-12">
+                                    <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase">
+                                        <span className="p-3 bg-secondary/10 text-secondary rounded-2xl"><Building size={24} /></span>
+                                        Payment & Bank Configuration
+                                    </h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Bank Name</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                <Building size={16} className="text-slate-400" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={formData.bankName}
+                                                onChange={e => setFormData({ ...formData, bankName: e.target.value })}
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                                                placeholder="e.g. Meezan Bank Ltd., Gulberg Branch"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Account Title</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                <User size={16} className="text-slate-400" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={formData.accountTitle}
+                                                onChange={e => setFormData({ ...formData, accountTitle: e.target.value })}
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                                                placeholder="e.g. Hunar Asaan Skill Center"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Account No.</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                <Hash size={16} className="text-slate-400" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={formData.accountNo}
+                                                onChange={e => setFormData({ ...formData, accountNo: e.target.value })}
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                                                placeholder="e.g. 0110-1234567-001"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">IBAN Code</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                <CreditCard size={16} className="text-slate-400" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={formData.ibanCode}
+                                                onChange={e => setFormData({ ...formData, ibanCode: e.target.value })}
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
+                                                placeholder="e.g. PK36 MEZN 0001 1012 3456 7001"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Payment Instructions (Optional)</label>
+                                    <textarea
+                                        value={formData.paymentInstructions}
+                                        onChange={e => setFormData({ ...formData, paymentInstructions: e.target.value })}
+                                        rows="3"
+                                        className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all resize-none"
+                                        placeholder="Any additional notes to display on the receipt/challan..."
+                                    />
                                 </div>
                             </div>
-                            <div className="md:col-span-2 space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Geographic Registry (Address)</label>
-                                <div className="relative">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
-                                    <input className="input-field pl-12 bg-slate-50 focus:bg-white border-transparent focus:border-secondary/20" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
+
+                            {/* Student Portal Control */}
+                            <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100 relative">
+                                <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase mb-8">
+                                    <span className="p-3 bg-amber-500/10 text-amber-600 rounded-2xl"><Shield size={24} /></span>
+                                    Student Portal Control
+                                </h3>
+
+                                <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
+                                    <div>
+                                        <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Maintenance / Coming Soon Mode</p>
+                                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Enable maintenance screen for all student portal visitors</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={formData.isStudentPortalMaintenance} 
+                                            onChange={e => setFormData({ ...formData, isStudentPortalMaintenance: e.target.checked })}
+                                            className="sr-only peer" 
+                                        />
+                                        <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Maintenance Notice Message</label>
+                                    <textarea
+                                        value={formData.maintenanceNoticeMessage}
+                                        onChange={e => setFormData({ ...formData, maintenanceNoticeMessage: e.target.value })}
+                                        rows="3"
+                                        className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all resize-none"
+                                        placeholder="Dynamic message shown on student maintenance screen..."
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
+                )}
 
-                    {/* ── Payment & Bank Configuration ── */}
-                    <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100 relative">
-                        <div className="flex justify-between items-center mb-12">
-                            <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase">
-                                <span className="p-3 bg-secondary/10 text-secondary rounded-2xl"><Building size={24} /></span>
-                                Payment & Bank Configuration
-                            </h3>
+                {activeTab === 'email' && (
+                    user?.role?.toLowerCase().trim() !== 'admin' ? (
+                        <div className="glass-card p-10 bg-white border border-slate-100 shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-2 bg-rose-500" />
+                            <div className="flex flex-col items-center justify-center py-20 text-center max-w-lg mx-auto">
+                                <ShieldAlert size={60} className="text-rose-500 mb-4 animate-bounce" />
+                                <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Access Denied / Admin Only</h3>
+                                <p className="text-sm font-semibold text-slate-400 mt-2 leading-relaxed">
+                                    You do not have the required administrative permissions to view or edit email configurations.
+                                </p>
+                            </div>
                         </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                            {/* Left column (SMTP configs) */}
+                            <div className="lg:col-span-1 space-y-8">
+                                <div className="bg-primary p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+                                    <Sparkles className="absolute -right-4 -bottom-4 text-white/5" size={200} />
+                                    <h4 className="font-black text-2xl tracking-tighter italic mb-6">Safe Mode</h4>
+                                    <p className="text-xs font-bold text-white/40 uppercase tracking-widest leading-loose">
+                                        Administrative overrides are locked to your secure session. Changes here reflect globally across all scholar vouchers and system logic.
+                                    </p>
+                                </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Bank Name</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Building size={16} className="text-slate-400" />
+                                <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100">
+                                    <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase mb-12">
+                                        <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner"><Mail size={24} /></div>
+                                        Automation SMTP logic
+                                    </h3>
+
+                                    <div className="flex justify-between items-center mb-6 pb-6 border-b border-slate-100">
+                                        <div>
+                                            <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Email Notifications Status</p>
+                                            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Enable or disable all automated email alerts globally</p>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={formData.emailNotificationsEnabled} 
+                                                onChange={e => setFormData({ ...formData, emailNotificationsEnabled: e.target.checked })}
+                                                className="sr-only peer" 
+                                            />
+                                            <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                                        </label>
                                     </div>
-                                    <input
-                                        type="text"
-                                        value={formData.bankName}
-                                        onChange={e => setFormData({ ...formData, bankName: e.target.value })}
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
-                                        placeholder="e.g. Meezan Bank Ltd., Gulberg Branch"
-                                    />
+
+                                    <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
+                                        <div>
+                                            <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Staff Session Email Alerts</p>
+                                            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Send email security notifications on staff & admin logins</p>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={formData.enableLoginEmailAlerts} 
+                                                onChange={e => setFormData({ ...formData, enableLoginEmailAlerts: e.target.checked })}
+                                                className="sr-only peer" 
+                                            />
+                                            <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                                        </label>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Provider Host</label>
+                                            <input className="input-field bg-slate-50 border-transparent" placeholder="smtp.gmail.com" value={formData.emailServer.host} onChange={e => setFormData({ ...formData, emailServer: { ...formData.emailServer, host: e.target.value } })} />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Server Port</label>
+                                            <input className="input-field bg-slate-50 border-transparent" placeholder="587" value={formData.emailServer.port} onChange={e => setFormData({ ...formData, emailServer: { ...formData.emailServer, port: e.target.value } })} />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">System Account (Email)</label>
+                                            <input className="input-field bg-slate-50 border-transparent" placeholder="admin@gmail.com" value={formData.emailServer.user} onChange={e => setFormData({ ...formData, emailServer: { ...formData.emailServer, user: e.target.value } })} />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Secure App Key (Pass)</label>
+                                            <input type="password" className="input-field bg-slate-50 border-transparent" placeholder="••••••••••••" value={formData.emailServer.pass} onChange={e => setFormData({ ...formData, emailServer: { ...formData.emailServer, pass: e.target.value } })} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Account Title</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <User size={16} className="text-slate-400" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={formData.accountTitle}
-                                        onChange={e => setFormData({ ...formData, accountTitle: e.target.value })}
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
-                                        placeholder="e.g. Hunar Asaan Skill Center"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Account No.</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <Hash size={16} className="text-slate-400" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={formData.accountNo}
-                                        onChange={e => setFormData({ ...formData, accountNo: e.target.value })}
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
-                                        placeholder="e.g. 0110-1234567-001"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">IBAN Code</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <CreditCard size={16} className="text-slate-400" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={formData.ibanCode}
-                                        onChange={e => setFormData({ ...formData, ibanCode: e.target.value })}
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all"
-                                        placeholder="e.g. PK36 MEZN 0001 1012 3456 7001"
-                                    />
-                                </div>
+
+                            {/* Right column (Email Settings panels) */}
+                            <div className="lg:col-span-2 space-y-10">
+                                <EmailSettings formData={formData} setFormData={setFormData} />
                             </div>
                         </div>
+                    )
+                )}
 
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Payment Instructions (Optional)</label>
-                            <textarea
-                                value={formData.paymentInstructions}
-                                onChange={e => setFormData({ ...formData, paymentInstructions: e.target.value })}
-                                rows="3"
-                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all resize-none"
-                                placeholder="Any additional notes to display on the receipt/challan..."
-                            />
-                        </div>
-                    </div>
-
-                    {/* ── Student Portal Maintenance Control ── */}
-                    <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100 relative">
-                        <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase mb-8">
-                            <span className="p-3 bg-amber-500/10 text-amber-600 rounded-2xl"><Shield size={24} /></span>
-                            Student Portal Control
-                        </h3>
-
-                        <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
-                            <div>
-                                <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Maintenance / Coming Soon Mode</p>
-                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Enable maintenance screen for all student portal visitors</p>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input 
-                                    type="checkbox" 
-                                    checked={formData.isStudentPortalMaintenance} 
-                                    onChange={e => setFormData({ ...formData, isStudentPortalMaintenance: e.target.checked })}
-                                    className="sr-only peer" 
-                                />
-                                <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                            </label>
-                        </div>
-
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Maintenance Notice Message</label>
-                            <textarea
-                                value={formData.maintenanceNoticeMessage}
-                                onChange={e => setFormData({ ...formData, maintenanceNoticeMessage: e.target.value })}
-                                rows="3"
-                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all resize-none"
-                                placeholder="Dynamic message shown on student maintenance screen..."
-                            />
-                        </div>
-                    </div>
-
-                    <div className="glass-card p-10 bg-white shadow-2xl border border-slate-100">
-                        <h3 className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-4 uppercase mb-12">
-                            <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center shadow-inner"><Mail size={24} /></div>
-                            Automation SMTP logic
-                        </h3>
-
-                        <div className="flex justify-between items-center mb-6 pb-6 border-b border-slate-100">
-                            <div>
-                                <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Email Notifications Status</p>
-                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Enable or disable all automated email alerts globally</p>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input 
-                                    type="checkbox" 
-                                    checked={formData.emailNotificationsEnabled} 
-                                    onChange={e => setFormData({ ...formData, emailNotificationsEnabled: e.target.checked })}
-                                    className="sr-only peer" 
-                                />
-                                <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
-                            </label>
-                        </div>
-
-                        <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
-                            <div>
-                                <p className="text-sm font-black text-slate-800 uppercase tracking-tight">Staff Session Email Alerts</p>
-                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-widest mt-1">Send email security notifications on staff & admin logins</p>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input 
-                                    type="checkbox" 
-                                    checked={formData.enableLoginEmailAlerts} 
-                                    onChange={e => setFormData({ ...formData, enableLoginEmailAlerts: e.target.checked })}
-                                    className="sr-only peer" 
-                                />
-                                <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
-                            </label>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Provider Host</label>
-                                <input className="input-field bg-slate-50 border-transparent" placeholder="smtp.gmail.com" value={formData.emailServer.host} onChange={e => setFormData({ ...formData, emailServer: { ...formData.emailServer, host: e.target.value } })} />
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Server Port</label>
-                                <input className="input-field bg-slate-50 border-transparent" placeholder="587" value={formData.emailServer.port} onChange={e => setFormData({ ...formData, emailServer: { ...formData.emailServer, port: e.target.value } })} />
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">System Account (Email)</label>
-                                <input className="input-field bg-slate-50 border-transparent" placeholder="admin@gmail.com" value={formData.emailServer.user} onChange={e => setFormData({ ...formData, emailServer: { ...formData.emailServer, user: e.target.value } })} />
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Secure App Key (Pass)</label>
-                                <input type="password" className="input-field bg-slate-50 border-transparent" placeholder="••••••••••••" value={formData.emailServer.pass} onChange={e => setFormData({ ...formData, emailServer: { ...formData.emailServer, pass: e.target.value } })} />
+                {activeTab === 'backup' && (
+                    user?.role?.toLowerCase().trim() !== 'admin' ? (
+                        <div className="glass-card p-10 bg-white border border-slate-100 shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-2 bg-rose-500" />
+                            <div className="flex flex-col items-center justify-center py-20 text-center max-w-lg mx-auto">
+                                <ShieldAlert size={60} className="text-rose-500 mb-4 animate-bounce" />
+                                <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Access Denied / Admin Only</h3>
+                                <p className="text-sm font-semibold text-slate-400 mt-2 leading-relaxed">
+                                    You do not have the required administrative permissions to view or edit database backup vaults.
+                                </p>
                             </div>
                         </div>
-                    </div>
+                    ) : (
+                        <BackupSettings formData={formData} setFormData={setFormData} />
+                    )
+                )}
 
-                    <div className="flex items-center gap-4 p-8 bg-emerald-50 rounded-[2rem] border border-emerald-100 shadow-inner">
+                {/* Registry Status */}
+                {!( (activeTab === 'email' || activeTab === 'backup') && user?.role?.toLowerCase() !== 'admin') && (
+                    <div className="flex items-center gap-4 p-8 bg-emerald-50 rounded-[2rem] border border-emerald-100 shadow-inner max-w-xl">
                         <Globe className="text-emerald-600" size={24} />
                         <div>
                             <p className="text-xs font-black text-emerald-800 uppercase tracking-tight italic">Registry Node Status: Verified & Operational</p>
                             <p className="text-[10px] text-emerald-600/60 font-black uppercase tracking-widest mt-1 leading-none">All communications are encrypted and logged.</p>
                         </div>
                     </div>
-                </div>
+                )}
             </form>
         </div>
     );

@@ -49,7 +49,13 @@ const getSettings = async (req, res) => {
             accountTitle: setting.accountTitle || '',
             accountNo: setting.accountNo || '',
             ibanCode: setting.ibanCode || '',
-            paymentInstructions: setting.paymentInstructions || ''
+            paymentInstructions: setting.paymentInstructions || '',
+            primaryAdminEmail: isAdmin ? (setting.primaryAdminEmail || '') : '',
+            accountsEmail: isAdmin ? (setting.accountsEmail || '') : '',
+            operationsEmail: isAdmin ? (setting.operationsEmail || '') : '',
+            staffRecipients: isAdmin ? (setting.staffRecipients || '[]') : '[]',
+            globalCcEmails: isAdmin ? (setting.globalCcEmails || '') : '',
+            notificationRules: isAdmin ? (setting.notificationRules || '{}') : '{}'
         });
     } catch (error) {
         console.error('Get settings error:', error);
@@ -71,7 +77,11 @@ const updateSettings = async (req, res) => {
             try { formData = JSON.parse(req.body.data); } catch (e) { formData = req.body; }
         }
 
-        const { instituteName, contact, address, emailServer, bankName, accountTitle, accountNo, ibanCode, paymentInstructions, emailNotificationsEnabled, enableLoginEmailAlerts, isStudentPortalMaintenance, maintenanceNoticeMessage } = formData;
+        const {
+            instituteName, contact, address, emailServer, bankName, accountTitle, accountNo, ibanCode, paymentInstructions,
+            emailNotificationsEnabled, enableLoginEmailAlerts, isStudentPortalMaintenance, maintenanceNoticeMessage,
+            primaryAdminEmail, accountsEmail, operationsEmail, staffRecipients, globalCcEmails, notificationRules
+        } = formData;
 
         const updatePayload = {
             instituteName: instituteName || setting.instituteName,
@@ -86,6 +96,16 @@ const updateSettings = async (req, res) => {
             enableLoginEmailAlerts: enableLoginEmailAlerts !== undefined ? enableLoginEmailAlerts : setting.enableLoginEmailAlerts,
             isStudentPortalMaintenance: isStudentPortalMaintenance !== undefined ? isStudentPortalMaintenance : setting.isStudentPortalMaintenance,
             maintenanceNoticeMessage: maintenanceNoticeMessage !== undefined ? maintenanceNoticeMessage : setting.maintenanceNoticeMessage,
+            primaryAdminEmail: primaryAdminEmail !== undefined ? primaryAdminEmail : setting.primaryAdminEmail,
+            accountsEmail: accountsEmail !== undefined ? accountsEmail : setting.accountsEmail,
+            operationsEmail: operationsEmail !== undefined ? operationsEmail : setting.operationsEmail,
+            staffRecipients: staffRecipients !== undefined
+                ? (typeof staffRecipients === 'string' ? staffRecipients : JSON.stringify(staffRecipients))
+                : setting.staffRecipients,
+            globalCcEmails: globalCcEmails !== undefined ? globalCcEmails : setting.globalCcEmails,
+            notificationRules: notificationRules !== undefined
+                ? (typeof notificationRules === 'string' ? notificationRules : JSON.stringify(notificationRules))
+                : setting.notificationRules,
         };
 
         if (emailServer) {
@@ -153,7 +173,13 @@ const updateSettings = async (req, res) => {
             accountTitle: setting.accountTitle,
             accountNo: setting.accountNo,
             ibanCode: setting.ibanCode,
-            paymentInstructions: setting.paymentInstructions
+            paymentInstructions: setting.paymentInstructions,
+            primaryAdminEmail: setting.primaryAdminEmail || '',
+            accountsEmail: setting.accountsEmail || '',
+            operationsEmail: setting.operationsEmail || '',
+            staffRecipients: setting.staffRecipients || '[]',
+            globalCcEmails: setting.globalCcEmails || '',
+            notificationRules: setting.notificationRules || '{}'
         });
     } catch (error) {
         console.error('Update settings error:', error);
@@ -161,4 +187,106 @@ const updateSettings = async (req, res) => {
     }
 };
 
-module.exports = { getSettings, updateSettings };
+const getEmailSettings = async (req, res) => {
+    try {
+        const isAdmin = req.user.role.toLowerCase().trim() === 'admin';
+        if (!isAdmin) {
+            return res.status(403).json({ error: 'Access Denied: Admin role required' });
+        }
+
+        const [setting] = await Setting.findOrCreate({
+            where: {},
+            defaults: {
+                instituteName: 'Hunar Asaan',
+                emailHost: 'smtp.gmail.com',
+                emailPort: '587'
+            }
+        });
+
+        res.json({
+            primaryAdminEmail: setting.primaryAdminEmail || '',
+            accountsEmail: setting.accountsEmail || '',
+            operationsEmail: setting.operationsEmail || '',
+            staffRecipients: setting.staffRecipients || '[]',
+            globalCcEmails: setting.globalCcEmails || '',
+            notificationRules: setting.notificationRules || '{}',
+            emailNotificationsEnabled: setting.emailNotificationsEnabled !== false,
+            enableLoginEmailAlerts: setting.enableLoginEmailAlerts !== false,
+            emailServer: {
+                host: setting.emailHost || '',
+                port: setting.emailPort || '587',
+                user: setting.emailUser || '',
+                pass: setting.emailPass || ''
+            }
+        });
+    } catch (error) {
+        console.error('Get email settings error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+const updateEmailSettings = async (req, res) => {
+    try {
+        const isAdmin = req.user.role.toLowerCase().trim() === 'admin';
+        if (!isAdmin) {
+            return res.status(403).json({ error: 'Access Denied: Admin role required' });
+        }
+
+        const setting = await Setting.findOne();
+        if (!setting) {
+            return res.status(404).json({ error: 'Settings not initialized' });
+        }
+
+        const {
+            primaryAdminEmail, accountsEmail, operationsEmail, staffRecipients, globalCcEmails,
+            notificationRules, emailNotificationsEnabled, enableLoginEmailAlerts, emailServer
+        } = req.body;
+
+        const updatePayload = {
+            primaryAdminEmail: primaryAdminEmail !== undefined ? primaryAdminEmail : setting.primaryAdminEmail,
+            accountsEmail: accountsEmail !== undefined ? accountsEmail : setting.accountsEmail,
+            operationsEmail: operationsEmail !== undefined ? operationsEmail : setting.operationsEmail,
+            staffRecipients: staffRecipients !== undefined
+                ? (typeof staffRecipients === 'string' ? staffRecipients : JSON.stringify(staffRecipients))
+                : setting.staffRecipients,
+            globalCcEmails: globalCcEmails !== undefined ? globalCcEmails : setting.globalCcEmails,
+            notificationRules: notificationRules !== undefined
+                ? (typeof notificationRules === 'string' ? notificationRules : JSON.stringify(notificationRules))
+                : setting.notificationRules,
+            emailNotificationsEnabled: emailNotificationsEnabled !== undefined ? emailNotificationsEnabled : setting.emailNotificationsEnabled,
+            enableLoginEmailAlerts: enableLoginEmailAlerts !== undefined ? enableLoginEmailAlerts : setting.enableLoginEmailAlerts,
+        };
+
+        if (emailServer) {
+            updatePayload.emailHost = emailServer.host || setting.emailHost;
+            updatePayload.emailPort = emailServer.port || setting.emailPort;
+            updatePayload.emailUser = emailServer.user || setting.emailUser;
+            updatePayload.emailPass = emailServer.pass || setting.emailPass;
+        }
+
+        await setting.update(updatePayload);
+
+        res.json({
+            message: 'Email settings updated successfully',
+            primaryAdminEmail: setting.primaryAdminEmail || '',
+            accountsEmail: setting.accountsEmail || '',
+            operationsEmail: setting.operationsEmail || '',
+            staffRecipients: setting.staffRecipients || '[]',
+            globalCcEmails: setting.globalCcEmails || '',
+            notificationRules: setting.notificationRules || '{}',
+            emailNotificationsEnabled: setting.emailNotificationsEnabled !== false,
+            enableLoginEmailAlerts: setting.enableLoginEmailAlerts !== false,
+            emailServer: {
+                host: setting.emailHost || '',
+                port: setting.emailPort || '587',
+                user: setting.emailUser || '',
+                pass: setting.emailPass || ''
+            }
+        });
+    } catch (error) {
+        console.error('Update email settings error:', error);
+        res.status(500).json({ error: error.message || 'Server error' });
+    }
+};
+
+module.exports = { getSettings, updateSettings, getEmailSettings, updateEmailSettings };

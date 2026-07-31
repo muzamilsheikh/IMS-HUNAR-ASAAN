@@ -317,8 +317,26 @@ const createPayment = async (req, res) => {
         }
 
         if (student.email) {
-            sendEmail(student.email, `Fee Payment Receipt - ${receiptNo}`, paidHtml, pdfAttachments)
-                .catch(emailErr => console.warn('Failed to send payment receipt to student:', emailErr.message));
+            // Retrieve settings rules
+            const sysSetting = await Setting.findOne();
+            let sendToStudent = true;
+            if (sysSetting && sysSetting.notificationRules) {
+                try {
+                    const rules = JSON.parse(sysSetting.notificationRules);
+                    if (rules.payment && (rules.payment.enabled === false || rules.payment.student === false)) {
+                        sendToStudent = false;
+                    }
+                } catch (e) {
+                    console.error('Failed to parse notificationRules:', e.message);
+                }
+            }
+
+            if (sendToStudent) {
+                sendEmail(student.email, `Fee Payment Receipt - ${receiptNo}`, paidHtml, pdfAttachments)
+                    .catch(emailErr => console.warn('Failed to send payment receipt to student:', emailErr.message));
+            } else {
+                console.log(`✉️ Student payment receipt email disabled by settings for: ${student.email}`);
+            }
         }
 
         // Notify Admins & Managers
@@ -882,7 +900,27 @@ const sendDueReminder = async (req, res) => {
         }
 
         const emailSubject = `Fee Installment Due Reminder - Hunar Asaan`;
-        const emailRes = await sendEmail(student.email, emailSubject, dueHtml, challanAttachments);
+        
+        // Retrieve settings rules
+        let sendToStudent = true;
+        if (setting && setting.notificationRules) {
+            try {
+                const rules = JSON.parse(setting.notificationRules);
+                if (rules.overdue && (rules.overdue.enabled === false || rules.overdue.student === false)) {
+                    sendToStudent = false;
+                }
+            } catch (e) {
+                console.error('Failed to parse notificationRules:', e.message);
+            }
+        }
+
+        let emailRes;
+        if (sendToStudent) {
+            emailRes = await sendEmail(student.email, emailSubject, dueHtml, challanAttachments);
+        } else {
+            console.log(`✉️ Overdue reminder email to student disabled by settings for: ${student.email}`);
+            emailRes = { success: true, skipped: true, customReason: 'Student overdue reminders disabled in settings' };
+        }
 
         if (!emailRes.success && !emailRes.skipped) {
             return res.status(500).json({ error: emailRes.error || 'Failed to dispatch email reminder' });
@@ -891,7 +929,7 @@ const sendDueReminder = async (req, res) => {
         res.json({ 
             success: true, 
             message: emailRes.skipped 
-                ? 'Reminder skipped (notifications globally disabled)' 
+                ? (emailRes.customReason || 'Reminder skipped (notifications globally disabled)') 
                 : 'Fee due reminder email dispatched successfully.' 
         });
     } catch (error) {

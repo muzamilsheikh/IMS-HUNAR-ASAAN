@@ -76,92 +76,227 @@ const getStaffLoginAlertTemplate = (name, email, role, time, ip) => `
 `;
 
 const getFeePaidTemplate = (name, receiptNo, amountPaid, remainingBalance, courseName, batchName, paymentMethod) => `
-<div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; padding: 45px 20px; color: #1e293b;">
-    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #115e59 100%); padding: 35px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #10b981;">
-            <div style="margin-bottom: 15px;">
-                <img src="__LOGO_URL_PLACEHOLDER__" alt="Hunar Asaan Logo" style="max-height: 70px; width: auto; display: inline-block; vertical-align: middle;" />
+<div style="font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; background-color: #f4f3f0; padding: 40px 10px; color: #1a1512; text-align: center;">
+    <div style="max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1.5px solid #ede8df; padding: 30px 24px; box-shadow: 0 10px 30px rgba(26,21,18,0.06); text-align: left; box-sizing: border-box; position: relative;">
+        
+        <!-- Copy Badge -->
+        <div style="text-align: right; margin-bottom: 15px;">
+            <span style="font-size: 8px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: #8a6a2f; border: 1px solid #8a6a2f; border-radius: 24px; padding: 3px 10px; display: inline-block;">STUDENT COPY</span>
+        </div>
+
+        <!-- Header -->
+        <div style="text-align: center; border-bottom: 2px solid #8a6a2f; padding-bottom: 12px; margin-bottom: 15px;">
+            <div style="width: 42px; height: 42px; border-radius: 50%; background: #111827; border: 1px solid #8a6a2f; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+                <span style="color: #8a6a2f; font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 15px; line-height: 42px; display: block; text-align: center; width: 100%;">HA</span>
             </div>
-            <h1 style="margin: 0; font-size: 26px; font-weight: 900; tracking: -0.02em; text-transform: uppercase; color: #ffffff; font-style: italic;">FEE RECEIPT</h1>
-            <p style="margin: 5px 0 0 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; color: #34d399; font-weight: 700;">Verified Transaction</p>
+            <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 700; color: #0f0d0b; margin: 0; line-height: 1.2;">Hunar Asaan Skill Center</h2>
+            <p style="font-size: 8.5px; color: #7a6e65; margin: 4px 0 2px 0;">Plot 14, Tech Avenue, Gulberg III, Lahore, Pakistan</p>
+            <p style="font-size: 8.5px; color: #7a6e65; margin: 0;">+92 300 0000000 | info@hunarasaan.edu | hunarasaan.edu</p>
+            <h3 style="font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #0f0d0b; margin: 12px 0 0 0;">PAYMENT RECEIPT</h3>
         </div>
-        <div style="padding: 40px;">
-            <p style="font-size: 14px; line-height: 1.6; color: #475569;">Hello <strong>${name}</strong>,</p>
-            <p style="font-size: 14px; line-height: 1.6; color: #475569;">Thank you! Your fee payment has been successfully recorded and processed. Below are your official receipt details. We have also attached your detailed PDF receipt to this email.</p>
-            
-            <div style="background: #f8fafc; padding: 25px; border-radius: 16px; margin: 25px 0; border: 1px solid #e2e8f0;">
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 12px;">
-                    <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Receipt No:</span>
-                    <strong style="font-size: 13px; color: #0f172a;">${receiptNo}</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 12px;">
-                    <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Course & Batch:</span>
-                    <strong style="font-size: 13px; color: #0f172a; text-align: right;">${courseName || 'N/A'} (${batchName || 'N/A'})</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 12px;">
-                    <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Payment Method:</span>
-                    <strong style="font-size: 13px; color: #0f172a; text-transform: uppercase;">${paymentMethod}</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 12px; background: #ecfdf5; padding: 12px; border-radius: 8px; align-items: center;">
-                    <span style="font-size: 12px; font-weight: bold; color: #047857; text-transform: uppercase;">Amount Paid:</span>
-                    <strong style="font-size: 18px; color: #065f46;">Rs. ${parseFloat(amountPaid).toLocaleString()}</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding-top: 6px; align-items: center;">
-                    <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Outstanding Balance:</span>
-                    <strong style="font-size: 14px; color: #ef4444;">Rs. ${parseFloat(remainingBalance).toLocaleString()}</strong>
-                </div>
+
+        <!-- Meta Grid -->
+        <div style="width: 100%; margin-bottom: 12px; font-size: 10px; border-collapse: collapse;">
+            <table style="width: 100%; border: none;">
+                <tr>
+                    <td style="width: 50%; padding-bottom: 8px; vertical-align: top;">
+                        <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Receipt No:</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #1a1512;">${receiptNo}</span>
+                    </td>
+                    <td style="width: 50%; padding-bottom: 8px; vertical-align: top;">
+                        <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Date Paid:</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #1a1512;">${new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 50%; vertical-align: top;">
+                        <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Payment Method:</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #1a1512; text-transform: uppercase;">${paymentMethod}</span>
+                    </td>
+                    <td style="width: 50%; vertical-align: top;">
+                        <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Batch:</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #1a1512;">${batchName || 'Unassigned'}</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Student Section -->
+        <div style="padding: 10px 0; border-top: 1px solid #ede8df; border-bottom: 1px solid #ede8df; margin-bottom: 12px;">
+            <div style="margin-bottom: 6px;">
+                <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Student Name:</span>
+                <span style="font-weight: 700; font-size: 11px; color: #1a1512;">${name}</span>
             </div>
-            
-            <p style="font-size: 13px; line-height: 1.6; color: #475569;">A soft copy of this transaction receipt has been verified and registered on your student portal. You can download your detailed ledger and future challans by logging into your portal.</p>
+            <div>
+                <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Program / Course:</span>
+                <span style="font-weight: 700; font-size: 10.5px; color: #1a1512;">${courseName || 'Skills Training'}</span>
+            </div>
         </div>
-        <div style="background: #0f172a; color: #64748b; padding: 25px; text-align: center; font-size: 11px;">
-            <p style="margin: 0; font-weight: bold; color: #94a3b8; text-transform: uppercase;">Hunar Asaan Skills Center</p>
-            <p style="margin: 5px 0 0 0;">All transactions are subject to terms. For inquiries, contact sadia@hunarasaan.com.</p>
+
+        <!-- Fee Table -->
+        <div style="margin-bottom: 15px; font-size: 10px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="font-size: 8px; font-weight: 700; text-transform: uppercase; color: #8a6a2f; text-align: left; padding-bottom: 4px; width: 70%;">Fee Head Description</th>
+                        <th style="font-size: 8px; font-weight: 700; text-transform: uppercase; color: #8a6a2f; text-align: right; padding-bottom: 4px; width: 30%;">Amount (PKR)</th>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border-bottom: 1.5px solid #ede8df; padding: 0;"></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 8px 0; text-align: left;">Paid Installment / Fee</td>
+                        <td style="padding: 8px 0; font-weight: 700; text-align: right; color: #1a1512;">Rs. ${parseFloat(amountPaid).toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border-bottom: 1px solid #ede8df; padding: 0;"></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; text-align: left;">Remaining Balance</td>
+                        <td style="padding: 8px 0; font-weight: 700; text-align: right; color: #ef4444;">Rs. ${parseFloat(remainingBalance).toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border-bottom: 1px solid #ede8df; padding: 0;"></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; font-weight: 700; text-transform: uppercase; color: #065f46; text-align: left;">Amount Paid</td>
+                        <td style="padding: 8px 0; font-weight: 900; text-align: right; color: #065f46; font-size: 12px;">Rs. ${parseFloat(amountPaid).toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border-bottom: 2px solid #8a6a2f; padding: 0;"></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+
+        <!-- Verification Notice -->
+        <p style="font-size: 8px; color: #065f46; font-weight: bold; background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 6px; padding: 10px; text-align: center; margin: 15px 0 0 0; text-transform: uppercase; letter-spacing: 0.5px;">
+            Transaction Verified & Recorded Successfully
+        </p>
+
+        <!-- Terms Footer -->
+        <p style="font-size: 7.5px; color: #7a6e65; line-height: 1.4; margin-top: 15px; text-align: center; font-style: italic; margin-bottom: 0;">
+            Note: Fee once deposited is non-refundable. For verification or billing queries, contact sadia@hunarasaan.com.
+        </p>
     </div>
 </div>
 `;
 
 const getInstallmentDueTemplate = (name, courseName, batchName, amountDue, dueDate, bankDetails, instructions) => `
-<div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f8fafc; padding: 45px 20px; color: #1e293b;">
-    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;">
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 35px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #ef4444;">
-            <div style="margin-bottom: 15px;">
-                <img src="__LOGO_URL_PLACEHOLDER__" alt="Hunar Asaan Logo" style="max-height: 70px; width: auto; display: inline-block; vertical-align: middle;" />
-            </div>
-            <h1 style="margin: 0; font-size: 26px; font-weight: 900; tracking: -0.02em; text-transform: uppercase; color: #ffffff; font-style: italic;">FEE DUE CHALLAN</h1>
-            <p style="margin: 5px 0 0 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; color: #f87171; font-weight: 700;">Action Required</p>
+<div style="font-family: 'IBM Plex Sans', Helvetica, Arial, sans-serif; background-color: #f4f3f0; padding: 40px 10px; color: #1a1512; text-align: center;">
+    <div style="max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1.5px solid #ede8df; padding: 30px 24px; box-shadow: 0 10px 30px rgba(26,21,18,0.06); text-align: left; box-sizing: border-box; position: relative;">
+        
+        <!-- Copy Badge -->
+        <div style="text-align: right; margin-bottom: 15px;">
+            <span style="font-size: 8px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: #8a6a2f; border: 1px solid #8a6a2f; border-radius: 24px; padding: 3px 10px; display: inline-block;">STUDENT COPY</span>
         </div>
-        <div style="padding: 40px;">
-            <p style="font-size: 14px; line-height: 1.6; color: #475569;">Hello <strong>${name}</strong>,</p>
-            <p style="font-size: 14px; line-height: 1.6; color: #475569;">This is a friendly reminder that a fee installment is due for your enrollment. We have attached the official PDF challan to this email.</p>
-            
-            <div style="background: #fef2f2; padding: 25px; border-radius: 16px; margin: 25px 0; border: 1px solid #fecaca;">
-                <p style="margin: 8px 0; font-size: 13px; color: #1f2937;"><strong>Course:</strong> ${courseName || 'N/A'}</p>
-                <p style="margin: 8px 0; font-size: 13px; color: #1f2937;"><strong>Batch:</strong> ${batchName || 'N/A'}</p>
-                <p style="margin: 8px 0; font-size: 13px; color: #1f2937;"><strong>Amount Due:</strong> <strong style="color: #ef4444; font-size: 15px;">Rs. ${parseFloat(amountDue).toLocaleString()}</strong></p>
-                <p style="margin: 8px 0; font-size: 13px; color: #1f2937;"><strong>Due Date:</strong> <strong style="color: #0f172a;">${new Date(dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong></p>
-            </div>
 
-            <h3 style="font-size: 13px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;">Payment Bank Accounts</h3>
-            <div style="background: #f8fafc; padding: 20px; border-radius: 16px; font-size: 12px; border: 1px solid #e2e8f0;">
-                <p style="margin: 5px 0; color: #334155;"><strong>Bank:</strong> ${bankDetails.bankName || 'Askari Bank Limited'}</p>
-                <p style="margin: 5px 0; color: #334155;"><strong>Title:</strong> ${bankDetails.accountTitle || 'HUNAR ASAAN SKILLS ACADEMY'}</p>
-                <p style="margin: 5px 0; color: #334155;"><strong>Account #:</strong> ${bankDetails.accountNo || '04000200002132'}</p>
-                <p style="margin: 5px 0; color: #334155;"><strong>IBAN:</strong> ${bankDetails.ibanCode || 'N/A'}</p>
+        <!-- Header -->
+        <div style="text-align: center; border-bottom: 2px solid #8a6a2f; padding-bottom: 12px; margin-bottom: 15px;">
+            <div style="width: 42px; height: 42px; border-radius: 50%; background: #111827; border: 1px solid #8a6a2f; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+                <span style="color: #8a6a2f; font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 15px; line-height: 42px; display: block; text-align: center; width: 100%;">HA</span>
             </div>
+            <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: 700; color: #0f0d0b; margin: 0; line-height: 1.2;">Hunar Asaan Skill Center</h2>
+            <p style="font-size: 8.5px; color: #7a6e65; margin: 4px 0 2px 0;">Plot 14, Tech Avenue, Gulberg III, Lahore, Pakistan</p>
+            <p style="font-size: 8.5px; color: #7a6e65; margin: 0;">+92 300 0000000 | info@hunarasaan.edu | hunarasaan.edu</p>
+            <h3 style="font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #0f0d0b; margin: 12px 0 0 0;">FEE CHALLAN</h3>
+        </div>
 
-            ${instructions ? `
-            <h3 style="font-size: 13px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 20px; margin-bottom: 10px;">Payment Instructions</h3>
-            <p style="font-size: 12px; line-height: 1.6; color: #64748b; background: #fffbeb; padding: 15px; border-radius: 12px; border-left: 4px solid #f59e0b; margin: 0;">${instructions}</p>
-            ` : ''}
-            
-            <p style="font-size: 13px; line-height: 1.6; color: #475569; margin-top: 25px;">Please upload your paid slip screenshot on your portal or send it on WhatsApp to confirm registration.</p>
+        <!-- Meta Grid -->
+        <div style="width: 100%; margin-bottom: 12px; font-size: 10px; border-collapse: collapse;">
+            <table style="width: 100%; border: none;">
+                <tr>
+                    <td style="width: 50%; padding-bottom: 8px; vertical-align: top;">
+                        <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Challan No:</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #1a1512;">CHA-${new Date().getFullYear()}-DUE</span>
+                    </td>
+                    <td style="width: 50%; padding-bottom: 8px; vertical-align: top;">
+                        <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Issue Date:</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #1a1512;">${new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 50%; vertical-align: top;">
+                        <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Due Date:</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #ef4444;">${new Date(dueDate).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    </td>
+                    <td style="width: 50%; vertical-align: top;">
+                        <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Batch:</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #1a1512;">${batchName || 'Unassigned'}</span>
+                    </td>
+                </tr>
+            </table>
         </div>
-        <div style="background: #0f172a; color: #64748b; padding: 25px; text-align: center; font-size: 11px;">
-            <p style="margin: 0; font-weight: bold; color: #94a3b8; text-transform: uppercase;">Hunar Asaan Accounts</p>
-            <p style="margin: 5px 0 0 0;">If you have already paid this installment, please ignore this email.</p>
+
+        <!-- Student Section -->
+        <div style="padding: 10px 0; border-top: 1px solid #ede8df; border-bottom: 1px solid #ede8df; margin-bottom: 12px;">
+            <div style="margin-bottom: 6px;">
+                <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Student Name:</span>
+                <span style="font-weight: 700; font-size: 11px; color: #1a1512;">${name}</span>
+            </div>
+            <div>
+                <span style="font-size: 8px; font-weight: 600; text-transform: uppercase; color: #7a6e65; display: block;">Program / Course:</span>
+                <span style="font-weight: 700; font-size: 10.5px; color: #1a1512;">${courseName || 'Skills Training'}</span>
+            </div>
         </div>
+
+        <!-- Fee Table -->
+        <div style="margin-bottom: 15px; font-size: 10px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="font-size: 8px; font-weight: 700; text-transform: uppercase; color: #8a6a2f; text-align: left; padding-bottom: 4px; width: 70%;">Fee Head Description</th>
+                        <th style="font-size: 8px; font-weight: 700; text-transform: uppercase; color: #8a6a2f; text-align: right; padding-bottom: 4px; width: 30%;">Amount (PKR)</th>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border-bottom: 1.5px solid #ede8df; padding: 0;"></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 8px 0; text-align: left;">Tuition Fee / Installment</td>
+                        <td style="padding: 8px 0; font-weight: 700; text-align: right; color: #1a1512;">Rs. ${parseFloat(amountDue).toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border-bottom: 1px solid #ede8df; padding: 0;"></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; font-weight: 700; text-transform: uppercase; color: #1a1512; text-align: left;">Total Dues</td>
+                        <td style="padding: 8px 0; font-weight: 900; text-align: right; color: #ef4444; font-size: 12px;">Rs. ${parseFloat(amountDue).toLocaleString()}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border-bottom: 2px solid #8a6a2f; padding: 0;"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bank details -->
+        ${bankDetails ? `
+        <div style="margin-bottom: 15px;">
+            <span style="font-size: 8px; font-weight: 700; text-transform: uppercase; color: #8a6a2f; display: block; margin-bottom: 6px;">BANK DEPOSIT ACCOUNT</span>
+            <div style="background: #fcfbf7; border: 1px solid #ede8df; border-radius: 8px; padding: 12px; font-size: 9px; line-height: 1.6;">
+                <p style="margin: 0; color: #475569;"><strong>Bank Name:</strong> ${bankDetails.bankName}</p>
+                <p style="margin: 3px 0 0 0; color: #475569;"><strong>Account Title:</strong> ${bankDetails.accountTitle}</p>
+                <p style="margin: 3px 0 0 0; color: #475569;"><strong>Account Number:</strong> ${bankDetails.accountNo}</p>
+                <p style="margin: 3px 0 0 0; color: #475569;"><strong>IBAN Code:</strong> ${bankDetails.ibanCode || 'N/A'}</p>
+            </div>
+        </div>
+        ` : ''}
+
+        ${instructions ? `
+        <div style="margin-bottom: 15px;">
+            <span style="font-size: 8px; font-weight: 700; text-transform: uppercase; color: #8a6a2f; display: block; margin-bottom: 6px;">PAYMENT INSTRUCTIONS</span>
+            <p style="font-size: 8.5px; line-height: 1.5; color: #7a6e65; background: #fcfbf7; border: 1px solid #ede8df; border-left: 3px solid #8a6a2f; border-radius: 4px; padding: 10px; margin: 0;">${instructions}</p>
+        </div>
+        ` : ''}
+
+        <!-- Terms Footer -->
+        <p style="font-size: 7.5px; color: #7a6e65; line-height: 1.4; margin-top: 15px; text-align: center; font-style: italic; margin-bottom: 0;">
+            Terms: Fee once deposited is non-refundable. Please upload a paid copy of this challan on the student portal or WhatsApp us to verify payment.
+        </p>
     </div>
 </div>
 `;

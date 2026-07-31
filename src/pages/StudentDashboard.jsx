@@ -347,7 +347,7 @@ const StudentDashboard = () => {
                            pendingInstallments.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 pb-10">
+        <div className="w-full space-y-8 pb-10">
             {/* Top Navigation Tabs */}
             <div className="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 max-w-fit mt-2">
                 {[

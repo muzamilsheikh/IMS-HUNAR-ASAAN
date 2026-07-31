@@ -68,6 +68,11 @@ const getAllStudents = async (req, res) => {
         {
           model: Payment,
           attributes: ['id', 'amountPaid', 'paymentDate', 'paymentMethod', 'receiptNo', 'status', 'enrollmentId']
+        },
+        {
+          model: Installment,
+          as: 'Installments',
+          attributes: ['id', 'amount', 'due_date', 'status']
         }
       ],
       order: [['createdAt', 'DESC']],
@@ -392,10 +397,28 @@ const createStudent = async (req, res) => {
           console.error('Failed to generate initial welcome challan PDF:', pdfErr.message);
       }
 
-      sendEmail(email, 'Welcome to Hunar Asaan Skills Center', welcomeHtml, welcomeAttachments)
-        .catch(emailError => {
-            console.warn('Failed to send welcome email:', emailError.message);
-        });
+      // Retrieve settings rules
+      const sysSetting = await Setting.findOne();
+      let sendToStudent = true;
+      if (sysSetting && sysSetting.notificationRules) {
+          try {
+              const rules = JSON.parse(sysSetting.notificationRules);
+              if (rules.admission && (rules.admission.enabled === false || rules.admission.student === false)) {
+                  sendToStudent = false;
+              }
+          } catch (e) {
+              console.error('Failed to parse notificationRules:', e.message);
+          }
+      }
+
+      if (sendToStudent) {
+          sendEmail(email, 'Welcome to Hunar Asaan Skills Center', welcomeHtml, welcomeAttachments)
+            .catch(emailError => {
+                console.warn('Failed to send welcome email:', emailError.message);
+            });
+      } else {
+          console.log(`✉️ Student admission email disabled by settings for: ${email}`);
+      }
 
       // Admin & Manager Alert Notification
       const registrationAlertSubject = `New Admission Registered: ${name}`;

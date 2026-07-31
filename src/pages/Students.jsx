@@ -29,7 +29,7 @@ import generateReceipt from '../utils/generateReceipt';
 const Students = () => {
     const { students, courses, batches, loading, user, settings } = useApp();
     const location = useLocation();
-    const [view, setView] = useState('grid');
+    const [view, setView] = useState('list');
     const [showRegForm, setShowRegForm] = useState(false);
     const [selectedStudentId, setSelectedStudentId] = useState(null);
     const [editingStudent, setEditingStudent] = useState(null); // ✅ For edit mode
@@ -122,8 +122,16 @@ const Students = () => {
         const sCourseId = s.courseId?._id || s.courseId;
         const sBatchId = s.batchId?._id || s.batchId;
 
-        const matchesCourse = filters.course ? sCourseId === filters.course : true;
-        const matchesBatch = filters.batch ? sBatchId === filters.batch : true;
+        const matchesCourse = filters.course ? String(sCourseId) === String(filters.course) : true;
+        const matchesBatch = filters.batch ? String(sBatchId) === String(filters.batch) : true;
+
+        const studentTotalFee = Number(s.totalFee) || 0;
+        const studentDiscount = Number(s.discount) || 0;
+        const studentPaidAmount = Number(s.paidAmount) || 0;
+        const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
+
+        const today = new Date().toISOString().split('T')[0];
+        const hasOverdue = s.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false;
 
         // Filter by status
         let matchesStatus = true;
@@ -132,13 +140,12 @@ const Students = () => {
             else if (filters.status === 'Settled') matchesStatus = s.status === 'Settled';
             else if (filters.status === 'Dropped') matchesStatus = s.status === 'Dropped';
             else if (filters.status === 'Passout') matchesStatus = s.status === 'Passout';
-            else if (filters.status === 'Paid') matchesStatus = !s.Payments?.some(p => p.status === 'Pending');
+            else if (filters.status === 'Paid') matchesStatus = unpaidBalance <= 0;
             else if (filters.status === 'Pending') {
-                const hasOverdue = s.Payments?.some(p => p.status === 'Pending' && new Date(p.date) < new Date());
-                matchesStatus = s.Payments?.some(p => p.status === 'Pending') && !hasOverdue;
+                matchesStatus = unpaidBalance > 0 && !hasOverdue;
             }
             else if (filters.status === 'Overdue') {
-                matchesStatus = s.Payments?.some(p => p.status === 'Pending' && new Date(p.date) < new Date());
+                matchesStatus = hasOverdue;
             }
         }
 
@@ -238,8 +245,8 @@ const Students = () => {
                         const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
 
                         const today = new Date().toISOString().split('T')[0];
-                        const hasOverdue = student.Payments?.some(p => p.status === 'Pending' && p.date < today);
-                        const hasPending = student.Payments?.some(p => p.status === 'Pending');
+                        const hasOverdue = student.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false;
+                        const hasPending = unpaidBalance > 0;
 
                         return (
                             <motion.div
@@ -253,7 +260,7 @@ const Students = () => {
                                         <div className="w-20 h-20 rounded-[2rem] bg-slate-50 text-slate-300 flex items-center justify-center font-black text-4xl border border-slate-100 group-hover:bg-primary group-hover:text-secondary transition-all duration-700 shadow-inner group-hover:rotate-6">
                                             {student.name.charAt(0)}
                                         </div>
-                                        <div className="flex flex-col items-end gap-3">
+                                        <div className="flex flex-col items-end gap-2.5">
                                             <div className={cn(
                                                 "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border shadow-sm",
                                                 hasOverdue ? 'bg-rose-50 text-rose-600 border-rose-100 animate-pulse' :
@@ -262,7 +269,13 @@ const Students = () => {
                                             )}>
                                                 {hasOverdue ? 'Overdue' : !hasPending ? 'Settled' : 'Cycle Active'}
                                             </div>
-                                            <p className="text-[10px] font-black text-slate-300 tracking-[0.4em] italic">{student.customId}</p>
+                                            <div className={cn(
+                                                "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border",
+                                                student.totalInstallments === 1 ? 'bg-indigo-50/80 text-indigo-700 border-indigo-200' : 'bg-purple-50/80 text-purple-700 border-purple-200'
+                                            )}>
+                                                {student.totalInstallments === 1 ? 'Full Payment' : 'Installments'}
+                                            </div>
+                                            <p className="text-[10px] font-black text-slate-300 tracking-[0.4em] italic mt-1">{student.customId}</p>
                                         </div>
                                     </div>
 
@@ -373,14 +386,12 @@ const Students = () => {
                                         const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
 
                                         const today = new Date().toISOString().split('T')[0];
-                                        const hasOverdue = student.Payments?.some(p => p.status === 'Pending' && p.date < today);
-                                        const hasPending = student.Payments?.some(p => p.status === 'Pending');
+                                        const hasOverdue = student.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false;
+                                        const hasPending = unpaidBalance > 0;
 
-                                        // Enrollment Status: Enrolled vs Lead / Pending / Passout
                                         const isEnrolled = student.status === 'Active' || student.status === 'Settled' || !student.status;
                                         const enrollmentLabel = student.status ? student.status : (isEnrolled ? 'Enrolled' : 'Lead');
 
-                                        // Fee Status badge
                                         let feeStatusText = 'Paid';
                                         let feeStatusStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
                                         if (hasOverdue) {
@@ -395,8 +406,11 @@ const Students = () => {
                                         }
 
                                         return (
-                                            <tr key={student._id || student.id} className="hover:bg-slate-50/80 transition-colors">
-                                                {/* 1. Student Name */}
+                                            <tr 
+                                                key={student._id || student.id} 
+                                                onClick={() => setSelectedStudentId(student._id || student.id)}
+                                                className="hover:bg-slate-50/80 cursor-pointer transition-colors"
+                                            >
                                                 <td className="py-4 px-6 font-bold text-slate-800">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center font-black text-base border border-secondary/20">
@@ -404,12 +418,21 @@ const Students = () => {
                                                         </div>
                                                         <div>
                                                             <div className="font-extrabold text-slate-800">{student.name}</div>
-                                                            <div className="text-xs text-slate-400 font-semibold">{student.customId || 'N/A'} • {course?.name || 'No Course'}</div>
+                                                            <div className="text-xs text-slate-400 font-semibold flex items-center gap-2 mt-1">
+                                                                <span>{student.customId || 'N/A'}</span>
+                                                                <span>•</span>
+                                                                <span>{course?.name || 'No Course'}</span>
+                                                                <span>•</span>
+                                                                <span className={cn(
+                                                                    "px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border inline-block",
+                                                                    student.totalInstallments === 1 ? 'bg-indigo-50/80 text-indigo-700 border-indigo-200' : 'bg-purple-50/80 text-purple-700 border-purple-200'
+                                                                )}>
+                                                                    {student.totalInstallments === 1 ? 'Full' : 'Installments'}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
-
-                                                {/* 2. Contact */}
                                                 <td className="py-4 px-6 font-medium text-slate-600">
                                                     <div className="flex items-center gap-2">
                                                         <Phone size={14} className="text-secondary" />
@@ -419,8 +442,6 @@ const Students = () => {
                                                         <div className="text-xs text-slate-400 mt-0.5">{student.email}</div>
                                                     )}
                                                 </td>
-
-                                                {/* 3. Enrollment Status */}
                                                 <td className="py-4 px-6">
                                                     <span className={cn(
                                                         "px-3 py-1 rounded-lg text-xs font-extrabold uppercase border inline-block",
@@ -433,38 +454,41 @@ const Students = () => {
                                                         {enrollmentLabel}
                                                     </span>
                                                 </td>
-
-                                                {/* 4. Fee Status */}
                                                 <td className="py-4 px-6">
                                                     <span className={cn("px-3 py-1 rounded-lg text-xs font-extrabold uppercase border inline-block", feeStatusStyle)}>
                                                         {feeStatusText}
                                                     </span>
                                                 </td>
-
-                                                {/* 5. Pending Amount (PKR) */}
                                                 <td className="py-4 px-6 text-right font-extrabold text-slate-800">
                                                     Rs. {unpaidBalance.toLocaleString()}
                                                 </td>
-
-                                                {/* 6. Actions (Edit / View / Print Challan) */}
                                                 <td className="py-4 px-6">
                                                     <div className="flex items-center justify-center gap-2">
                                                         <button
-                                                            onClick={() => handleEditStudent(student)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleEditStudent(student);
+                                                            }}
                                                             className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all border border-blue-100"
                                                             title="Edit Student"
                                                         >
                                                             <Pencil size={16} />
                                                         </button>
                                                         <button
-                                                            onClick={() => setSelectedStudentId(student._id || student.id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedStudentId(student._id || student.id);
+                                                            }}
                                                             className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-secondary hover:text-white transition-all border border-slate-200"
                                                             title="View Student Details"
                                                         >
                                                             <Eye size={16} />
                                                         </button>
                                                         <button
-                                                            onClick={() => handlePrintChallan(student, course)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handlePrintChallan(student, course);
+                                                            }}
                                                             className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100"
                                                             title="Print Challan"
                                                         >
@@ -472,7 +496,10 @@ const Students = () => {
                                                         </button>
                                                         {user?.role !== 'accounts_manager' && (
                                                             <button
-                                                                onClick={() => setDeleteConfirm(student)}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setDeleteConfirm(student);
+                                                                }}
                                                                 className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all border border-red-100"
                                                                 title="Delete Student"
                                                             >
@@ -495,7 +522,7 @@ const Students = () => {
                 {showRegForm && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-2xl flex items-center justify-center p-4 overflow-y-auto">
                         <div className="min-h-[140vh] py-20 w-full flex items-center justify-center">
-                            <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="w-full max-w-5xl relative">
+                            <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="w-full max-w-[1500px] mx-auto relative px-4 md:px-6">
                                 <button onClick={handleCloseForm} className="absolute -top-16 right-0 text-white/60 hover:text-white font-black text-[10px] uppercase tracking-[0.4em] flex items-center gap-4 bg-white/5 px-8 py-4 rounded-full border border-white/10 hover:bg-white/10 transition-all shadow-2xl">
                                     Abandom Admission Portal
                                 </button>
@@ -507,7 +534,7 @@ const Students = () => {
 
                 {selectedStudentId && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-slate-50/80 backdrop-blur-3xl p-4 md:p-12 overflow-y-auto flex justify-center">
-                        <div className="h-fit w-full max-w-6xl relative py-12">
+                        <div className="h-fit w-full max-w-[1600px] relative py-12">
                             <motion.div initial={{ scale: 0.95, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 50 }} className="w-full relative">
                                 <button onClick={() => setSelectedStudentId(null)} className="absolute -top-16 right-0 text-slate-400 hover:text-rose-500 font-black text-[10px] uppercase tracking-[0.4em] flex items-center gap-4 bg-white px-8 py-4 rounded-full border border-slate-100 hover:border-rose-100 transition-all shadow-2xl">
                                     Exit Scholar Ledger

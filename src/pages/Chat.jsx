@@ -253,7 +253,7 @@ const Chat = () => {
 
     return (
         <>
-        <div className="max-w-6xl mx-auto p-6">
+        <div className="w-full p-6">
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="border-b border-gray-200">
                     <nav className="flex">

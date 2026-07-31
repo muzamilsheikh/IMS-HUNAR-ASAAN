@@ -335,7 +335,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
   const hasInstallmentOption = selectedCourse && selectedCourse.offerInstallments;
 
   return (
-    <div className="glass-card p-4 sm:p-6 md:p-8 lg:p-10 max-w-7xl mx-auto border-t-8 border-secondary bg-white">
+    <div className="glass-card p-6 md:p-8 rounded-3xl w-full max-w-[1500px] mx-auto border-t-8 border-secondary bg-white">
       <div className="flex flex-col sm:flex-row justify-between items-start mb-6 sm:mb-8 md:mb-10 gap-4">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-12 h-12 sm:w-14 sm:h-14 bg-secondary/10 text-secondary rounded-xl sm:rounded-2xl flex items-center justify-center shadow-inner">
@@ -391,9 +391,9 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column - Form Fields */}
-        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+        <div className="lg:col-span-8 space-y-6 sm:space-y-8">
           {/* Scholar Information */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {isExistingStudent && !editingStudent && (
@@ -729,7 +729,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
         </div>
 
         {/* Right Column - Financial Pro-Forma (Sticky on desktop) */}
-        <div className="lg:sticky lg:top-8 space-y-4 sm:space-y-6 h-fit">
+        <div className="lg:col-span-4 lg:sticky lg:top-8 space-y-4 sm:space-y-6 h-fit">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

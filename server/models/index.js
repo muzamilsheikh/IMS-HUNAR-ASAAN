@@ -179,8 +179,32 @@ const Setting = sequelize.define('Setting', {
     emailNotificationsEnabled: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: true },
     enableLoginEmailAlerts: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: true },
     isStudentPortalMaintenance: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },
-    maintenanceNoticeMessage: { type: DataTypes.TEXT, allowNull: true, defaultValue: 'Student Portal is currently under scheduled maintenance. We will be back online shortly!' }
+    maintenanceNoticeMessage: { type: DataTypes.TEXT, allowNull: true, defaultValue: 'Student Portal is currently under scheduled maintenance. We will be back online shortly!' },
+    primaryAdminEmail: { type: DataTypes.STRING(255), allowNull: true, defaultValue: '' },
+    accountsEmail: { type: DataTypes.STRING(255), allowNull: true, defaultValue: '' },
+    operationsEmail: { type: DataTypes.STRING(255), allowNull: true, defaultValue: '' },
+    staffRecipients: { type: DataTypes.TEXT, allowNull: true, defaultValue: '[]' },
+    globalCcEmails: { type: DataTypes.TEXT, allowNull: true, defaultValue: '' },
+    notificationRules: { 
+        type: DataTypes.TEXT, 
+        allowNull: true, 
+        defaultValue: '{"admission":{"enabled":true,"primaryAdmin":true,"operations":true,"ccList":true,"student":true},"payment":{"enabled":true,"accounts":true,"primaryAdmin":true,"ccList":true,"student":true},"updates":{"enabled":true,"allStaff":true,"ccList":true},"overdue":{"enabled":true,"student":true,"accountsCc":true}}' 
+    },
+    backupFrequency: { type: DataTypes.STRING(50), allowNull: true, defaultValue: 'manual' },
+    backupEmail: { type: DataTypes.STRING(255), allowNull: true, defaultValue: '' }
 }, { timestamps: true, tableName: 'Settings' });
+
+// ============ DATABASE BACKUP HISTORY LOG MODEL ============
+const BackupLog = sequelize.define('BackupLog', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    filename: { type: DataTypes.STRING(255), allowNull: false },
+    type: { type: DataTypes.STRING(100), allowNull: false },
+    status: { type: DataTypes.STRING(50), allowNull: false },
+    error: { type: DataTypes.TEXT, allowNull: true }
+}, { 
+    timestamps: true, 
+    tableName: 'BackupLogs' 
+});
 
 // ============ LIVE CLASSES MODEL ============
 const LiveClass = sequelize.define('LiveClass', {
@@ -621,6 +645,7 @@ module.exports = {
     Installment,
     Expense,
     Setting,
+    BackupLog,
     LiveClass,
     Schedule,
     ChatGroup,

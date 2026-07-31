@@ -30,6 +30,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-light);
   color: var(--text-main);
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 label, th, button, .title-case {

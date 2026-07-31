@@ -38,3 +38,6 @@ admin-credentials-backup.json
 .npm-cache/
 * 2.json
 * 2.zip
+
+# DB backups
+server/backups/

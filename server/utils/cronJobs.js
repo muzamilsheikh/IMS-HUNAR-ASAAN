@@ -127,7 +127,110 @@ const initCronJobs = () => {
         timezone: 'Asia/Karachi'
     });
 
-    console.log('[CRON] ✅ All cron jobs registered (Salary Initializer + Overdue Checker)');
+    // ─────────────────────────────────────────────────────────────────────────
+    // JOB 3 — Daily Backup Trigger (Midnight)
+    // ─────────────────────────────────────────────────────────────────────────
+    cron.schedule('0 0 * * *', async () => {
+        console.log('[CRON] Daily Backup Trigger starting...');
+        await runScheduledBackup('daily');
+    }, { timezone: 'Asia/Karachi' });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // JOB 4 — Weekly Backup Trigger (Sunday at Midnight)
+    // ─────────────────────────────────────────────────────────────────────────
+    cron.schedule('0 0 * * 0', async () => {
+        console.log('[CRON] Weekly Backup Trigger starting...');
+        await runScheduledBackup('weekly');
+    }, { timezone: 'Asia/Karachi' });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // JOB 5 — Monthly Backup Trigger (1st of month at Midnight)
+    // ─────────────────────────────────────────────────────────────────────────
+    cron.schedule('0 0 1 * *', async () => {
+        console.log('[CRON] Monthly Backup Trigger starting...');
+        await runScheduledBackup('monthly');
+    }, { timezone: 'Asia/Karachi' });
+
+    console.log('[CRON] ✅ All cron jobs registered (Salary Initializer + Overdue Checker + Backup Schedulers)');
+};
+
+/**
+ * Scheduled backup executor helper
+ */
+const runScheduledBackup = async (frequency) => {
+    let Setting, BackupLog;
+    try {
+        const models = require('../models');
+        Setting = models.Setting;
+        BackupLog = models.BackupLog;
+    } catch (loadErr) {
+        console.error('[CRON] Backup scheduler — failed to load models:', loadErr.message);
+        return;
+    }
+
+    try {
+        const setting = await Setting.findOne();
+        if (!setting || setting.backupFrequency !== frequency || !setting.backupEmail) {
+            console.log(`[CRON] Backup skipped for frequency: ${frequency} (Not configured or email missing)`);
+            return;
+        }
+
+        console.log(`[CRON] Executing scheduled backup (${frequency}) for ${setting.backupEmail}...`);
+        
+        const { generateBackupFile } = require('../controllers/backupController');
+        const { sendEmail } = require('./email');
+        const fs = require('fs');
+
+        const { filePath, filename } = await generateBackupFile(`Automated ${frequency.charAt(0).toUpperCase() + frequency.slice(1)}`);
+        const fileBuffer = fs.readFileSync(filePath);
+
+        const emailSubject = `Automated Database Backup - ${frequency.charAt(0).toUpperCase() + frequency.slice(1)}`;
+        const emailHtml = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #334155;">
+                <h2 style="color: #0f172a;">Automated Database Backup Complete</h2>
+                <p>Hello Admin,</p>
+                <p>Your scheduled automated database backup (${frequency}) has been successfully processed.</p>
+                <p><strong>Backup File Name:</strong> ${filename}</p>
+                <p><strong>Frequency:</strong> ${frequency.toUpperCase()}</p>
+                <p><strong>Compiled At:</strong> ${new Date().toLocaleString()}</p>
+                <p>Please find the compressed SQL/JSON archive attached to this email.</p>
+                <br />
+                <p style="font-size: 11px; color: #94a3b8;">This is a scheduled security backup broadcast from Hunar Asaan CRM.</p>
+            </div>
+        `;
+
+        const attachments = [{
+            filename,
+            content: fileBuffer,
+            contentType: 'application/gzip'
+        }];
+
+        const emailRes = await sendEmail(setting.backupEmail, emailSubject, emailHtml, attachments);
+        
+        if (!emailRes.success) {
+            throw new Error(`Email dispatch failed: ${emailRes.error}`);
+        }
+
+        await BackupLog.create({
+            filename,
+            type: `Automated ${frequency.charAt(0).toUpperCase() + frequency.slice(1)}`,
+            status: 'Success'
+        });
+
+        console.log(`[CRON] ✅ Scheduled backup (${frequency}) complete & emailed to ${setting.backupEmail}`);
+    } catch (err) {
+        console.error(`[CRON] ❌ Scheduled backup (${frequency}) failed:`, err.message);
+        try {
+            await BackupLog.create({
+                filename: `backup_failed_${Date.now()}.gz`,
+                type: `Automated ${frequency.charAt(0).toUpperCase() + frequency.slice(1)}`,
+                status: 'Failed',
+                error: err.message
+            });
+        } catch (e) {
+            console.error('Failed to log backup failure to DB:', e.message);
+        }
+    }
 };
 
 module.exports = { initCronJobs };

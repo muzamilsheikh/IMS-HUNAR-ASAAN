@@ -657,7 +657,7 @@ const Dashboard = () => {
                 isOpen={showRegModal}
                 onClose={() => setShowRegModal(false)}
                 title="Student Registration Protocol"
-                maxWidth="max-w-5xl"
+                maxWidth="max-w-[1500px]"
             >
                 <RegistrationForm onSuccess={() => { setShowRegModal(false); fetchFinancialStats(); fetchRecoveryAlerts(); }} />
             </Modal>

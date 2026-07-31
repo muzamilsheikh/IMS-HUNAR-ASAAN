@@ -520,9 +520,9 @@ const Students = () => {
 
             <AnimatePresence>
                 {showRegForm && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-2xl flex items-center justify-center p-4 overflow-y-auto">
-                        <div className="min-h-[140vh] py-20 w-full flex items-center justify-center">
-                            <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="w-full max-w-[1500px] mx-auto relative px-4 md:px-6">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-2xl flex justify-center items-start p-4 overflow-y-auto">
+                        <div className="w-full py-10 md:py-20 flex justify-center min-h-full">
+                            <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 30 }} className="w-full max-w-[1500px] mx-auto relative px-4 md:px-6 my-auto">
                                 <button onClick={handleCloseForm} className="absolute -top-16 right-0 text-white/60 hover:text-white font-black text-[10px] uppercase tracking-[0.4em] flex items-center gap-4 bg-white/5 px-8 py-4 rounded-full border border-white/10 hover:bg-white/10 transition-all shadow-2xl">
                                     Abandom Admission Portal
                                 </button>

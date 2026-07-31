@@ -58,6 +58,7 @@ const uploadBackup = multer({
     limits: { fileSize: 50 * 1024 * 1024 } // 50MB database limit
 });
 
+router.get('/public', getSettings);
 router.get('/', authenticateToken, getSettings);
 router.put('/', authenticateToken, adminMiddleware, upload.single('logo'), updateSettings);
 

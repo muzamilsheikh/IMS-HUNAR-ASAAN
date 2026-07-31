@@ -27,6 +27,16 @@ const login = async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // Check if student portal is under maintenance and user is a student
+        if (user.role && user.role.toLowerCase() === 'student') {
+            const sysSetting = await Setting.findOne();
+            if (sysSetting && sysSetting.isStudentPortalMaintenance) {
+                return res.status(503).json({ 
+                    error: sysSetting.maintenanceNoticeMessage || 'Student Portal is currently under scheduled maintenance. We will be back online shortly!' 
+                });
+            }
+        }
+
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role },
             JWT_SECRET,

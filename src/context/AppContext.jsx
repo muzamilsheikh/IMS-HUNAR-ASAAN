@@ -107,6 +107,19 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const fetchPublicSettings = async () => {
+        try {
+            const publicSettings = await apiClient.getPublicSettings();
+            setSettings(prev => ({ ...prev, ...publicSettings }));
+        } catch (error) {
+            console.error('Failed to fetch public settings:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchPublicSettings();
+    }, []);
+
     // Removed the duplicate maxLoadingTimer as it is unified above
 
     // Initialize socket connection using useRef to prevent re-initialization

@@ -162,6 +162,7 @@ export const apiClient = {
 
   // Settings endpoints
   getSettings: () => api.get('/settings'),
+  getPublicSettings: () => api.get('/settings/public'),
   updateSettings: (settingsData) => api.put('/settings', settingsData),
 
   // Stats endpoints

@@ -21,6 +21,7 @@ export const AppProvider = ({ children }) => {
     const [notification, setNotification] = useState(null);
     const [socketConnected, setSocketConnected] = useState(false);
     const socketRef = useRef(null);
+    const isMutatingRef = useRef(false);
 
     // 🔥 CRITICAL: Single unified 8-second safety timeout
     useEffect(() => {
@@ -167,6 +168,10 @@ export const AppProvider = ({ children }) => {
 
             newSocket.on('data-updated', (data) => {
                 console.log('Real-time data update event received:', data);
+                if (isMutatingRef.current) {
+                    console.log('Ignoring self-triggered data-updated event:', data.type);
+                    return;
+                }
                 fetchData(true); // Silent refetch of all core data
             });
 
@@ -254,50 +259,69 @@ export const AppProvider = ({ children }) => {
         toast.success('Logged out successfully');
     };
 
-    const registerUser = async (userData) => {
+    const executeMutation = async (callback) => {
         try {
-            await apiClient.register(userData);
-            toast.success('User created successfully!');
-            return true;
-        } catch (err) {
-            toast.error(err.message || 'Failed to create user');
-            return false;
+            isMutatingRef.current = true;
+            return await callback();
+        } finally {
+            setTimeout(() => {
+                isMutatingRef.current = false;
+            }, 1000);
         }
+    };
+
+    const registerUser = async (userData) => {
+        return executeMutation(async () => {
+            try {
+                await apiClient.register(userData);
+                toast.success('User created successfully!');
+                return true;
+            } catch (err) {
+                toast.error(err.message || 'Failed to create user');
+                return false;
+            }
+        });
     };
 
     // Student methods
     const addStudent = async (formData) => {
-        try {
-            await apiClient.createStudent(formData);
-            await fetchData();
-            toast.success('Student Registered Successfully!');
-            return true;
-        } catch (error) {
-            toast.error(error.response?.data?.error || error.message || 'Failed to add student');
-            return false;
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.createStudent(formData);
+                await fetchData();
+                toast.success('Student Registered Successfully!');
+                return true;
+            } catch (error) {
+                toast.error(error.response?.data?.error || error.message || 'Failed to add student');
+                return false;
+            }
+        });
     };
 
     const updateStudent = async (id, updatedData) => {
-        try {
-            await apiClient.updateStudent(id, updatedData);
-            await fetchData();
-            toast.success('Student record updated successfully!');
-            return true;
-        } catch (error) {
-            toast.error(error.response?.data?.error || error.message || 'Failed to update student');
-            return false;
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.updateStudent(id, updatedData);
+                await fetchData();
+                toast.success('Student record updated successfully!');
+                return true;
+            } catch (error) {
+                toast.error(error.response?.data?.error || error.message || 'Failed to update student');
+                return false;
+            }
+        });
     };
 
     const deleteStudent = async (id) => {
-        try {
-            await apiClient.deleteStudent(id);
-            await fetchData();
-            toast.success('Student record removed successfully');
-        } catch (err) {
-            toast.error(err.response?.data?.error || err.message || 'Failed to delete student');
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.deleteStudent(id);
+                await fetchData();
+                toast.success('Student record removed successfully');
+            } catch (err) {
+                toast.error(err.response?.data?.error || err.message || 'Failed to delete student');
+            }
+        });
     };
 
     const updatePayment = async (studentId, installmentNumber) => {
@@ -317,99 +341,120 @@ export const AppProvider = ({ children }) => {
 
     // Expense methods
     const addExpense = async (expense) => {
-        try {
-            await apiClient.createExpense(expense);
-            await fetchData();
-            toast.success('Expense logged successfully!');
-            return true;
-        } catch (err) {
-            toast.error(err.message || 'Failed to add expense');
-            return false;
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.createExpense(expense);
+                await fetchData();
+                toast.success('Expense logged successfully!');
+                return true;
+            } catch (err) {
+                toast.error(err.message || 'Failed to add expense');
+                return false;
+            }
+        });
     };
 
     const deleteExpense = async (id) => {
-        try {
-            await apiClient.deleteExpense(id);
-            await fetchData();
-            toast.success('Expense deleted successfully');
-            return true;
-        } catch (err) {
-            toast.error(err.message || 'Failed to delete expense');
-            return false;
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.deleteExpense(id);
+                await fetchData();
+                toast.success('Expense deleted successfully');
+                return true;
+            } catch (err) {
+                toast.error(err.message || 'Failed to delete expense');
+                return false;
+            }
+        });
     };
 
     // Batch methods
     const addBatch = async (batch) => {
-        try {
-            await apiClient.createBatch(batch);
-            await fetchData();
-            toast.success('Batch created successfully');
-        } catch (err) {
-            toast.error(err.message || 'Failed to create batch');
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.createBatch(batch);
+                await fetchData();
+                toast.success('Batch created successfully');
+            } catch (err) {
+                toast.error(err.message || 'Failed to create batch');
+            }
+        });
     };
 
     const deleteBatch = async (id) => {
-        try {
-            await apiClient.deleteBatch(id);
-            await fetchData();
-            toast.success('Batch deleted successfully');
-        } catch (err) {
-            toast.error(err.message || 'Failed to delete batch');
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.deleteBatch(id);
+                await fetchData();
+                toast.success('Batch deleted successfully');
+            } catch (err) {
+                toast.error(err.message || 'Failed to delete batch');
+            }
+        });
     };
 
     const updateBatch = async (id, batchData) => {
-        try {
-            await apiClient.updateBatch(id, batchData);
-            await fetchData();
-            toast.success('Batch updated successfully');
-        } catch (err) {
-            toast.error(err.message || 'Failed to update batch');
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.updateBatch(id, batchData);
+                await fetchData();
+                toast.success('Batch updated successfully');
+            } catch (err) {
+                toast.error(err.message || 'Failed to update batch');
+            }
+        });
     };
 
     // Course methods
     const addCourse = async (course) => {
-        try {
-            await apiClient.createCourse(course);
-            await fetchData();
-            toast.success('Course published successfully');
-        } catch (err) {
-            toast.error(err.message || 'Failed to create course');
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.createCourse(course);
+                await fetchData();
+                toast.success('Course published successfully');
+            } catch (err) {
+                toast.error(err.message || 'Failed to create course');
+            }
+        });
     };
 
     const updateCourse = async (id, courseData) => {
-        try {
-            await apiClient.updateCourse(id, courseData);
-            await fetchData();
-            toast.success('Course updated successfully');
-        } catch (err) {
-            toast.error(err.message || 'Failed to update course');
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.updateCourse(id, courseData);
+                await fetchData();
+                toast.success('Course updated successfully');
+            } catch (err) {
+                toast.error(err.message || 'Failed to update course');
+            }
+        });
     };
 
     const deleteCourse = async (id) => {
-        try {
-            await apiClient.deleteCourse(id);
-            await fetchData();
-            toast.success('Course deleted successfully');
-        } catch (err) {
-            toast.error(err.message || 'Failed to delete course');
-        }
+        return executeMutation(async () => {
+            try {
+                await apiClient.deleteCourse(id);
+                await fetchData();
+                toast.success('Course deleted successfully');
+            } catch (err) {
+                toast.error(err.message || 'Failed to delete course');
+            }
+        });
     };
 
     // Settings methods
     const updateSettings = async (formData) => {
         try {
+            isMutatingRef.current = true;
             await apiClient.updateSettings(formData);
             await fetchData();
             toast.success('Settings updated successfully!');
         } catch (err) {
             toast.error(err.message || 'Failed to update settings');
+        } finally {
+            setTimeout(() => {
+                isMutatingRef.current = false;
+            }, 1000);
         }
     };
 

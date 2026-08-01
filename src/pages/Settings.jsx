@@ -9,6 +9,10 @@ import BackupSettings from './Settings/BackupSettings';
 
 const Settings = () => {
     const { user, settings, updateSettings, loading } = useApp();
+    const backendUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5001'
+        : '';
+
     const [logoPreview, setLogoPreview] = useState(null);
     const [logoFile, setLogoFile] = useState(null);
     const [activeTab, setActiveTab] = useState('general'); // 'general', 'email', 'backup'
@@ -64,7 +68,7 @@ const Settings = () => {
                     : JSON.stringify(settings.notificationRules || {})
             });
             if (settings.logoUrl) {
-                setLogoPreview(settings.logoUrl);
+                setLogoPreview(`${backendUrl}${settings.logoUrl}`);
             }
         }
     }, [settings]);

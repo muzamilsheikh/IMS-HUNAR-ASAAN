@@ -163,7 +163,9 @@ export const apiClient = {
   // Settings endpoints
   getSettings: () => api.get('/settings'),
   getPublicSettings: () => api.get('/settings/public'),
-  updateSettings: (settingsData) => api.put('/settings', settingsData),
+  updateSettings: (settingsData) => api.put('/settings', settingsData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 
   // Stats endpoints
   getFinancialDashboardStats: () => api.get('/stats/financial-dashboard'),

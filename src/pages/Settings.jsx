@@ -85,7 +85,7 @@ const Settings = () => {
         await updateSettings(submitData);
     };
 
-    if (loading) return <div className="h-[80vh] flex items-center justify-center font-black text-slate-300 animate-pulse uppercase tracking-[0.5em]">Fetching System Config...</div>;
+    if (loading && !settings) return <div className="h-[80vh] flex items-center justify-center font-black text-slate-300 animate-pulse uppercase tracking-[0.5em]">Fetching System Config...</div>;
 
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-5 duration-700 pb-20">

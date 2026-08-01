@@ -447,7 +447,7 @@ export const AppProvider = ({ children }) => {
         try {
             isMutatingRef.current = true;
             await apiClient.updateSettings(formData);
-            await fetchData();
+            await fetchData(true); // Silent refetch
             toast.success('Settings updated successfully!');
         } catch (err) {
             toast.error(err.message || 'Failed to update settings');

@@ -407,7 +407,7 @@ export const AppProvider = ({ children }) => {
         try {
             await apiClient.updateSettings(formData);
             await fetchData();
-            toast.success('Logo uploaded successfully!');
+            toast.success('Settings updated successfully!');
         } catch (err) {
             toast.error(err.message || 'Failed to update settings');
         }

@@ -1,4 +1,5 @@
 const { Expense, Course, Batch } = require('../models');
+const { emitToAll } = require('../socket');
 
 // GET all expenses
 const getAllExpenses = async (req, res) => {
@@ -60,6 +61,9 @@ const createExpense = async (req, res) => {
             ]
         });
 
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'expense' });
+
         res.status(201).json(populated);
     } catch (error) {
         console.error('Create expense error:', error);
@@ -90,6 +94,9 @@ const updateExpense = async (req, res) => {
             ]
         });
 
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'expense' });
+
         res.json(populated);
     } catch (error) {
         console.error('Update expense error:', error);
@@ -104,6 +111,10 @@ const deleteExpense = async (req, res) => {
         if (!expense) return res.status(404).json({ error: 'Expense not found' });
 
         await expense.destroy();
+
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'expense' });
+
         res.json({ message: 'Expense deleted successfully' });
     } catch (error) {
         console.error('Delete expense error:', error);

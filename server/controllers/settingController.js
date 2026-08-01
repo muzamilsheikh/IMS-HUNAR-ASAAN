@@ -113,10 +113,10 @@ const updateSettings = async (req, res) => {
         };
 
         if (emailServer) {
-            updatePayload.emailHost = emailServer.host || setting.emailHost;
-            updatePayload.emailPort = emailServer.port || setting.emailPort;
-            updatePayload.emailUser = emailServer.user || setting.emailUser;
-            updatePayload.emailPass = emailServer.pass || setting.emailPass;
+            updatePayload.emailHost = emailServer.host !== undefined ? emailServer.host : setting.emailHost;
+            updatePayload.emailPort = emailServer.port !== undefined ? emailServer.port : setting.emailPort;
+            updatePayload.emailUser = emailServer.user !== undefined ? emailServer.user : setting.emailUser;
+            updatePayload.emailPass = emailServer.pass !== undefined ? emailServer.pass : setting.emailPass;
         }
 
         // Handle logo file upload with proper directory structure

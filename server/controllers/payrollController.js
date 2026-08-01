@@ -1,6 +1,7 @@
 'use strict';
 
 const { SalaryPayment, User } = require('../models');
+const { emitToAll } = require('../socket');
 
 /**
  * payrollController
@@ -69,6 +70,9 @@ const createOrUpdatePayroll = async (req, res) => {
                     : null
             });
         }
+
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'payroll' });
 
         res.status(201).json({
             success: true,

@@ -1,6 +1,6 @@
 const { LiveClass, Batch, User, Student } = require('../models');
 const { sendEmail } = require('../utils/email');
-const { emitToRoom } = require('../utils/socket');
+const { emitToRoom, emitToAll } = require('../utils/socket');
 
 // Get live class for a specific batch
 const getLiveClassByBatch = async (req, res) => {
@@ -172,6 +172,9 @@ const createOrUpdateLiveClass = async (req, res) => {
       timestamp: new Date().toISOString()
     });
 
+    // Emit general data update event
+    emitToAll('data-updated', { type: 'live-class' });
+
     res.status(201).json({
       message: 'Live class created/updated successfully',
       liveClass: result,
@@ -205,6 +208,9 @@ const updateLiveClass = async (req, res) => {
       updateNote: updateNote || liveClass.updateNote
     });
 
+    // Emit general data update event
+    emitToAll('data-updated', { type: 'live-class' });
+
     res.json({
       message: 'Live class updated successfully',
       liveClass
@@ -227,6 +233,9 @@ const deleteLiveClass = async (req, res) => {
 
     await liveClass.destroy();
     
+    // Emit general data update event
+    emitToAll('data-updated', { type: 'live-class' });
+
     res.json({ message: 'Live class deleted successfully' });
   } catch (error) {
     console.error('Delete live class error:', error);

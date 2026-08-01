@@ -1,5 +1,6 @@
 const { User, Student, CourseInstructor, Op } = require('../models');
 const bcrypt = require('bcryptjs');
+const { emitToAll } = require('../socket');
 const { sendEmail, generateRandomPassword } = require('../utils/email');
 const { logActivity } = require('../utils/activity');
 const { getStaffWelcomeTemplate } = require('../utils/emailTemplates');
@@ -142,6 +143,9 @@ const createUser = async (req, res) => {
             `Staff member "${name}" was authorized with role "${role}" by ${req.user ? req.user.name : 'System'}.`
         );
 
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'user' });
+
         res.status(201).json({
             success: true,
             message: 'User created successfully',
@@ -179,6 +183,9 @@ const updateUserStatus = async (req, res) => {
 
             // For students, we don't actually change status in DB
             // We just return the updated status for frontend display
+            // Emit real-time update event
+            emitToAll('data-updated', { type: 'user' });
+
             return res.json({
                 success: true,
                 message: `Student ${status === 'Active' ? 'activated' : 'deactivated'} successfully`,
@@ -201,6 +208,9 @@ const updateUserStatus = async (req, res) => {
         }
 
         await user.update({ status });
+
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'user' });
 
         res.json({
             success: true,
@@ -353,6 +363,9 @@ const resetPasswordAdmin = async (req, res) => {
             'Password Reset (Admin)',
             `Password for account "${user.name}" (${user.email}) was reset by Admin ${req.user ? req.user.name : 'System'}.`
         );
+
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'user' });
 
         res.json({
             success: true,

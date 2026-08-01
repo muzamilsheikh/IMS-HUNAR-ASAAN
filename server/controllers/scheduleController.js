@@ -1,4 +1,5 @@
 const { Schedule, Batch, Course } = require('../models');
+const { emitToAll } = require('../socket');
 
 // Get all schedules (with optional filters)
 const getAllSchedules = async (req, res) => {
@@ -171,6 +172,9 @@ const createSchedule = async (req, res) => {
             ]
         });
 
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'schedule' });
+
         res.status(201).json({
             success: true,
             message: 'Schedule created successfully',
@@ -248,6 +252,9 @@ const updateSchedule = async (req, res) => {
             ]
         });
 
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'schedule' });
+
         res.json({
             success: true,
             message: 'Schedule updated successfully',
@@ -270,6 +277,10 @@ const deleteSchedule = async (req, res) => {
         }
 
         await schedule.destroy();
+
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'schedule' });
+
         res.json({
             success: true,
             message: 'Schedule deleted successfully'

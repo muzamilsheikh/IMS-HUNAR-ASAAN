@@ -56,7 +56,9 @@ const getSettings = async (req, res) => {
             operationsEmail: isAdmin ? (setting.operationsEmail || '') : '',
             staffRecipients: isAdmin ? (setting.staffRecipients || '[]') : '[]',
             globalCcEmails: isAdmin ? (setting.globalCcEmails || '') : '',
-            notificationRules: isAdmin ? (setting.notificationRules || '{}') : '{}'
+            notificationRules: isAdmin ? (setting.notificationRules || '{}') : '{}',
+            backupFrequency: isAdmin ? (setting.backupFrequency || 'manual') : 'manual',
+            backupEmail: isAdmin ? (setting.backupEmail || '') : ''
         });
     } catch (error) {
         console.error('Get settings error:', error);

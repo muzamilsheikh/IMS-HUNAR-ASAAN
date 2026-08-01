@@ -1,4 +1,5 @@
 const { Batch, Course, ChatGroup } = require('../models');
+const { emitToAll } = require('../socket');
 
 // Get all batches
 const getAllBatches = async (req, res) => {
@@ -140,6 +141,9 @@ const createBatch = async (req, res) => {
             }
         }
 
+        // Emit real-time event
+        emitToAll('data-updated', { type: 'batch' });
+
         res.status(201).json(newBatch);
     } catch (error) {
         console.error('Create batch error:', error);
@@ -242,6 +246,9 @@ const updateBatch = async (req, res) => {
             }
         }
 
+        // Emit real-time event
+        emitToAll('data-updated', { type: 'batch' });
+
         res.json(batch);
     } catch (error) {
         console.error('Update batch error:', error);
@@ -263,6 +270,10 @@ const deleteBatch = async (req, res) => {
         await ChatGroup.destroy({ where: { batchId: id } });
 
         await batch.destroy();
+
+        // Emit real-time event
+        emitToAll('data-updated', { type: 'batch' });
+
         res.json({ message: 'Batch deleted successfully' });
     } catch (error) {
         console.error('Delete batch error:', error);

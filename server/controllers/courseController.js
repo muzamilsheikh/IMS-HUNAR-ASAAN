@@ -1,4 +1,5 @@
 const { Course, Batch, Student, User } = require('../models');
+const { emitToAll } = require('../socket');
 
 // Get all courses
 const getAllCourses = async (req, res) => {
@@ -71,6 +72,9 @@ const createCourse = async (req, res) => {
             allowed_installments: allowed_installments ? parseInt(allowed_installments) : null
         });
 
+        // Emit real-time event
+        emitToAll('data-updated', { type: 'course' });
+
         res.status(201).json(newCourse);
     } catch (error) {
         console.error('Create course error:', error);
@@ -110,6 +114,9 @@ const updateCourse = async (req, res) => {
             allowed_installments: allowed_installments !== undefined ? (allowed_installments ? parseInt(allowed_installments) : null) : course.allowed_installments
         });
 
+        // Emit real-time event
+        emitToAll('data-updated', { type: 'course' });
+
         res.json(course);
     } catch (error) {
         console.error('Update course error:', error);
@@ -128,6 +135,10 @@ const deleteCourse = async (req, res) => {
         }
 
         await course.destroy();
+
+        // Emit real-time event
+        emitToAll('data-updated', { type: 'course' });
+
         res.json({ message: 'Course deleted successfully' });
     } catch (error) {
         console.error('Delete course error:', error);

@@ -2,6 +2,7 @@ const { Student, User, Course, Batch, ChatGroup, Op, InstallmentSchedule, Paymen
 const bcrypt = require('bcryptjs');
 const { sendEmail, sendAdminManagerNotification, generateRandomPassword } = require('../utils/email');
 const { logActivity } = require('../utils/activity');
+const { emitToAll } = require('../socket');
 const { getWelcomeTemplate } = require('../utils/emailTemplates');
 const { generateChallanPDF } = require('../utils/pdfGenerator');
 
@@ -530,6 +531,9 @@ const createStudent = async (req, res) => {
 
     console.log(`✅ Student processed & Enrolled: ${student.name}, ID: ${student.id}`);
 
+    // Emit real-time event
+    emitToAll('data-updated', { type: 'student' });
+
     res.status(201).json({
       success: true,
       student,
@@ -582,6 +586,9 @@ const updateStudent = async (req, res) => {
         { model: Batch, attributes: ['id', 'name', 'time'] }
       ]
     });
+
+    // Emit real-time event
+    emitToAll('data-updated', { type: 'student' });
 
     res.json({
       message: 'Student updated successfully',
@@ -655,6 +662,9 @@ const deleteStudent = async (req, res) => {
       'Student Deletion',
       `Student "${studentName}" (Email: ${studentEmail || 'N/A'}) was deleted by ${req.user ? req.user.name : 'System'}.`
     );
+
+    // Emit real-time event
+    emitToAll('data-updated', { type: 'student' });
 
     res.json({ 
       success: true,

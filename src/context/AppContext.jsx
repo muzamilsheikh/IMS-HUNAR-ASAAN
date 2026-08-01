@@ -51,10 +51,10 @@ export const AppProvider = ({ children }) => {
         setTimeout(() => setNotification(null), 5000);
     };
 
-    // Fetch data from APIs with 6-second timeout
-    const fetchData = async () => {
+    // Fetch data from APIs with 6-second timeout (supports silent refresh)
+    const fetchData = async (silent = false) => {
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
 
             // Race against 6-second timeout to prevent infinite loading
             const timeoutPromise = new Promise((_, reject) =>
@@ -103,7 +103,7 @@ export const AppProvider = ({ children }) => {
                 showNotification(error.message || 'Failed to sync app data', 'error');
             }
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 
@@ -163,6 +163,11 @@ export const AppProvider = ({ children }) => {
 
             newSocket.on('reconnecting', () => {
                 // Silently handle reconnection attempts
+            });
+
+            newSocket.on('data-updated', (data) => {
+                console.log('Real-time data update event received:', data);
+                fetchData(true); // Silent refetch of all core data
             });
 
             socketRef.current = newSocket;

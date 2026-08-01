@@ -284,6 +284,9 @@ const createPayment = async (req, res) => {
             timestamp: new Date().toISOString()
         });
 
+        // Emit general data-updated event for silent UI refresh
+        emitToAll('data-updated', { type: 'payment' });
+
         // Disptach Fee Paid Email Notifications
         const courseName = student.Course?.name || 'Enrolled Course';
         const batchName = student.Batch?.name || 'Assigned Batch';

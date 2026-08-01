@@ -1,6 +1,7 @@
 const { Setting } = require('../models');
 const path = require('path');
 const fs = require('fs');
+const { emitToAll } = require('../socket');
 
 // GET settings (always returns the first/only settings record)
 const getSettings = async (req, res) => {
@@ -80,7 +81,8 @@ const updateSettings = async (req, res) => {
         const {
             instituteName, contact, address, emailServer, bankName, accountTitle, accountNo, ibanCode, paymentInstructions,
             emailNotificationsEnabled, enableLoginEmailAlerts, isStudentPortalMaintenance, maintenanceNoticeMessage,
-            primaryAdminEmail, accountsEmail, operationsEmail, staffRecipients, globalCcEmails, notificationRules
+            primaryAdminEmail, accountsEmail, operationsEmail, staffRecipients, globalCcEmails, notificationRules,
+            backupFrequency, backupEmail
         } = formData;
 
         const updatePayload = {
@@ -106,6 +108,8 @@ const updateSettings = async (req, res) => {
             notificationRules: notificationRules !== undefined
                 ? (typeof notificationRules === 'string' ? notificationRules : JSON.stringify(notificationRules))
                 : setting.notificationRules,
+            backupFrequency: backupFrequency !== undefined ? backupFrequency : setting.backupFrequency,
+            backupEmail: backupEmail !== undefined ? backupEmail : setting.backupEmail
         };
 
         if (emailServer) {
@@ -146,6 +150,9 @@ const updateSettings = async (req, res) => {
 
         await setting.update(updatePayload);
 
+        // Emit real-time update event so the frontend syncs changes immediately
+        emitToAll('data-updated', { type: 'settings' });
+
         res.json({
             message: 'Settings updated successfully',
             instituteName: setting.instituteName,
@@ -169,7 +176,9 @@ const updateSettings = async (req, res) => {
             operationsEmail: setting.operationsEmail || '',
             staffRecipients: setting.staffRecipients || '[]',
             globalCcEmails: setting.globalCcEmails || '',
-            notificationRules: setting.notificationRules || '{}'
+            notificationRules: setting.notificationRules || '{}',
+            backupFrequency: setting.backupFrequency || 'manual',
+            backupEmail: setting.backupEmail || ''
         });
     } catch (error) {
         console.error('Update settings error:', error);

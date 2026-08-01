@@ -1,4 +1,5 @@
 const { Enrollment, Student, Course, Batch, InstallmentSchedule, EnrollmentRequest, Op, User } = require('../models');
+const { emitToAll } = require('../socket');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/enrollments
@@ -182,6 +183,9 @@ const createEnrollment = async (req, res) => {
         });
 
         console.log(`✅ Enrollment created & Schedule Generated: Student ${studentId} → ${course.name}`);
+
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'student' });
 
         res.status(201).json({ success: true, enrollment: full, message: 'Enrolled successfully with payment schedule' });
     } catch (error) {
@@ -417,6 +421,9 @@ const updateEnrollment = async (req, res) => {
             ]
         });
 
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'student' });
+
         res.json({ success: true, enrollment: updated });
     } catch (error) {
         console.error('❌ Update enrollment error:', error);
@@ -434,6 +441,10 @@ const deleteEnrollment = async (req, res) => {
         if (!enrollment) return res.status(404).json({ error: 'Enrollment not found' });
 
         await enrollment.destroy();
+
+        // Emit real-time update event
+        emitToAll('data-updated', { type: 'student' });
+
         res.json({ success: true, message: 'Enrollment removed' });
     } catch (error) {
         console.error('❌ Delete enrollment error:', error);

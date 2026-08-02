@@ -9,29 +9,30 @@ import { cn } from '../../utils/cn';
 import { logoBase64 } from '../../utils/logoBase64';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-    const { settings, logout, user } = useApp();
+    const { settings, logout, user, hasPermission } = useApp();
     const backendUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:5001'
         : window.location.origin;
 
-    const normalizedUserRole = user?.role ? user.role.toLowerCase().trim() : '';
-
     const navLinks = [
-        { name: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student', 'accounts_manager'] },
-        { name: 'Calendar', icon: Calendar, path: '/calendar', roles: ['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student', 'accounts_manager'] },
-        { name: 'Students', icon: Users, path: '/students', roles: ['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'accounts_manager'] },
-        { name: 'Users', icon: ShieldCheck, path: '/users', roles: ['Admin', 'admin'] },
-        { name: 'Batches', icon: Layers, path: '/batches', roles: ['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'accounts_manager'] },
-        { name: 'Courses', icon: GraduationCap, path: '/courses', roles: ['Admin', 'admin', 'Manager', 'manager', 'accounts_manager'] },
-        { name: 'Expenses', icon: Wallet, path: '/expenses', roles: ['Admin', 'admin', 'Manager', 'manager', 'accounts_manager'] },
-        { name: 'Payroll', icon: Wallet, path: '/payroll', roles: ['Admin', 'admin', 'Manager', 'manager', 'accounts_manager'] },
-        { name: 'Reports', icon: FileText, path: '/reports', roles: ['Admin', 'admin', 'Manager', 'manager', 'accounts_manager'] },
-        { name: 'Roles', icon: ShieldCheck, path: '/roles', roles: ['Admin', 'admin'] },
-        { name: 'Live Class', icon: Video, path: '/live-class', roles: ['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student'] },
-        { name: 'Chat', icon: MessageCircle, path: '/chat', roles: ['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student'] },
-        { name: 'Fee Challan', icon: Receipt, path: '/fee-challan', roles: ['Admin', 'admin', 'Manager', 'manager', 'accounts_manager', 'Student', 'student'] },
-        { name: 'Settings', icon: Settings, path: '/settings', roles: ['Admin', 'admin'] },
-    ].filter(link => link.roles.map(r => r.toLowerCase().trim()).includes(normalizedUserRole));
+        { name: 'Dashboard', icon: LayoutDashboard, path: '/', permKey: null },
+        { name: 'Calendar', icon: Calendar, path: '/calendar', permKey: 'viewCalendar' },
+        { name: 'Students', icon: Users, path: '/students', permKey: 'viewStudentList' },
+        { name: 'Users', icon: ShieldCheck, path: '/users', permKey: 'manageUsers' },
+        { name: 'Batches', icon: Layers, path: '/batches', permKey: 'viewCreateBatches' },
+        { name: 'Courses', icon: GraduationCap, path: '/courses', permKey: 'viewManageCourses' },
+        { name: 'Expenses', icon: Wallet, path: '/expenses', permKey: 'manageExpenses' },
+        { name: 'Payroll', icon: Wallet, path: '/payroll', permKey: 'viewPayroll' },
+        { name: 'Reports', icon: FileText, path: '/reports', permKey: 'accessReports' },
+        { name: 'Roles', icon: ShieldCheck, path: '/roles', permKey: 'accessSettings' },
+        { name: 'Live Class', icon: Video, path: '/live-class', permKey: 'liveClassAccess' },
+        { name: 'Chat', icon: MessageCircle, path: '/chat', permKey: 'viewChat' },
+        { name: 'Fee Challan', icon: Receipt, path: '/fee-challan', permKey: 'viewChallans' },
+        { name: 'Settings', icon: Settings, path: '/settings', permKey: 'accessSettings' },
+    ].filter(link => {
+        if (!link.permKey) return true; // Dashboard is open to all logged-in users
+        return hasPermission(link.permKey);
+    });
 
     // Close sidebar when clicking outside (for mobile)
     const handleOverlayClick = (e) => {

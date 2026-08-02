@@ -507,8 +507,44 @@ export const AppProvider = ({ children }) => {
 
         // Find the role object in the fetched roles list
         const roleObj = roles.find(r => r.name.toLowerCase() === role);
-        if (!roleObj) return false;
-        return roleObj.permissions?.[permissionKey] === true;
+        if (roleObj && roleObj.permissions && Object.keys(roleObj.permissions).length > 0) {
+            return roleObj.permissions[permissionKey] === true;
+        }
+
+        // Fallback for built-in roles if DB permissions matrix hasn't loaded yet
+        const BUILT_IN_FALLBACKS = {
+            manager: {
+                viewStudentList: true, addStudent: true, editDeleteStudent: true,
+                viewChallans: true, processPayments: true, manageExpenses: true, viewPayroll: true,
+                viewCreateBatches: true, viewManageCourses: true, liveClassAccess: true,
+                accessReports: true, viewCalendar: true, viewChat: true, manageUsers: false,
+                accessSettings: false, backupRestore: false
+            },
+            accounts_manager: {
+                viewStudentList: true, addStudent: true, editDeleteStudent: false,
+                viewChallans: true, processPayments: true, manageExpenses: true, viewPayroll: true,
+                viewCreateBatches: true, viewManageCourses: true, liveClassAccess: false,
+                accessReports: true, viewCalendar: true, viewChat: false, manageUsers: false,
+                accessSettings: false, backupRestore: false
+            },
+            staff: {
+                viewStudentList: false, addStudent: false, editDeleteStudent: false,
+                viewChallans: false, processPayments: false, manageExpenses: false, viewPayroll: false,
+                viewCreateBatches: false, viewManageCourses: false, liveClassAccess: true,
+                accessReports: false, viewCalendar: true, viewChat: true, manageUsers: false,
+                accessSettings: false, backupRestore: false
+            },
+            student: {
+                viewStudentList: false, addStudent: false, editDeleteStudent: false,
+                viewChallans: true, processPayments: false, manageExpenses: false, viewPayroll: false,
+                viewCreateBatches: false, viewManageCourses: false, liveClassAccess: true,
+                accessReports: false, viewCalendar: true, viewChat: true, manageUsers: false,
+                accessSettings: false, backupRestore: false
+            }
+        };
+
+        const defaultSet = BUILT_IN_FALLBACKS[role];
+        return defaultSet ? defaultSet[permissionKey] === true : false;
     };
 
     const createRole = async (roleData) => {

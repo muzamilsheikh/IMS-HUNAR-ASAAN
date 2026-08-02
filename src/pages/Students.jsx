@@ -165,10 +165,12 @@ const Students = () => {
                     <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-800 tracking-tighter">Student Directory</h2>
                     <p className="text-slate-400 mt-2 font-black uppercase text-[10px] tracking-widest italic opacity-60">Manage profiles, financial ledger and system status.</p>
                 </div>
-                <button onClick={() => setShowRegForm(true)} className="btn-secondary py-4 sm:py-5 px-6 sm:px-10 flex items-center gap-2 sm:gap-3 shadow-2xl shadow-secondary/40 active:scale-95 transition-all w-full sm:w-auto justify-center">
-                    <Plus size={20} sm:size={24} />
-                    <span className="font-black tracking-tight text-base sm:text-lg">Launch Admission</span>
-                </button>
+                {hasPermission('addStudent') && (
+                    <button onClick={() => setShowRegForm(true)} className="btn-secondary py-4 sm:py-5 px-6 sm:px-10 flex items-center gap-2 sm:gap-3 shadow-2xl shadow-secondary/40 active:scale-95 transition-all w-full sm:w-auto justify-center">
+                        <Plus size={20} sm:size={24} />
+                        <span className="font-black tracking-tight text-base sm:text-lg">Launch Admission</span>
+                    </button>
+                )}
             </div>
 
             {/* Filtering System */}
@@ -309,16 +311,18 @@ const Students = () => {
                                         </div>
                                         <div className="flex items-center gap-3">
                                             {/* ✅ Edit Button */}
-                                            <button
-                                                onClick={(e) => {
-                                                   e.stopPropagation();
-                                                    handleEditStudent(student);
-                                                }}
-                                                className="w-12 h-12 bg-blue-50 text-blue-500 rounded-[1.2rem] flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm border border-blue-100 hover:shadow-md"
-                                                title="Edit Student"
-                                            >
-                                                <Pencil size={18} />
-                                            </button>
+                                            {hasPermission('editDeleteStudent') && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditStudent(student);
+                                                    }}
+                                                    className="w-12 h-12 bg-blue-50 text-blue-500 rounded-[1.2rem] flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm border border-blue-100 hover:shadow-md"
+                                                    title="Edit Student"
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                            )}
                                             {/* ✅ Print Challan Button */}
                                             <button
                                                 onClick={(e) => {
@@ -331,7 +335,7 @@ const Students = () => {
                                                 <Printer size={18} />
                                             </button>
                                             {/* ✅ Delete Button */}
-                                            {user?.role !== 'accounts_manager' && (
+                                            {hasPermission('editDeleteStudent') && (
                                                 <button
                                                     onClick={(e) => {
                                                        e.stopPropagation();

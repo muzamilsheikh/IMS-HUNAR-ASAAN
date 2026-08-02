@@ -33,8 +33,25 @@ const DashboardOrStudent = () => {
   return <Dashboard />;
 };
 
+const ROUTE_PERMISSIONS = {
+  '/calendar': 'viewCalendar',
+  '/students': 'viewStudentList',
+  '/users': 'manageUsers',
+  '/batches': 'viewCreateBatches',
+  '/courses': 'viewManageCourses',
+  '/expenses': 'manageExpenses',
+  '/payroll': 'viewPayroll',
+  '/reports': 'accessReports',
+  '/roles': 'accessSettings',
+  '/live-class': 'liveClassAccess',
+  '/chat': 'viewChat',
+  '/fee-challan': 'viewChallans',
+  '/settings': 'accessSettings',
+  '/video-vault-admin': 'videoVaultAdmin'
+};
+
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { token, user, loading } = useApp();
+  const { token, user, loading, hasPermission } = useApp();
 
   // Show loading spinner while auth state is being determined (max 5s via timeout)
   if (loading) {
@@ -51,51 +68,15 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const role = user?.role ? user.role.toLowerCase().trim() : '';
   const currentPath = window.location.pathname;
 
-  // Student guards: block access to administrative features
-  if (role === 'student') {
-    const blockedForStudent = ['/batches', '/expenses', '/reports', '/users', '/students', '/courses', '/roles', '/settings', '/payroll', '/video-vault-admin'];
-    const isBlocked = blockedForStudent.some(path => currentPath === path || currentPath.startsWith(path + '/'));
-    if (isBlocked) {
-      toast.error('Access Denied: You do not have permission to access student-restricted areas.');
-      return <Navigate to="/" replace />;
-    }
-  }
+  // Match current route to required permission key
+  const matchedRoute = Object.keys(ROUTE_PERMISSIONS).find(
+    path => currentPath === path || currentPath.startsWith(path + '/')
+  );
 
-  // Staff guards: permit entry ONLY to calendar slots, live class, chat, video vault, and dashboard
-  if (role === 'staff') {
-    const permittedForStaff = ['/', '/calendar', '/live-class', '/chat', '/video-vault'];
-    const isPermitted = permittedForStaff.some(path => currentPath === path || currentPath.startsWith(path + '/'));
-    if (!isPermitted) {
-      toast.error('Access Denied: Staff accounts are restricted to teaching slots and dashboards.');
-      return <Navigate to="/" replace />;
-    }
-  }
-
-  // Accounts Manager guards: permit entry ONLY to financial, student view, batches, courses, and reporting
-  if (role === 'accounts_manager') {
-    const permittedForAccounts = ['/', '/calendar', '/students', '/batches', '/courses', '/reports', '/expenses', '/payroll', '/fee-challan'];
-    const isPermitted = permittedForAccounts.some(path => currentPath === path || currentPath.startsWith(path + '/'));
-    if (!isPermitted) {
-      toast.error('Access Denied: Accounts Manager account is restricted to financial and reporting modules.');
-      return <Navigate to="/" replace />;
-    }
-  }
-
-  // Manager guards: permit entry to all routes EXCEPT user management, global settings, and roles management
-  if (role === 'manager') {
-    const blockedForManager = ['/users', '/settings', '/roles', '/video-vault-admin'];
-    const isBlocked = blockedForManager.some(path => currentPath === path || currentPath.startsWith(path + '/'));
-    if (isBlocked) {
-      toast.error('Access Denied: Manager account is blocked from global configurations and user management.');
-      return <Navigate to="/" replace />;
-    }
-  }
-
-  // Coarse-grained allowedRoles check
-  if (allowedRoles.length > 0) {
-    const normalizedAllowed = allowedRoles.map(r => r.toLowerCase().trim());
-    if (!normalizedAllowed.includes(role)) {
-      toast.error('Access Denied: Unauthorized role.');
+  if (matchedRoute) {
+    const requiredPerm = ROUTE_PERMISSIONS[matchedRoute];
+    if (!hasPermission(requiredPerm)) {
+      toast.error('Access Denied: You do not have permission for this section.');
       return <Navigate to="/" replace />;
     }
   }

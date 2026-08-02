@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import {
-    Settings as SettingsIcon, Globe, Mail, Shield, Save, Upload, Image as ImageIcon, Sparkles, Terminal, Phone, MapPin, Building, User, Hash, CreditCard, ShieldAlert, Database
+    Settings as SettingsIcon, Globe, Mail, Shield, Save, Upload, Image as ImageIcon, Sparkles, Terminal, Phone, MapPin, Building, User, Hash, CreditCard, ShieldAlert, Database, ShieldCheck
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import EmailSettings from './Settings/EmailSettings';
 import BackupSettings from './Settings/BackupSettings';
+import RolePermissionSettings from './Settings/RolePermissionSettings';
 
 const Settings = () => {
     const { user, settings, updateSettings, loading } = useApp();
@@ -140,10 +141,24 @@ const Settings = () => {
                         >
                             Backup & Restore
                         </button>
+                        {user?.role?.toLowerCase() === 'admin' && (
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('roles')}
+                                className={`pb-3 px-4 text-xs font-black uppercase tracking-[0.2em] transition-all relative border-b-2 flex items-center gap-1.5 ${
+                                    activeTab === 'roles'
+                                        ? "text-secondary border-secondary"
+                                        : "text-slate-400 border-transparent hover:text-slate-600"
+                                }`}
+                            >
+                                <ShieldCheck size={13} />
+                                Roles & Permissions
+                            </button>
+                        )}
                     </div>
 
-                    {/* Don't show deploy button if non-admin is trying to access email or backup tabs */}
-                    {!( (activeTab === 'email' || activeTab === 'backup') && user?.role?.toLowerCase() !== 'admin') && (
+                    {/* Don't show deploy button if non-admin is trying to access email or backup tabs, or on roles tab */}
+                    {!( (activeTab === 'email' || activeTab === 'backup') && user?.role?.toLowerCase() !== 'admin') && activeTab !== 'roles' && (
                         <button type="submit" className="btn-secondary py-3.5 px-8 font-black text-xs uppercase tracking-widest shadow-xl shadow-secondary/30 active:scale-95 transition-all flex items-center gap-2">
                             <Save size={16} /> Deploy Config
                         </button>
@@ -453,8 +468,23 @@ const Settings = () => {
                     )
                 )}
 
+                {activeTab === 'roles' && (
+                    <div className="glass-card p-10 bg-white border border-slate-100 shadow-2xl">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 rounded-2xl bg-secondary/10 flex items-center justify-center">
+                                <ShieldCheck size={20} className="text-secondary" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Access Control</p>
+                                <h2 className="text-xl font-black text-slate-800 tracking-tight">Roles &amp; Permissions</h2>
+                            </div>
+                        </div>
+                        <RolePermissionSettings />
+                    </div>
+                )}
+
                 {/* Registry Status */}
-                {!( (activeTab === 'email' || activeTab === 'backup') && user?.role?.toLowerCase() !== 'admin') && (
+                {!( (activeTab === 'email' || activeTab === 'backup' || activeTab === 'roles') && user?.role?.toLowerCase() !== 'admin') && activeTab !== 'roles' && (
                     <div className="flex items-center gap-4 p-8 bg-emerald-50 rounded-[2rem] border border-emerald-100 shadow-inner max-w-xl">
                         <Globe className="text-emerald-600" size={24} />
                         <div>

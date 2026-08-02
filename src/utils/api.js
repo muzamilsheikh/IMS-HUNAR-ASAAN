@@ -167,6 +167,12 @@ export const apiClient = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
 
+  // Roles & Permissions endpoints
+  getRoles: () => api.get('/roles'),
+  createRole: (roleData) => api.post('/roles', roleData),
+  updateRolePermissions: (id, permissions) => api.put(`/roles/${id}/permissions`, { permissions }),
+  deleteRole: (id) => api.delete(`/roles/${id}`),
+
   // Stats endpoints
   getFinancialDashboardStats: () => api.get('/stats/financial-dashboard'),
 

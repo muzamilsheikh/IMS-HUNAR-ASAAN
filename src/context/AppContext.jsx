@@ -17,6 +17,7 @@ export const AppProvider = ({ children }) => {
     const [students, setStudents] = useState([]);
     const [expenses, setExpenses] = useState([]);
     const [settings, setSettings] = useState({});
+    const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState(null);
     const [socketConnected, setSocketConnected] = useState(false);
@@ -69,6 +70,7 @@ export const AppProvider = ({ children }) => {
                     apiClient.getBatches(),
                     apiClient.getExpenses(),
                     apiClient.getSettings(),
+                    apiClient.getRoles(),
                 ]),
                 timeoutPromise
             ]);
@@ -78,7 +80,8 @@ export const AppProvider = ({ children }) => {
                 coursesRes,
                 batchesRes,
                 expensesRes,
-                settingsRes
+                settingsRes,
+                rolesRes
             ] = results;
 
             // Only show errors if user is logged in (has token)
@@ -98,6 +101,9 @@ export const AppProvider = ({ children }) => {
 
             if (settingsRes.status === 'fulfilled') setSettings(settingsRes.value || {});
             else if (shouldShowErrors) showNotification(settingsRes.reason?.message || 'Failed to load settings', 'error');
+
+            if (rolesRes.status === 'fulfilled') setRoles(rolesRes.value || []);
+            // roles failure is non-fatal, no error toast
         } catch (error) {
             console.error('Core Sync Error:', error.message);
             if (token) {
@@ -477,12 +483,63 @@ export const AppProvider = ({ children }) => {
     // Function to refresh financial stats specifically
     const refreshFinancialStats = async () => {
         try {
-            // Refresh all data which includes financial stats
             await fetchData();
         } catch (error) {
             console.error('Error refreshing financial stats:', error);
         }
     };
+
+    // ── Roles & Permissions helpers ──
+    /**
+     * Returns true if the currently logged-in user has the given permission key.
+     * Admin always returns true. Other roles look up their DB permission matrix.
+     */
+    const hasPermission = (permissionKey) => {
+        if (!user) return false;
+        const role = user.role?.toLowerCase().trim();
+        if (role === 'admin') return true; // Admin bypasses all checks
+
+        // Find the role object in the fetched roles list
+        const roleObj = roles.find(r => r.name.toLowerCase() === role);
+        if (!roleObj) return false;
+        return roleObj.permissions?.[permissionKey] === true;
+    };
+
+    const createRole = async (roleData) => {
+        try {
+            const newRole = await apiClient.createRole(roleData);
+            setRoles(prev => [...prev, newRole]);
+            toast.success(`Role "${newRole.name}" created successfully!`);
+            return newRole;
+        } catch (err) {
+            toast.error(err.message || 'Failed to create role');
+            throw err;
+        }
+    };
+
+    const updateRolePerms = async (id, permissions) => {
+        try {
+            const updated = await apiClient.updateRolePermissions(id, permissions);
+            setRoles(prev => prev.map(r => r.id === id ? { ...r, permissions: updated.permissions } : r));
+            toast.success('Permissions saved!');
+            return updated;
+        } catch (err) {
+            toast.error(err.message || 'Failed to save permissions');
+            throw err;
+        }
+    };
+
+    const deleteRole = async (id) => {
+        try {
+            await apiClient.deleteRole(id);
+            setRoles(prev => prev.filter(r => r.id !== id));
+            toast.success('Role deleted successfully!');
+        } catch (err) {
+            toast.error(err.message || 'Failed to delete role');
+            throw err;
+        }
+    };
+    // ── End Roles helpers ──
 
     const value = {
         user,
@@ -495,6 +552,7 @@ export const AppProvider = ({ children }) => {
         students,
         expenses,
         settings,
+        roles,
         loading,
         addStudent,
         updateStudent,
@@ -509,11 +567,15 @@ export const AppProvider = ({ children }) => {
         updateCourse,
         deleteCourse,
         updateSettings,
+        createRole,
+        updateRolePerms,
+        deleteRole,
+        hasPermission,
         getStats,
         notification,
         showNotification,
         refreshData: fetchData,
-        socket: socketRef.current, // Use the socket from ref
+        socket: socketRef.current,
         socketConnected,
         api: apiClient,
         refreshFinancialStats

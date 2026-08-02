@@ -88,7 +88,7 @@ async function initializeDatabase() {
             }
 
             // Import models (connects to the specific database)
-            const { sequelize, User, Course, Batch, Student, Expense, Setting, LiveClass, ChatGroup, ChatMessage, Payment, VideoRecording, VideoAccessRequest, VideoViewLog, VideoSession, Enrollment, InstallmentSchedule } = require('./models');
+            const { sequelize, User, Course, Batch, Student, Expense, Setting, LiveClass, ChatGroup, ChatMessage, Payment, VideoRecording, VideoAccessRequest, VideoViewLog, VideoSession, Enrollment, InstallmentSchedule, Role } = require('./models');
             
             global.User = User;
             global.Course = Course;
@@ -106,6 +106,7 @@ async function initializeDatabase() {
             global.VideoSession = VideoSession;
             global.Enrollment = Enrollment;
             global.InstallmentSchedule = InstallmentSchedule;
+            global.Role = Role;
 
             await sequelize.authenticate();
             
@@ -120,6 +121,20 @@ async function initializeDatabase() {
                 await seedAdminUser({ User });
             } catch (seedErr) {
                 console.warn('⚠️  Admin seed skipped (non-fatal):', seedErr.message);
+            }
+
+            // Seed default system roles (non-fatal)
+            try {
+                const defaultRoles = ['Admin', 'Manager', 'accounts_manager', 'Staff', 'Student'];
+                for (const roleName of defaultRoles) {
+                    const exists = await Role.findOne({ where: { name: roleName } });
+                    if (!exists) {
+                        await Role.create({ name: roleName, permissions: '{}' });
+                        console.log(`✅ Seeded system role: ${roleName}`);
+                    }
+                }
+            } catch (roleErr) {
+                console.warn('⚠️  Role seeding skipped (non-fatal):', roleErr.message);
             }
 
             dbReady = true;
@@ -162,6 +177,7 @@ function setupRoutes() {
     const batchRoutes = require('./routes/batch');
     const expenseRoutes = require('./routes/expense');
     const settingRoutes = require('./routes/setting');
+    const roleRoutes = require('./routes/roleRoutes');
     const liveClassRoutes = require('./routes/liveClass');
     const chatRoutes = require('./routes/chat');
     const paymentRoutes = require('./routes/payment');
@@ -187,6 +203,7 @@ function setupRoutes() {
     app.use('/api/payroll', require('./routes/payroll')); // 🔥 NEW: Payroll API
     app.use('/api/salaries', require('./routes/salaries')); // 🔥 NEW: Salary Disbursement API
     app.use('/api/collaborations', require('./routes/collaboration'));
+    app.use('/api/roles', roleRoutes);
 
     // Serve static files from frontend build
     const distPath = path.join(__dirname, '../dist');

@@ -517,6 +517,9 @@ const ActivityLog = sequelize.define('ActivityLog', {
     details: { type: DataTypes.TEXT, allowNull: true }
 }, { timestamps: true, tableName: 'ActivityLogs' });
 
+// ============ ROLE MODEL ============
+const Role = require('./Role')(sequelize);
+
 // ============ ASSOCIATIONS ============
 // Keep only essential associations to avoid MySQL key limit
 Course.hasMany(Batch, { foreignKey: 'courseId', onDelete: 'SET NULL' });
@@ -660,6 +663,7 @@ module.exports = {
     SalaryPayment,
     ActivityLog,
     Collaboration,
+    Role,
     Op
 };
 

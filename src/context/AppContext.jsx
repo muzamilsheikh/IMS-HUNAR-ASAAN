@@ -63,12 +63,18 @@ export const AppProvider = ({ children }) => {
                 setTimeout(() => reject(new Error('Fetch timeout')), 6000)
             );
 
+            const canViewExpenses = () => {
+                if (!user || !user.role) return false;
+                const r = user.role.toLowerCase().trim();
+                return ['admin', 'manager', 'accounts_manager'].includes(r);
+            };
+
             const results = await Promise.race([
                 Promise.allSettled([
                     apiClient.getStudents(),
                     apiClient.getCourses(),
                     apiClient.getBatches(),
-                    apiClient.getExpenses(),
+                    canViewExpenses() ? apiClient.getExpenses() : Promise.resolve([]),
                     apiClient.getSettings(),
                     apiClient.getRoles(),
                 ]),
@@ -97,7 +103,7 @@ export const AppProvider = ({ children }) => {
             else if (shouldShowErrors) showNotification(batchesRes.reason?.message || 'Failed to load batches', 'error');
 
             if (expensesRes.status === 'fulfilled') setExpenses(expensesRes.value || []);
-            else if (shouldShowErrors) showNotification(expensesRes.reason?.message || 'Failed to load expenses', 'error');
+            else if (shouldShowErrors && canViewExpenses()) showNotification(expensesRes.reason?.message || 'Failed to load expenses', 'error');
 
             if (settingsRes.status === 'fulfilled') setSettings(settingsRes.value || {});
             else if (shouldShowErrors) showNotification(settingsRes.reason?.message || 'Failed to load settings', 'error');

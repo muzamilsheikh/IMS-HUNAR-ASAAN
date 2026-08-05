@@ -166,11 +166,12 @@ const CertificateModal = ({ student, onClose, onSuccess }) => {
 
             const res = await apiClient.post('/certificates', payload);
             toast.success('Certificate saved to student profile! 🎉');
-            if (onSuccess) onSuccess(res.data.certificate);
-            return res.data.certificate;
+            const certObj = res?.certificate || res?.data?.certificate || res;
+            if (onSuccess) onSuccess(certObj);
+            return certObj;
         } catch (err) {
             console.error('Failed to save certificate:', err);
-            toast.error(err.response?.data?.message || 'Failed to save certificate');
+            toast.error(err.response?.data?.message || err?.message || 'Failed to save certificate');
             return null;
         } finally {
             setSaving(false);
@@ -229,7 +230,7 @@ const CertificateModal = ({ student, onClose, onSuccess }) => {
                 pdfBase64
             });
 
-            toast.success(emailRes.data.message || 'Certificate email sent! ✉️', { id: toastId });
+            toast.success(emailRes?.message || emailRes?.data?.message || 'Certificate email sent! ✉️', { id: toastId });
         } catch (err) {
             console.error('Email error:', err);
             toast.error(err.response?.data?.message || 'Failed to send email', { id: toastId });

@@ -462,10 +462,10 @@ const CertificateModal = ({ student, onClose, onSuccess }) => {
                         </div>
 
                         {/* Certificate Canvas Live Preview */}
-                        <div className="flex-1 p-4 sm:p-6 flex items-center justify-center overflow-auto bg-slate-200/80 min-h-[450px]">
+                        <div className="flex-1 p-2 sm:p-6 flex items-center justify-center overflow-x-hidden overflow-y-auto bg-slate-200/80 min-h-[360px] sm:min-h-[450px]">
                             
                             {/* Scaled Container for Modal Preview */}
-                            <div className="transform scale-[0.70] sm:scale-[0.80] lg:scale-[0.88] xl:scale-[0.95] origin-center transition-all duration-300">
+                            <div className="transform scale-[0.38] min-[420px]:scale-[0.46] sm:scale-[0.68] md:scale-[0.78] lg:scale-[0.88] xl:scale-[0.95] origin-top sm:origin-center transition-all duration-300 my-auto">
                                 
                                 {/* Printable Certificate Frame (Fixed A4 Landscape 842px x 595px) */}
                                 <div className="w-[842px] h-[595px] bg-white shadow-2xl rounded-sm p-8 relative flex flex-col justify-between text-slate-800 border-[10px] border-double border-slate-400 select-none shrink-0" ref={certCanvasRef} style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>

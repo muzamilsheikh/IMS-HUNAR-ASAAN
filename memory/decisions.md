@@ -16,6 +16,7 @@ Detailed decision records (with reasoning and review dates) are in `decisions.cs
 | 2026-08-06 | Increase fetch timeout to 30s & add Socket.io HTTP polling fallback | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Auto-link existing User account when creating Student profile | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Fix Certificate API 500 error & html2canvas oklch color parsing for PDF | ✅ Implemented | 2026-09-05 |
+| 2026-08-06 | Fix Certificate preview clipping, WhatsApp phone formatting & PDF onclone | ✅ Implemented | 2026-09-05 |
 
 ## Patterns Established
 - Memory files live in `/memory/` at the project root

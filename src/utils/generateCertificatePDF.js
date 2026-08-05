@@ -12,21 +12,31 @@ export const generateCertificatePDF = async (element, filename = 'Certificate.pd
         throw new Error('Certificate element not provided');
     }
 
+    // Backup and temporarily strip oklch from all style tags in main window
+    const originalStyles = [];
+    const styleElements = Array.from(document.querySelectorAll('style'));
+    
+    styleElements.forEach(el => {
+        if (el.textContent && el.textContent.includes('oklch')) {
+            originalStyles.push({ el, original: el.textContent });
+            el.textContent = el.textContent.replace(/oklch\([^)]+\)/gi, '#0f172a');
+        }
+    });
+
     try {
         // Capture element with high scale for high-DPI crisp print quality
         const canvas = await html2canvas(element, {
-            scale: 3, // 3x resolution for high crisp quality
+            scale: 2, // 2x resolution for crisp print quality
             useCORS: true,
             logging: false,
             backgroundColor: '#ffffff',
             allowTaint: true,
             onclone: (clonedDoc) => {
                 try {
-                    // Replace all oklch color references in all style tags of cloned document
                     const styleTags = clonedDoc.getElementsByTagName('style');
                     for (let i = 0; i < styleTags.length; i++) {
-                        if (styleTags[i] && styleTags[i].innerHTML && styleTags[i].innerHTML.includes('oklch')) {
-                            styleTags[i].innerHTML = styleTags[i].innerHTML.replace(/oklch\([^)]+\)/gi, '#0f172a');
+                        if (styleTags[i] && styleTags[i].textContent && styleTags[i].textContent.includes('oklch')) {
+                            styleTags[i].textContent = styleTags[i].textContent.replace(/oklch\([^)]+\)/gi, '#0f172a');
                         }
                     }
                 } catch (e) {
@@ -62,6 +72,13 @@ export const generateCertificatePDF = async (element, filename = 'Certificate.pd
     } catch (err) {
         console.error('Error generating certificate PDF:', err);
         throw err;
+    } finally {
+        // Always restore original stylesheet contents in main window
+        originalStyles.forEach(item => {
+            if (item.el && item.original) {
+                item.el.textContent = item.original;
+            }
+        });
     }
 };
 

@@ -96,7 +96,7 @@ exports.getStudentCertificates = async (req, res) => {
             where: { studentId },
             include: [
                 { model: Course, attributes: ['id', 'name', 'code'] },
-                { model: Batch, attributes: ['id', 'batchName', 'code'] }
+                { model: Batch, attributes: ['id', 'name'] }
             ],
             order: [['createdAt', 'DESC']]
         });
@@ -118,7 +118,7 @@ exports.getCertificateById = async (req, res) => {
             include: [
                 { model: Student, attributes: ['id', 'name', 'email', 'phone'] },
                 { model: Course, attributes: ['id', 'name', 'code'] },
-                { model: Batch, attributes: ['id', 'batchName', 'code'] }
+                { model: Batch, attributes: ['id', 'name'] }
             ]
         });
 

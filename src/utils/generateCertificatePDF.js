@@ -19,7 +19,32 @@ export const generateCertificatePDF = async (element, filename = 'Certificate.pd
             useCORS: true,
             logging: false,
             backgroundColor: '#ffffff',
-            allowTaint: true
+            allowTaint: true,
+            onclone: (clonedDoc) => {
+                // Remove style rules containing oklch to prevent html2canvas parsing errors
+                const styleSheets = Array.from(clonedDoc.styleSheets || []);
+                styleSheets.forEach(sheet => {
+                    try {
+                        const rules = sheet.cssRules || sheet.rules;
+                        if (!rules) return;
+                        for (let i = rules.length - 1; i >= 0; i--) {
+                            if (rules[i].cssText && rules[i].cssText.includes('oklch')) {
+                                sheet.deleteRule(i);
+                            }
+                        }
+                    } catch (e) {
+                        // ignore CORS/cross-domain stylesheet security errors
+                    }
+                });
+
+                // Also replace oklch in style tags
+                const styles = clonedDoc.querySelectorAll('style');
+                styles.forEach(s => {
+                    if (s.textContent && s.textContent.includes('oklch')) {
+                        s.textContent = s.textContent.replace(/oklch\([^)]+\)/gi, '#0f172a');
+                    }
+                });
+            }
         });
 
         const imgData = canvas.toDataURL('image/png', 1.0);

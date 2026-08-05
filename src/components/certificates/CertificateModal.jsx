@@ -97,7 +97,7 @@ const CertificateModal = ({ student, onClose, onSuccess }) => {
         } else if (studentEnrollments.length === 0) {
             // Default fallback if no enrollments
             setCourseName(student?.Course?.name || 'Medical Billing & Coding Short Course');
-            setBatchTitle(student?.Batch?.batchName || 'Batch 1');
+            setBatchTitle(student?.Batch?.name || student?.Batch?.batchName || 'Batch 1');
             setStep('editor');
         }
     }, []);
@@ -105,7 +105,7 @@ const CertificateModal = ({ student, onClose, onSuccess }) => {
     const handleSelectEnrollment = (enr) => {
         setSelectedEnrollment(enr);
         const cName = enr.Course?.name || student?.Course?.name || 'Medical Billing & Coding Short Course';
-        const bTitle = enr.Batch?.batchName || student?.Batch?.batchName || 'Batch 1';
+        const bTitle = enr.Batch?.name || enr.Batch?.batchName || student?.Batch?.name || student?.Batch?.batchName || 'Batch 1';
         setCourseName(cName);
         setBatchTitle(bTitle);
         setStep('editor');
@@ -288,7 +288,7 @@ const CertificateModal = ({ student, onClose, onSuccess }) => {
                                             {enr.Course?.name || 'Enrolled Course'}
                                         </h4>
                                         <p className="text-xs text-slate-500 mt-1">
-                                            Batch: {enr.Batch?.batchName || 'Default Batch'}
+                                            Batch: {enr.Batch?.name || enr.Batch?.batchName || 'Default Batch'}
                                         </p>
                                     </div>
                                     <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-teal-600">

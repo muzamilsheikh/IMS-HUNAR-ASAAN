@@ -88,7 +88,7 @@ async function initializeDatabase() {
             }
 
             // Import models (connects to the specific database)
-            const { sequelize, User, Course, Batch, Student, Expense, Setting, LiveClass, ChatGroup, ChatMessage, Payment, VideoRecording, VideoAccessRequest, VideoViewLog, VideoSession, Enrollment, InstallmentSchedule, Role } = require('./models');
+            const { sequelize, User, Course, Batch, Student, Expense, Setting, LiveClass, ChatGroup, ChatMessage, Payment, VideoRecording, VideoAccessRequest, VideoViewLog, VideoSession, Enrollment, InstallmentSchedule, Installment, Role, Certificate, ActivityLog, BackupLog, Schedule, CourseInstructor, SalaryPayment, Collaboration, EnrollmentRequest } = require('./models');
             
             global.User = User;
             global.Course = Course;
@@ -106,7 +106,16 @@ async function initializeDatabase() {
             global.VideoSession = VideoSession;
             global.Enrollment = Enrollment;
             global.InstallmentSchedule = InstallmentSchedule;
+            global.Installment = Installment;
             global.Role = Role;
+            global.Certificate = Certificate;
+            global.ActivityLog = ActivityLog;
+            global.BackupLog = BackupLog;
+            global.Schedule = Schedule;
+            global.CourseInstructor = CourseInstructor;
+            global.SalaryPayment = SalaryPayment;
+            global.Collaboration = Collaboration;
+            global.EnrollmentRequest = EnrollmentRequest;
 
             await sequelize.authenticate();
             

@@ -115,9 +115,13 @@ const Students = () => {
     });
 
     const filteredStudents = students.filter(s => {
-        const matchesSearch = s.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-            s.customId?.toLowerCase().includes(filters.search.toLowerCase()) ||
-            s.phone?.includes(filters.search);
+        if (!s) return false;
+        const searchLower = (filters.search || '').toLowerCase().trim();
+        const matchesSearch = !searchLower || 
+            (s.name || '').toLowerCase().includes(searchLower) ||
+            (s.email || '').toLowerCase().includes(searchLower) ||
+            (s.customId || '').toLowerCase().includes(searchLower) ||
+            (s.phone || '').includes(searchLower);
 
         const sCourseId = s.courseId?._id || s.courseId;
         const sBatchId = s.batchId?._id || s.batchId;

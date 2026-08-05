@@ -12,6 +12,7 @@ Detailed decision records (with reasoning and review dates) are in `decisions.cs
 | 2026-08-06 | Strict production DB protection policy on git deployment | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Certificate Generation & Management System (Live Canvas + Email PDF) | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Fix 500 error on Direct Admission creation in studentController.js | ✅ Implemented | 2026-09-05 |
+| 2026-08-06 | Enhance checkStudentExists for User model & customId with live form warning | ✅ Implemented | 2026-09-05 |
 
 ## Patterns Established
 - Memory files live in `/memory/` at the project root

@@ -58,9 +58,9 @@ export const AppProvider = ({ children }) => {
         try {
             if (!silent) setLoading(true);
 
-            // Race against 6-second timeout to prevent infinite loading
+            // Race against 30-second timeout to prevent premature loading errors on slow hosting
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Fetch timeout')), 6000)
+                setTimeout(() => reject(new Error('Fetch timeout')), 30000)
             );
 
             const canViewExpenses = () => {
@@ -142,7 +142,7 @@ export const AppProvider = ({ children }) => {
                 ? 'http://localhost:5001'
                 : window.location.origin;
             const newSocket = io(socketUrl, {
-                transports: ['websocket'],
+                transports: ['polling', 'websocket'],
                 withCredentials: true,
                 reconnection: true,
                 reconnectionAttempts: 10, // Cap reconnects

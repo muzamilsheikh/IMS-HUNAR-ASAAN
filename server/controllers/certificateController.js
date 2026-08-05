@@ -42,14 +42,16 @@ exports.createCertificate = async (req, res) => {
         let savedPdfUrl = null;
 
         // If base64 file data provided, save to disk
-        if (pdfBase64) {
+        if (pdfBase64 && typeof pdfBase64 === 'string') {
             try {
-                const base64Data = pdfBase64.replace(/^data:(image\/png|application\/pdf);base64,/, '');
-                const ext = pdfBase64.startsWith('data:application/pdf') ? 'pdf' : 'png';
+                const matches = pdfBase64.match(/^data:([a-zA-Z0-9\/\-+.]+);base64,(.+)$/);
+                const mimeType = matches ? matches[1] : '';
+                const base64Data = matches ? matches[2] : pdfBase64.replace(/^data:[^;]+;base64,/, '');
+                const ext = mimeType.includes('pdf') ? 'pdf' : 'png';
                 const filename = `cert_${certNum.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${ext}`;
                 const filepath = path.join(CERT_DIR, filename);
 
-                fs.writeFileSync(filepath, base64Data, 'base64');
+                fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'));
                 savedPdfUrl = `/uploads/certificates/${filename}`;
             } catch (fileErr) {
                 console.error('Failed to save certificate file to disk:', fileErr.message);

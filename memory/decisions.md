@@ -19,6 +19,7 @@ Detailed decision records (with reasoning and review dates) are in `decisions.cs
 | 2026-08-06 | Fix Certificate preview clipping, WhatsApp phone formatting & PDF onclone | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Eliminate oklch html2canvas crash via style backup/restore & mobile scaling | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Import Certificate model in server/index.js for MySQL table auto-sync | ✅ Implemented | 2026-09-05 |
+| 2026-08-06 | Upgrade PDF Generator from html2canvas to native html-to-image | ✅ Implemented | 2026-09-05 |
 
 ## Patterns Established
 - Memory files live in `/memory/` at the project root

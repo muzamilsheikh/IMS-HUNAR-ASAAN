@@ -517,6 +517,27 @@ const ActivityLog = sequelize.define('ActivityLog', {
     details: { type: DataTypes.TEXT, allowNull: true }
 }, { timestamps: true, tableName: 'ActivityLogs' });
 
+// ============ CERTIFICATE MODEL ============
+const Certificate = sequelize.define('Certificate', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    certificateNo: { type: DataTypes.STRING(100), allowNull: false, unique: true },
+    studentId: { type: DataTypes.INTEGER, allowNull: false },
+    courseId: { type: DataTypes.INTEGER, allowNull: true },
+    batchId: { type: DataTypes.INTEGER, allowNull: true },
+    studentName: { type: DataTypes.STRING(255), allowNull: false },
+    courseName: { type: DataTypes.STRING(255), allowNull: false },
+    batchTitle: { type: DataTypes.STRING(255), allowNull: true },
+    issueDate: { type: DataTypes.DATEONLY, allowNull: false },
+    collaborationText: { type: DataTypes.STRING(500), allowNull: true },
+    collaborationLogo: { type: DataTypes.TEXT, allowNull: true },
+    goldenBadgeUrl: { type: DataTypes.TEXT, allowNull: true },
+    descriptionText: { type: DataTypes.TEXT, allowNull: true },
+    signatoryName: { type: DataTypes.STRING(255), allowNull: true },
+    signatoryTitle: { type: DataTypes.STRING(255), allowNull: true },
+    pdfUrl: { type: DataTypes.TEXT, allowNull: true },
+    createdBy: { type: DataTypes.INTEGER, allowNull: true }
+}, { timestamps: true, tableName: 'Certificates' });
+
 // ============ ROLE MODEL ============
 const Role = require('./Role')(sequelize);
 
@@ -636,6 +657,16 @@ Collaboration.belongsTo(Batch, { foreignKey: 'batchId' });
 Course.hasMany(Collaboration, { foreignKey: 'courseId' });
 Batch.hasMany(Collaboration, { foreignKey: 'batchId' });
 
+// Certificate associations
+Student.hasMany(Certificate, { foreignKey: 'studentId', onDelete: 'CASCADE' });
+Certificate.belongsTo(Student, { foreignKey: 'studentId' });
+Course.hasMany(Certificate, { foreignKey: 'courseId', onDelete: 'SET NULL' });
+Certificate.belongsTo(Course, { foreignKey: 'courseId' });
+Batch.hasMany(Certificate, { foreignKey: 'batchId', onDelete: 'SET NULL' });
+Certificate.belongsTo(Batch, { foreignKey: 'batchId' });
+User.hasMany(Certificate, { foreignKey: 'createdBy', onDelete: 'SET NULL' });
+Certificate.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+
 // ============ EXPORTS ============
 module.exports = {
     sequelize,
@@ -663,6 +694,7 @@ module.exports = {
     SalaryPayment,
     ActivityLog,
     Collaboration,
+    Certificate,
     Role,
     Op
 };

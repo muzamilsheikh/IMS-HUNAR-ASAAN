@@ -31,6 +31,7 @@ const PERMISSION_MODULES = [
             { key: 'viewManageCourses', label: 'View / Manage Courses' },
             { key: 'liveClassAccess',   label: 'Live Class Access' },
             { key: 'videoVaultAdmin',   label: 'Video Vault Admin' },
+            { key: 'generateCertificate', label: 'Generate & Manage Certificates' },
         ]
     },
     {

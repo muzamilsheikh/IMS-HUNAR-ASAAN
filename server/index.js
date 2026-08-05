@@ -204,6 +204,7 @@ function setupRoutes() {
     app.use('/api/salaries', require('./routes/salaries')); // 🔥 NEW: Salary Disbursement API
     app.use('/api/collaborations', require('./routes/collaboration'));
     app.use('/api/roles', roleRoutes);
+    app.use('/api/certificates', require('./routes/certificate'));
 
     // Serve static files from frontend build
     const distPath = path.join(__dirname, '../dist');

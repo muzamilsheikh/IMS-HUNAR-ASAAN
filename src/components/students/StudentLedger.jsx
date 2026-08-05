@@ -15,6 +15,7 @@ import apiClient from '../../utils/api';
 import toast from 'react-hot-toast';
 import Modal from '../layout/Modal';
 import RegistrationForm from './RegistrationForm';
+import CertificateModal from '../certificates/CertificateModal';
 import { 
     GraduationCap, 
     Trophy, 
@@ -24,7 +25,10 @@ import {
     Search as SearchIcon,
     Sparkles,
     Check,
-    BookOpen
+    BookOpen,
+    Award,
+    Mail,
+    Share2
 } from 'lucide-react';
 
 // Register a basic font for PDF
@@ -208,12 +212,17 @@ const getFullLogoUrl = (logoUrl) => {
 };
 
 const StudentLedger = ({ studentId, onUpdate }) => {
-    const { students, settings, api, courses, batches, refreshFinancialStats, socket, user } = useApp();
+    const { students, settings, api, courses, batches, refreshFinancialStats, socket, user, hasPermission } = useApp();
     const contextStudent = students?.find(s => (s?._id === studentId || s?.id === studentId));
     
     // Use local state to ensure latest student data is displayed
     const [localStudent, setLocalStudent] = useState(null);
     const student = localStudent || contextStudent; // Prefer local state if available
+
+    // Certificate System States
+    const [savedCertificates, setSavedCertificates] = useState([]);
+    const [showCertModal, setShowCertModal] = useState(false);
+    const [loadingCerts, setLoadingCerts] = useState(false);
 
     // Edit Profile states
     const [showEditModal, setShowEditModal] = useState(false);
@@ -397,10 +406,50 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                 setBalance(freshBalance);
                 
                 // Update enrollments
-                setEnrollments(response.enrollments || []);
             }
         } catch (err) {
             console.error('Error fetching student details:', err);
+        }
+    };
+
+    // Fetch Saved Certificates for Student
+    const fetchCertificates = async () => {
+        if (!student?.id) return;
+        setLoadingCerts(true);
+        try {
+            const res = await apiClient.get(`/certificates/student/${student.id}`);
+            setSavedCertificates(res.certificates || []);
+        } catch (err) {
+            console.error('Error fetching certificates:', err);
+        } finally {
+            setLoadingCerts(false);
+        }
+    };
+
+    useEffect(() => {
+        if (student?.id) {
+            fetchCertificates();
+        }
+    }, [student?.id]);
+
+    const handleDeleteCertificate = async (certId) => {
+        if (!window.confirm('Are you sure you want to delete this certificate?')) return;
+        try {
+            await apiClient.delete(`/certificates/${certId}`);
+            toast.success('Certificate deleted');
+            fetchCertificates();
+        } catch (err) {
+            toast.error('Failed to delete certificate');
+        }
+    };
+
+    const handleSendCertEmail = async (cert) => {
+        const toastId = toast.loading(`Sending certificate to ${student?.email || 'student'}...`);
+        try {
+            await apiClient.post(`/certificates/${cert.id}/send-email`, { recipientEmail: student?.email });
+            toast.success('Certificate email sent! ✉️', { id: toastId });
+        } catch (err) {
+            toast.error('Failed to send email', { id: toastId });
         }
     };
 
@@ -621,6 +670,15 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                         <FileText size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
                         Print Fee Challan
                     </button>
+                    {(user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'manager' || user?.role?.toLowerCase() === 'accounts_manager' || hasPermission?.('generateCertificate')) && (
+                        <button 
+                            onClick={() => setShowCertModal(true)}
+                            className="group bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all border border-teal-400 shadow-lg shadow-teal-500/20 active:scale-95"
+                        >
+                            <Award size={18} className="text-teal-100 group-hover:scale-110 transition-transform" />
+                            Get Certificate
+                        </button>
+                    )}
                     <button 
                         onClick={() => setShowEnrollModal(true)}
                         className="group bg-slate-800 hover:bg-black text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-4 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-95"
@@ -859,6 +917,107 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                         })}
                     </AnimatePresence>
                 </div>
+            </div>
+
+            {/* 🔥 NEW: Official Certificates Vault Section */}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between px-2">
+                    <div>
+                        <h3 className="text-xl font-black text-slate-800 tracking-tighter uppercase flex items-center gap-3">
+                            <Award className="text-teal-600" />
+                            Issued Certificates
+                        </h3>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 opacity-60">
+                            Official Completion Certificates & Credentials
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className="bg-teal-50 text-teal-700 border border-teal-200 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">
+                            {savedCertificates.length} Certificate(s)
+                        </span>
+                        {(user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'manager' || user?.role?.toLowerCase() === 'accounts_manager' || hasPermission?.('generateCertificate')) && (
+                            <button
+                                onClick={() => setShowCertModal(true)}
+                                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-md transition-all active:scale-95"
+                            >
+                                <PlusCircle size={14} />
+                                New Certificate
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {savedCertificates.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {savedCertificates.map((cert) => (
+                            <div key={cert.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-lg flex flex-col justify-between hover:shadow-xl transition-all">
+                                <div>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
+                                            #{cert.certificateNo}
+                                        </span>
+                                        <span className="text-[10px] font-bold text-slate-400">
+                                            Issued: {cert.issueDate}
+                                        </span>
+                                    </div>
+                                    <h4 className="text-base font-black text-slate-800 tracking-tight mb-1">
+                                        {cert.courseName}
+                                    </h4>
+                                    <p className="text-xs text-slate-500 font-semibold mb-4">
+                                        Recipient: {cert.studentName} {cert.batchTitle ? `• ${cert.batchTitle}` : ''}
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
+                                    <div className="flex items-center gap-2">
+                                        {cert.pdfUrl && (
+                                            <a
+                                                href={cert.pdfUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-3 py-1.5 bg-teal-50 text-teal-700 hover:bg-teal-600 hover:text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
+                                            >
+                                                <Download size={13} />
+                                                Download PDF
+                                            </a>
+                                        )}
+                                        <button
+                                            onClick={() => handleSendCertEmail(cert)}
+                                            className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
+                                        >
+                                            <Mail size={13} />
+                                            Email
+                                        </button>
+                                    </div>
+                                    
+                                    {(user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'manager') && (
+                                        <button
+                                            onClick={() => handleDeleteCertificate(cert.id)}
+                                            className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                            title="Delete Certificate"
+                                        >
+                                            <Trash2 size={15} />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="bg-white/60 p-8 rounded-3xl border border-slate-100 text-center">
+                        <Award size={36} className="text-slate-300 mx-auto mb-2" />
+                        <p className="text-xs font-bold text-slate-500">No certificates generated for {student?.name} yet.</p>
+                        {(user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'manager' || user?.role?.toLowerCase() === 'accounts_manager' || hasPermission?.('generateCertificate')) && (
+                            <button
+                                onClick={() => setShowCertModal(true)}
+                                className="mt-3 px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold inline-flex items-center gap-2 transition-all active:scale-95"
+                            >
+                                <Award size={14} />
+                                Generate First Certificate
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Quick Enroll Modal */}
@@ -1663,6 +1822,19 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                             }} 
                         />
                     </Modal>
+                )}
+            </AnimatePresence>
+
+            {/* Official Certificate Generator Modal */}
+            <AnimatePresence>
+                {showCertModal && (
+                    <CertificateModal
+                        student={student}
+                        onClose={() => setShowCertModal(false)}
+                        onSuccess={() => {
+                            fetchCertificates();
+                        }}
+                    />
                 )}
             </AnimatePresence>
         </div>

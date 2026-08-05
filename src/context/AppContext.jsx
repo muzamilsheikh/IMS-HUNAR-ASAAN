@@ -516,14 +516,14 @@ export const AppProvider = ({ children }) => {
             manager: {
                 viewStudentList: true, addStudent: true, editDeleteStudent: true,
                 viewChallans: true, processPayments: true, manageExpenses: true, viewPayroll: true,
-                viewCreateBatches: true, viewManageCourses: true, liveClassAccess: true,
+                viewCreateBatches: true, viewManageCourses: true, liveClassAccess: true, generateCertificate: true,
                 accessReports: true, viewCalendar: true, viewChat: true, manageUsers: false,
                 accessSettings: false, backupRestore: false
             },
             accounts_manager: {
                 viewStudentList: true, addStudent: true, editDeleteStudent: false,
                 viewChallans: true, processPayments: true, manageExpenses: true, viewPayroll: true,
-                viewCreateBatches: true, viewManageCourses: true, liveClassAccess: false,
+                viewCreateBatches: true, viewManageCourses: true, liveClassAccess: false, generateCertificate: true,
                 accessReports: true, viewCalendar: true, viewChat: false, manageUsers: false,
                 accessSettings: false, backupRestore: false
             },

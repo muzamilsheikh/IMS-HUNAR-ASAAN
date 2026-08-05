@@ -141,7 +141,10 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
       const excludeId = editingStudent?.id || selectedStudent?.id || null;
       const res = await apiClient.checkStudentExists(field, value.trim(), excludeId);
       if (res.exists) {
-        setDuplicateErrors(prev => ({ ...prev, [field]: `This ${field} is already in use` }));
+        const msg = field === 'email' 
+          ? 'This email is already registered. If enrolling an existing student, select "Existing Student Enrollment" above.' 
+          : `This ${field} is already registered in the system.`;
+        setDuplicateErrors(prev => ({ ...prev, [field]: msg }));
       } else {
         setDuplicateErrors(prev => ({ ...prev, [field]: '' }));
       }

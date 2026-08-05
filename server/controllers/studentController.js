@@ -10,7 +10,7 @@ const { generateChallanPDF } = require('../utils/pdfGenerator');
 const checkStudentExists = async (req, res) => {
   try {
     const { field, value, excludeId } = req.query;
-    const allowedFields = ['email', 'phone', 'cnic'];
+    const allowedFields = ['email', 'phone', 'cnic', 'customId'];
     if (!allowedFields.includes(field)) {
       return res.status(400).json({ error: 'Invalid field' });
     }
@@ -22,7 +22,14 @@ const checkStudentExists = async (req, res) => {
       where.id = { [Op.ne]: parseInt(excludeId) };
     }
     const student = await Student.findOne({ where });
-    return res.json({ exists: !!student });
+    let exists = !!student;
+
+    if (!exists && field === 'email') {
+      const user = await User.findOne({ where: { email: value.trim() } });
+      exists = !!user;
+    }
+
+    return res.json({ exists });
   } catch (error) {
     console.error('Check exists error:', error);
     res.status(500).json({ error: error.message || 'Server error' });

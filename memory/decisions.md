@@ -10,6 +10,7 @@ Detailed decision records (with reasoning and review dates) are in `decisions.cs
 | 2026-08-06 | Set up persistent memory system with /memory directory | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Destructure hasPermission in Students.jsx for accounts_manager | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Strict production DB protection policy on git deployment | ✅ Implemented | 2026-09-05 |
+| 2026-08-06 | Certificate Generation & Management System (Live Canvas + Email PDF) | ✅ Implemented | 2026-09-05 |
 
 ## Patterns Established
 - Memory files live in `/memory/` at the project root

@@ -294,6 +294,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
       totalInstallments: Number(formData.totalInstallments),
       // Send status from form (when editing) or default Active (when creating)
       status: formData.status || 'Active',
+      commencementDate: formData.joiningDate || null
     };
 
     // Send as JSON instead of FormData

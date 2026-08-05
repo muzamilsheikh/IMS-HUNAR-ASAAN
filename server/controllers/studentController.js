@@ -222,7 +222,7 @@ const createStudent = async (req, res) => {
   try {
     console.log('📥 Admission request body:', req.body);
 
-    const { userId, name, email, phone, cnic, address, courseId, batchId, discount = 0, totalInstallments = 2, commencementDate } = req.body;
+    const { userId, customId, name, email, phone, cnic, address, courseId, batchId, discount = 0, totalInstallments = 2, commencementDate } = req.body;
 
     // Validate required fields
     if (!name || !email || !phone || !courseId) {
@@ -339,7 +339,11 @@ const createStudent = async (req, res) => {
       // Duplicate checks (only for new student)
       const existingByEmail = await Student.findOne({ where: { email } });
       if (existingByEmail) {
-        return res.status(400).json({ error: 'Error: Email already registered.' });
+        return res.status(400).json({ error: 'Error: Email already registered for a student.' });
+      }
+      const existingUserByEmail = await User.findOne({ where: { email } });
+      if (existingUserByEmail) {
+        return res.status(400).json({ error: 'Error: Email already registered for a user account.' });
       }
       const existingByPhone = await Student.findOne({ where: { phone } });
       if (existingByPhone) {
@@ -349,6 +353,12 @@ const createStudent = async (req, res) => {
         const existingByCnic = await Student.findOne({ where: { cnic: cnic.trim() } });
         if (existingByCnic) {
           return res.status(400).json({ error: 'Error: CNIC already registered.' });
+        }
+      }
+      if (customId && customId.trim()) {
+        const existingByCustomId = await Student.findOne({ where: { customId: customId.trim() } });
+        if (existingByCustomId) {
+          return res.status(400).json({ error: 'Error: Custom Student ID already registered.' });
         }
       }
 
@@ -472,7 +482,8 @@ const createStudent = async (req, res) => {
         totalInstallments: Number(totalInstallments),
         commencementDate: effectiveCommencementDate,
         next_due_date: nextDueDate,
-        createdBy: req.user ? req.user.id : null
+        createdBy: req.user ? req.user.id : null,
+        customId: customId ? customId.trim() : null
       });
 
       await logActivity(

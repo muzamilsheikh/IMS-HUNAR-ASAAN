@@ -27,7 +27,7 @@ import apiClient from '../utils/api';
 import generateReceipt from '../utils/generateReceipt';
 
 const Students = () => {
-    const { students, courses, batches, loading, user, settings } = useApp();
+    const { students, courses, batches, loading, user, settings, hasPermission } = useApp();
     const location = useLocation();
     const [view, setView] = useState('list');
     const [showRegForm, setShowRegForm] = useState(false);

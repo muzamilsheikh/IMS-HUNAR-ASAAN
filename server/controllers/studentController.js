@@ -22,14 +22,7 @@ const checkStudentExists = async (req, res) => {
       where.id = { [Op.ne]: parseInt(excludeId) };
     }
     const student = await Student.findOne({ where });
-    let exists = !!student;
-
-    if (!exists && field === 'email') {
-      const user = await User.findOne({ where: { email: value.trim() } });
-      exists = !!user;
-    }
-
-    return res.json({ exists });
+    return res.json({ exists: !!student });
   } catch (error) {
     console.error('Check exists error:', error);
     res.status(500).json({ error: error.message || 'Server error' });
@@ -346,20 +339,16 @@ const createStudent = async (req, res) => {
       // Duplicate checks (only for new student)
       const existingByEmail = await Student.findOne({ where: { email } });
       if (existingByEmail) {
-        return res.status(400).json({ error: 'Error: Email already registered for a student.' });
-      }
-      const existingUserByEmail = await User.findOne({ where: { email } });
-      if (existingUserByEmail) {
-        return res.status(400).json({ error: 'Error: Email already registered for a user account.' });
+        return res.status(400).json({ error: 'Error: A student record with this email is already registered.' });
       }
       const existingByPhone = await Student.findOne({ where: { phone } });
       if (existingByPhone) {
-        return res.status(400).json({ error: 'Error: Phone already registered.' });
+        return res.status(400).json({ error: 'Error: A student record with this phone number is already registered.' });
       }
       if (cnic && cnic.trim()) {
         const existingByCnic = await Student.findOne({ where: { cnic: cnic.trim() } });
         if (existingByCnic) {
-          return res.status(400).json({ error: 'Error: CNIC already registered.' });
+          return res.status(400).json({ error: 'Error: A student record with this CNIC is already registered.' });
         }
       }
       if (customId && customId.trim()) {
@@ -369,25 +358,29 @@ const createStudent = async (req, res) => {
         }
       }
 
-      // Generate a user account for login
-      const userPassword = generateRandomPassword();
-      const hashedPassword = await bcrypt.hash(userPassword, 10);
-      user = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        role: 'Student',
-        status: 'Active'
-      });
+      // Reuse existing User account if present; otherwise generate a new user account for login
+      user = await User.findOne({ where: { email } });
+      let userPassword = null;
+      if (!user) {
+        userPassword = generateRandomPassword();
+        const hashedPassword = await bcrypt.hash(userPassword, 10);
+        user = await User.create({
+          name,
+          email,
+          password: hashedPassword,
+          role: 'Student',
+          status: 'Active'
+        });
+      }
 
-      // Send welcome email with credentials
-      const welcomeHtml = getWelcomeTemplate(
+      // Send welcome email with credentials if a new user account was created
+      const welcomeHtml = userPassword ? getWelcomeTemplate(
           name,
           email,
           userPassword,
           course.name,
           batch ? batch.name : 'Unassigned'
-      );
+      ) : null;
 
       // Generate initial registration PDF challan
       let welcomeAttachments = [];
@@ -429,7 +422,7 @@ const createStudent = async (req, res) => {
           }
       }
 
-      if (sendToStudent) {
+      if (sendToStudent && welcomeHtml) {
           sendEmail(email, 'Welcome to Hunar Asaan Skills Center', welcomeHtml, welcomeAttachments)
             .catch(emailError => {
                 console.warn('Failed to send welcome email:', emailError.message);

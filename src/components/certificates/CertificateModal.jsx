@@ -193,7 +193,10 @@ const CertificateModal = ({ student, onClose, onSuccess }) => {
 
     // Action: Share via WhatsApp
     const handleShareWhatsApp = async () => {
-        const phone = student?.phone ? student.phone.replace(/[^0-9]/g, '') : '';
+        let phone = student?.phone ? student.phone.replace(/[^0-9]/g, '') : '';
+        if (phone.startsWith('03') && phone.length === 11) {
+            phone = '92' + phone.substring(1);
+        }
         const msg = encodeURIComponent(
             `Hi ${studentName}! 🎓\n\nCongratulations on completing your course *${courseName}* at Hunar Asaan Skills Centre!\n\nYour Certificate No is: *${certNo}*\nIssued Date: ${issueDate}\n\nBest wishes,\nHunar Asaan Team`
         );
@@ -459,107 +462,111 @@ const CertificateModal = ({ student, onClose, onSuccess }) => {
                         </div>
 
                         {/* Certificate Canvas Live Preview */}
-                        <div className="flex-1 p-4 sm:p-8 flex flex-col items-center justify-center overflow-auto bg-slate-200/70 min-h-[500px]">
+                        <div className="flex-1 p-4 sm:p-6 flex items-center justify-center overflow-auto bg-slate-200/80 min-h-[450px]">
                             
-                            {/* Printable Certificate Frame */}
-                            <div className="w-full max-w-[900px] aspect-[1.414/1] bg-white shadow-2xl rounded-sm p-6 sm:p-10 relative flex flex-col justify-between text-slate-800 border-[10px] border-double border-slate-400 select-none overflow-hidden" ref={certCanvasRef}>
+                            {/* Scaled Container for Modal Preview */}
+                            <div className="transform scale-[0.70] sm:scale-[0.80] lg:scale-[0.88] xl:scale-[0.95] origin-center transition-all duration-300">
                                 
-                                {/* Inner Decorative Frame Border */}
-                                <div className="absolute inset-2 border-2 border-slate-300 pointer-events-none" />
-                                <div className="absolute inset-3 border border-slate-200 pointer-events-none" />
-
-                                {/* Top Header Info Bar */}
-                                <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-500 mb-2 relative z-10">
-                                    <div className="border-b border-blue-400/40 pb-0.5">
-                                        DATE: <span className="text-slate-800 font-bold">{issueDate}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-slate-800 font-bold">{certNo}</span>
-                                    </div>
-                                </div>
-
-                                {/* Logos Row */}
-                                <div className="flex items-center justify-between border-2 border-red-500/80 p-3 rounded-md mb-3 relative z-10">
-                                    {/* Partner Logo */}
-                                    <div className="h-12 flex items-center">
-                                        {collaborationLogo ? (
-                                            <img src={collaborationLogo} alt="Partner Logo" className="max-h-12 max-w-[180px] object-contain" />
-                                        ) : (
-                                            <span className="text-xs font-bold text-indigo-700">{collaborationText}</span>
-                                        )}
-                                    </div>
-
-                                    {/* Hunar Asaan Institute Logo */}
-                                    <div className="h-12 flex items-center gap-2">
-                                        <img src={logoBase64} alt="Hunar Asaan Logo" className="max-h-12 object-contain" />
-                                    </div>
-                                </div>
-
-                                {/* Main Certificate Text Body */}
-                                <div className="text-center my-auto py-2 relative z-10">
-                                    <p className="text-sm font-serif italic text-slate-700 tracking-wide mb-1">
-                                        This is to certify that
-                                    </p>
-
-                                    {/* Student Name */}
-                                    <h1 className="text-3xl sm:text-4xl font-serif font-bold text-slate-900 tracking-tight my-2 border-b border-slate-200 pb-1 inline-block px-8">
-                                        {studentName || 'Student Name'}
-                                    </h1>
-
-                                    <p className="text-xs font-serif italic text-slate-700 tracking-wide my-1">
-                                        has successfully completed the
-                                    </p>
-
-                                    {/* Course Name */}
-                                    <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-blue-900 my-2 max-w-xl mx-auto">
-                                        {courseName || 'COURSE NAME'}
-                                    </h2>
-
-                                    <p className="text-xs font-semibold text-slate-700 my-1">
-                                        offered by <strong className="text-slate-900">Hunar Asaan Skills Centre</strong> in collaboration with <strong className="text-slate-900">{collaborationText}</strong>
-                                    </p>
-
-                                    {/* Description Paragraph */}
-                                    <p className="text-[10px] sm:text-[11px] text-slate-600 max-w-2xl mx-auto leading-relaxed my-3 text-justify px-4">
-                                        {descriptionText}
-                                    </p>
-                                </div>
-
-                                {/* Bottom Signatures & Seal Section */}
-                                <div className="flex items-end justify-between pt-4 relative z-10">
+                                {/* Printable Certificate Frame (Fixed A4 Landscape 842px x 595px) */}
+                                <div className="w-[842px] h-[595px] bg-white shadow-2xl rounded-sm p-8 relative flex flex-col justify-between text-slate-800 border-[10px] border-double border-slate-400 select-none shrink-0" ref={certCanvasRef} style={{ backgroundColor: '#ffffff', color: '#0f172a' }}>
                                     
-                                    {/* Golden Badge Seal (Bottom-Left) */}
-                                    <div className="w-20 h-20 relative flex items-center justify-center">
-                                        {customBadgeUrl ? (
-                                            <img src={customBadgeUrl} alt="Golden Badge" className="w-20 h-20 object-contain" />
-                                        ) : (
-                                            <div 
-                                                className="w-20 h-20 drop-shadow-md" 
-                                                dangerouslySetInnerHTML={{ 
-                                                    __html: GOLDEN_BADGE_PRESETS.find(b => b.id === goldenBadgePreset)?.svg || GOLDEN_BADGE_PRESETS[0].svg 
-                                                }} 
-                                            />
-                                        )}
-                                    </div>
+                                    {/* Inner Decorative Frame Border */}
+                                    <div className="absolute inset-2 border-2 border-slate-300 pointer-events-none" />
+                                    <div className="absolute inset-3 border border-slate-200 pointer-events-none" />
 
-                                    {/* Signature Block (Bottom-Right) */}
-                                    <div className="text-right">
-                                        <div className="h-10 mb-1 flex items-end justify-end">
-                                            {/* Stylized Signature */}
-                                            <span className="font-serif italic text-2xl text-slate-800 font-bold border-b border-slate-400 px-4">
-                                                {signatoryName}
-                                            </span>
+                                    {/* Top Header Info Bar */}
+                                    <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-500 mb-1 relative z-10">
+                                        <div className="border-b border-blue-400/40 pb-0.5">
+                                            DATE: <span className="text-slate-800 font-bold">{issueDate}</span>
                                         </div>
-                                        <p className="text-[11px] font-bold text-slate-800">{signatoryName}</p>
-                                        <p className="text-[9px] text-slate-500 font-medium">{signatoryTitle}</p>
+                                        <div>
+                                            <span className="text-slate-800 font-bold">{certNo}</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Footer Verification Line */}
-                                <div className="border-t border-slate-200 pt-2 text-[8px] text-center text-slate-400 font-mono mt-2 relative z-10">
-                                    This certificate is verifiable through <strong>Hunar Asaan Skills Centre</strong> by referencing the Certificate No. For verification, contact: sadia@hunarasaan.com
-                                </div>
+                                    {/* Logos Row */}
+                                    <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-2 relative z-10">
+                                        {/* Partner Logo */}
+                                        <div className="h-12 flex items-center">
+                                            {collaborationLogo ? (
+                                                <img src={collaborationLogo} alt="Partner Logo" className="max-h-12 max-w-[180px] object-contain" />
+                                            ) : (
+                                                <span className="text-xs font-bold text-indigo-700">{collaborationText}</span>
+                                            )}
+                                        </div>
 
+                                        {/* Hunar Asaan Institute Logo */}
+                                        <div className="h-12 flex items-center gap-2">
+                                            <img src={logoBase64} alt="Hunar Asaan Logo" className="max-h-12 object-contain" />
+                                        </div>
+                                    </div>
+
+                                    {/* Main Certificate Text Body */}
+                                    <div className="text-center my-auto py-1 relative z-10">
+                                        <p className="text-xs font-serif italic text-slate-700 tracking-wide mb-1">
+                                            This is to certify that
+                                        </p>
+
+                                        {/* Student Name */}
+                                        <h1 className="text-3xl font-serif font-bold text-slate-900 tracking-tight my-1 border-b border-slate-200 pb-1 inline-block px-8">
+                                            {studentName || 'Student Name'}
+                                        </h1>
+
+                                        <p className="text-xs font-serif italic text-slate-700 tracking-wide my-1">
+                                            has successfully completed the
+                                        </p>
+
+                                        {/* Course Name */}
+                                        <h2 className="text-lg font-bold uppercase tracking-wider text-blue-900 my-1 max-w-xl mx-auto">
+                                            {courseName || 'COURSE NAME'}
+                                        </h2>
+
+                                        <p className="text-xs font-semibold text-slate-700 my-1">
+                                            offered by <strong className="text-slate-900">Hunar Asaan Skills Centre</strong> in collaboration with <strong className="text-slate-900">{collaborationText}</strong>
+                                        </p>
+
+                                        {/* Description Paragraph */}
+                                        <p className="text-[10px] text-slate-600 max-w-2xl mx-auto leading-relaxed my-2 text-justify px-4">
+                                            {descriptionText}
+                                        </p>
+                                    </div>
+
+                                    {/* Bottom Signatures & Seal Section */}
+                                    <div className="flex items-end justify-between pt-2 relative z-10">
+                                        
+                                        {/* Golden Badge Seal (Bottom-Left) */}
+                                        <div className="w-16 h-16 relative flex items-center justify-center">
+                                            {customBadgeUrl ? (
+                                                <img src={customBadgeUrl} alt="Golden Badge" className="w-16 h-16 object-contain" />
+                                            ) : (
+                                                <div 
+                                                    className="w-16 h-16 drop-shadow-md" 
+                                                    dangerouslySetInnerHTML={{ 
+                                                        __html: GOLDEN_BADGE_PRESETS.find(b => b.id === goldenBadgePreset)?.svg || GOLDEN_BADGE_PRESETS[0].svg 
+                                                    }} 
+                                                />
+                                            )}
+                                        </div>
+
+                                        {/* Signature Block (Bottom-Right) */}
+                                        <div className="text-right">
+                                            <div className="h-8 mb-1 flex items-end justify-end">
+                                                {/* Stylized Signature */}
+                                                <span className="font-serif italic text-xl text-slate-800 font-bold border-b border-slate-400 px-4">
+                                                    {signatoryName}
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] font-bold text-slate-800">{signatoryName}</p>
+                                            <p className="text-[9px] text-slate-500 font-medium">{signatoryTitle}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Footer Verification Line */}
+                                    <div className="border-t border-slate-200 pt-1.5 text-[8px] text-center text-slate-400 font-mono mt-1 relative z-10">
+                                        This certificate is verifiable through <strong>Hunar Asaan Skills Centre</strong> by referencing the Certificate No. For verification, contact: sadia@hunarasaan.com
+                                    </div>
+
+                                </div>
                             </div>
                         </div>
 

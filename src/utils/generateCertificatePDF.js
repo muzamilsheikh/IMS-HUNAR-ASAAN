@@ -34,8 +34,12 @@ export const generateCertificatePDF = async (element, filename = 'Certificate.pd
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
 
         if (returnBase64) {
+            const rawPdfUri = pdf.output('datauristring');
+            const cleanPdfUri = rawPdfUri.includes('base64,')
+                ? 'data:application/pdf;base64,' + rawPdfUri.split('base64,')[1]
+                : rawPdfUri;
             return {
-                pdfBase64: pdf.output('datauristring'),
+                pdfBase64: cleanPdfUri,
                 pngBase64: imgData
             };
         }

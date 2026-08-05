@@ -21,6 +21,7 @@ Detailed decision records (with reasoning and review dates) are in `decisions.cs
 | 2026-08-06 | Import Certificate model in server/index.js for MySQL table auto-sync | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Upgrade PDF Generator from html2canvas to native html-to-image | ✅ Implemented | 2026-09-05 |
 | 2026-08-06 | Increase Express body-parser payload limit to 50mb for base64 PDFs | ✅ Implemented | 2026-09-05 |
+| 2026-08-06 | Safely unwrap response object from apiClient.post in CertificateModal | ✅ Implemented | 2026-09-05 |
 
 ## Patterns Established
 - Memory files live in `/memory/` at the project root

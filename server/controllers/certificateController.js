@@ -41,13 +41,16 @@ exports.createCertificate = async (req, res) => {
 
         let savedPdfUrl = null;
 
-        // If base64 file data provided, save to disk
+        // If base64 file data provided, save to disk cleanly
         if (pdfBase64 && typeof pdfBase64 === 'string') {
             try {
-                const matches = pdfBase64.match(/^data:([a-zA-Z0-9\/\-+.]+);base64,(.+)$/);
-                const mimeType = matches ? matches[1] : '';
-                const base64Data = matches ? matches[2] : pdfBase64.replace(/^data:[^;]+;base64,/, '');
-                const ext = mimeType.includes('pdf') ? 'pdf' : 'png';
+                let base64Data = pdfBase64;
+                if (pdfBase64.includes('base64,')) {
+                    base64Data = pdfBase64.split('base64,')[1];
+                }
+                
+                const isPdf = pdfBase64.includes('application/pdf') || pdfBase64.includes('.pdf');
+                const ext = isPdf ? 'pdf' : 'png';
                 const filename = `cert_${certNum.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.${ext}`;
                 const filepath = path.join(CERT_DIR, filename);
 

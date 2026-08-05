@@ -1,4 +1,4 @@
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
 /**
@@ -12,40 +12,14 @@ export const generateCertificatePDF = async (element, filename = 'Certificate.pd
         throw new Error('Certificate element not provided');
     }
 
-    // Backup and temporarily strip oklch from all style tags in main window
-    const originalStyles = [];
-    const styleElements = Array.from(document.querySelectorAll('style'));
-    
-    styleElements.forEach(el => {
-        if (el.textContent && el.textContent.includes('oklch')) {
-            originalStyles.push({ el, original: el.textContent });
-            el.textContent = el.textContent.replace(/oklch\([^)]+\)/gi, '#0f172a');
-        }
-    });
-
     try {
-        // Capture element with high scale for high-DPI crisp print quality
-        const canvas = await html2canvas(element, {
-            scale: 2, // 2x resolution for crisp print quality
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#ffffff',
-            allowTaint: true,
-            onclone: (clonedDoc) => {
-                try {
-                    const styleTags = clonedDoc.getElementsByTagName('style');
-                    for (let i = 0; i < styleTags.length; i++) {
-                        if (styleTags[i] && styleTags[i].textContent && styleTags[i].textContent.includes('oklch')) {
-                            styleTags[i].textContent = styleTags[i].textContent.replace(/oklch\([^)]+\)/gi, '#0f172a');
-                        }
-                    }
-                } catch (e) {
-                    console.warn('oklch replacement in cloned doc failed:', e);
-                }
-            }
+        // html-to-image uses browser native SVG foreignObject rendering.
+        // Supports oklch, modern CSS variables, CSS grid, flexbox, & fonts seamlessly!
+        const imgData = await toPng(element, {
+            quality: 0.98,
+            pixelRatio: 2, // 2x high-DPI print resolution
+            backgroundColor: '#ffffff'
         });
-
-        const imgData = canvas.toDataURL('image/png', 1.0);
 
         // A4 Landscape dimensions in mm
         const pdf = new jsPDF({
@@ -72,13 +46,6 @@ export const generateCertificatePDF = async (element, filename = 'Certificate.pd
     } catch (err) {
         console.error('Error generating certificate PDF:', err);
         throw err;
-    } finally {
-        // Always restore original stylesheet contents in main window
-        originalStyles.forEach(item => {
-            if (item.el && item.original) {
-                item.el.textContent = item.original;
-            }
-        });
     }
 };
 

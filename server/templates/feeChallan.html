@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fee Challan - Hunar Asaan</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: #f4f3f0;
+      color: #1a1512;
+      padding: 15px;
+      font-size: 9px;
+      line-height: 1.3;
+    }
+    .challan-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #ede8df;
+      border-radius: 6px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .challan-column {
+      flex: 1;
+      padding: 14px 16px;
+      border-right: 1.5px dashed #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .challan-column:last-child {
+      border-right: none;
+    }
+    .copy-badge {
+      display: inline-block;
+      align-self: flex-end;
+      background-color: #8a6a2f;
+      color: #ffffff;
+      font-size: 7px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #8a6a2f;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .logo-container {
+      margin-bottom: 4px;
+    }
+    .logo-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 1.5px solid #8a6a2f;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #8a6a2f;
+      font-weight: bold;
+      font-size: 11px;
+    }
+    .institute-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f0d0b;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .institute-subtitle {
+      font-size: 7px;
+      color: #7a6e65;
+      margin-top: 1px;
+    }
+    .challan-heading {
+      font-size: 10px;
+      font-weight: 800;
+      color: #0f0d0b;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      padding: 6px 0;
+      border-bottom: 1px solid #ede8df;
+      font-size: 8px;
+    }
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .meta-label {
+      color: #7a6e65;
+      font-size: 6.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .meta-value {
+      color: #1a1512;
+      font-weight: 700;
+    }
+    .meta-value.due-date {
+      color: #ef4444;
+    }
+    .student-info {
+      padding: 8px 0;
+      border-bottom: 1px solid #8a6a2f;
+      font-size: 8.5px;
+    }
+    .student-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+    .student-label {
+      color: #7a6e65;
+      font-size: 7px;
+      text-transform: uppercase;
+    }
+    .student-val {
+      font-weight: 700;
+      color: #1a1512;
+      text-align: right;
+    }
+    .fee-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 8px;
+    }
+    .fee-table th {
+      color: #8a6a2f;
+      font-size: 7px;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 4px 0;
+      border-bottom: 1.5px solid #ede8df;
+      text-align: left;
+    }
+    .fee-table th.amount {
+      text-align: right;
+    }
+    .fee-table td {
+      padding: 4px 0;
+      border-bottom: 1px solid #ede8df;
+      color: #334155;
+    }
+    .fee-table td.amount {
+      text-align: right;
+      font-weight: 700;
+      color: #1a1512;
+    }
+    .fee-table tr.total td {
+      font-weight: 800;
+      border-top: 1.5px solid #8a6a2f;
+      border-bottom: 1.5px solid #8a6a2f;
+      color: #0f0d0b;
+      font-size: 8.5px;
+    }
+    .bank-box {
+      background-color: #fcfbf7;
+      border: 1px solid #ede8df;
+      border-radius: 4px;
+      padding: 6px 8px;
+      margin: 6px 0;
+      font-size: 7px;
+      color: #475569;
+    }
+    .bank-title {
+      font-size: 7px;
+      font-weight: 700;
+      color: #8a6a2f;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .bank-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+    .bank-row:last-child {
+      margin-bottom: 0;
+    }
+    .terms {
+      font-size: 6px;
+      color: #7a6e65;
+      line-height: 1.3;
+      margin: 6px 0;
+    }
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      padding-top: 15px;
+    }
+    .signature-block {
+      text-align: center;
+      width: 45%;
+      border-top: 1px solid #cbd5e1;
+      padding-top: 3px;
+      font-size: 6.5px;
+      color: #7a6e65;
+    }
+  </style>
+</head>
+<body>
+  <div class="challan-container">
+    
+    <!-- 1. BANK COPY -->
+    <div class="challan-column">
+      <div>
+        <div style="display: flex; justify-content: flex-end;">
+          <span class="copy-badge">Bank Copy</span>
+        </div>
+        <div class="header">
+          <div class="logo-container">
+            <div class="logo-circle">HA</div>
+          </div>
+          <div class="institute-title">{{instituteName}}</div>
+          <div class="institute-subtitle">{{address}}</div>
+          <div class="institute-subtitle">{{contact}} | {{officialEmail}}</div>
+          <div class="challan-heading">FEE CHALLAN / RECEIPT</div>
+        </div>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Challan / Receipt #</span>
+            <span class="meta-value">{{receiptNo}}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Issue Date</span>
+            <span class="meta-value">{{issueDate}}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Due Date</span>
+            <span class="meta-value due-date">{{dueDate}}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Batch</span>
+            <span class="meta-value">{{batchName}}</span>
+          </div>
+        </div>
+        <div class="student-info">
+          <div class="student-row">
+            <span class="student-label">Student:</span>
+            <span class="student-val">{{studentName}}</span>
+          </div>
+          <div class="student-row">
+            <span class="student-label">Program:</span>
+            <span class="student-val">{{courseName}}</span>
+          </div>
+          <div class="student-row">
+            <span class="student-label">Method:</span>
+            <span class="student-val">{{paymentMethod}}</span>
+          </div>
+        </div>
+        <table class="fee-table">
+          <thead>
+            <tr>
+              <th>Fee Description</th>
+              <th class="amount">Amount (PKR)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Total Course Fee</td>
+              <td class="amount">{{totalFee}}</td>
+            </tr>
+            <tr>
+              <td>Amount Paid / Deposited</td>
+              <td class="amount" style="color: #047857;">{{amountPaid}}</td>
+            </tr>
+            <tr>
+              <td>Remaining Balance</td>
+              <td class="amount" style="color: #ef4444;">{{balance}}</td>
+            </tr>
+            <tr class="total">
+              <td>AMOUNT DUE / VERIFIED</td>
+              <td class="amount">{{amountPaid}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="bank-box">
+          <div class="bank-title">Bank Deposit Account</div>
+          <div class="bank-row"><span>Bank:</span> <strong>{{bankName}}</strong></div>
+          <div class="bank-row"><span>Title:</span> <strong>{{accountTitle}}</strong></div>
+          <div class="bank-row"><span>Account #:</span> <strong>{{accountNo}}</strong></div>
+          <div class="bank-row"><span>IBAN:</span> <strong>{{ibanCode}}</strong></div>
+        </div>
+        <div class="terms">
+          Terms: Fee once deposited is non-refundable. Bank officer must stamp and retain this copy.
+        </div>
+      </div>
+      <div class="signatures">
+        <div class="signature-block">Depositor Signature</div>
+        <div class="signature-block">Bank Cashier / Officer</div>
+      </div>
+    </div>
+
+    <!-- 2. INSTITUTE COPY -->
+    <div class="challan-column">
+      <div>
+        <div style="display: flex; justify-content: flex-end;">
+          <span class="copy-badge">Institute Copy</span>
+        </div>
+        <div class="header">
+          <div class="logo-container">
+            <div class="logo-circle">HA</div>
+          </div>
+          <div class="institute-title">{{instituteName}}</div>
+          <div class="institute-subtitle">{{address}}</div>
+          <div class="institute-subtitle">{{contact}} | {{officialEmail}}</div>
+          <div class="challan-heading">FEE CHALLAN / RECEIPT</div>
+        </div>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Challan / Receipt #</span>
+            <span class="meta-value">{{receiptNo}}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Issue Date</span>
+            <span class="meta-value">{{issueDate}}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Due Date</span>
+            <span class="meta-value due-date">{{dueDate}}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Batch</span>
+            <span class="meta-value">{{batchName}}</span>
+          </div>
+        </div>
+        <div class="student-info">
+          <div class="student-row">
+            <span class="student-label">Student:</span>
+            <span class="student-val">{{studentName}}</span>
+          </div>
+          <div class="student-row">
+            <span class="student-label">Program:</span>
+            <span class="student-val">{{courseName}}</span>
+          </div>
+          <div class="student-row">
+            <span class="student-label">Method:</span>
+            <span class="student-val">{{paymentMethod}}</span>
+          </div>
+        </div>
+        <table class="fee-table">
+          <thead>
+            <tr>
+              <th>Fee Description</th>
+              <th class="amount">Amount (PKR)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Total Course Fee</td>
+              <td class="amount">{{totalFee}}</td>
+            </tr>
+            <tr>
+              <td>Amount Paid / Deposited</td>
+              <td class="amount" style="color: #047857;">{{amountPaid}}</td>
+            </tr>
+            <tr>
+              <td>Remaining Balance</td>
+              <td class="amount" style="color: #ef4444;">{{balance}}</td>
+            </tr>
+            <tr class="total">
+              <td>AMOUNT DUE / VERIFIED</td>
+              <td class="amount">{{amountPaid}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="bank-box">
+          <div class="bank-title">Bank Deposit Account</div>
+          <div class="bank-row"><span>Bank:</span> <strong>{{bankName}}</strong></div>
+          <div class="bank-row"><span>Title:</span> <strong>{{accountTitle}}</strong></div>
+          <div class="bank-row"><span>Account #:</span> <strong>{{accountNo}}</strong></div>
+          <div class="bank-row"><span>IBAN:</span> <strong>{{ibanCode}}</strong></div>
+        </div>
+        <div class="terms">
+          Terms: Recorded in Hunar Asaan CRM. For verification, contact accounts@hunarasaan.com.
+        </div>
+      </div>
+      <div class="signatures">
+        <div class="signature-block">Depositor Signature</div>
+        <div class="signature-block">Authorized Signature</div>
+      </div>
+    </div>
+
+    <!-- 3. STUDENT COPY -->
+    <div class="challan-column">
+      <div>
+        <div style="display: flex; justify-content: flex-end;">
+          <span class="copy-badge">Student Copy</span>
+        </div>
+        <div class="header">
+          <div class="logo-container">
+            <div class="logo-circle">HA</div>
+          </div>
+          <div class="institute-title">{{instituteName}}</div>
+          <div class="institute-subtitle">{{address}}</div>
+          <div class="institute-subtitle">{{contact}} | {{officialEmail}}</div>
+          <div class="challan-heading">FEE CHALLAN / RECEIPT</div>
+        </div>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">Challan / Receipt #</span>
+            <span class="meta-value">{{receiptNo}}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Issue Date</span>
+            <span class="meta-value">{{issueDate}}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Due Date</span>
+            <span class="meta-value due-date">{{dueDate}}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Batch</span>
+            <span class="meta-value">{{batchName}}</span>
+          </div>
+        </div>
+        <div class="student-info">
+          <div class="student-row">
+            <span class="student-label">Student:</span>
+            <span class="student-val">{{studentName}}</span>
+          </div>
+          <div class="student-row">
+            <span class="student-label">Program:</span>
+            <span class="student-val">{{courseName}}</span>
+          </div>
+          <div class="student-row">
+            <span class="student-label">Method:</span>
+            <span class="student-val">{{paymentMethod}}</span>
+          </div>
+        </div>
+        <table class="fee-table">
+          <thead>
+            <tr>
+              <th>Fee Description</th>
+              <th class="amount">Amount (PKR)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Total Course Fee</td>
+              <td class="amount">{{totalFee}}</td>
+            </tr>
+            <tr>
+              <td>Amount Paid / Deposited</td>
+              <td class="amount" style="color: #047857;">{{amountPaid}}</td>
+            </tr>
+            <tr>
+              <td>Remaining Balance</td>
+              <td class="amount" style="color: #ef4444;">{{balance}}</td>
+            </tr>
+            <tr class="total">
+              <td>AMOUNT DUE / VERIFIED</td>
+              <td class="amount">{{amountPaid}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="bank-box">
+          <div class="bank-title">Bank Deposit Account</div>
+          <div class="bank-row"><span>Bank:</span> <strong>{{bankName}}</strong></div>
+          <div class="bank-row"><span>Title:</span> <strong>{{accountTitle}}</strong></div>
+          <div class="bank-row"><span>Account #:</span> <strong>{{accountNo}}</strong></div>
+          <div class="bank-row"><span>IBAN:</span> <strong>{{ibanCode}}</strong></div>
+        </div>
+        <div class="terms">
+          Terms: Please retain this copy for your official academic and fee clearance records.
+        </div>
+      </div>
+      <div class="signatures">
+        <div class="signature-block">Depositor Signature</div>
+        <div class="signature-block">Authorized Signature</div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -23,16 +23,10 @@ const server = http.createServer(app);
 
 // ============ CORS CONFIGURATION ============
 app.use(cors({
-    origin: [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://localhost:5175',
-        'http://localhost:5176',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:5174',
-        'http://127.0.0.1:5175',
-        'http://127.0.0.1:5176'
-    ],
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps, Postman, server-to-server) or any network origin
+        callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

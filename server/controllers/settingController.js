@@ -1,6 +1,4 @@
 const { Setting } = require('../models');
-const path = require('path');
-const fs = require('fs');
 const { emitToAll } = require('../socket');
 
 // GET settings (always returns the first/only settings record)
@@ -89,7 +87,9 @@ const updateSettings = async (req, res) => {
             instituteName, contact, officialEmail, officialWebsite, address, emailServer, bankName, accountTitle, accountNo, ibanCode, paymentInstructions,
             emailNotificationsEnabled, enableLoginEmailAlerts, isStudentPortalMaintenance, maintenanceNoticeMessage,
             primaryAdminEmail, accountsEmail, operationsEmail, staffRecipients, globalCcEmails, notificationRules,
-            backupFrequency, backupEmail, signatureTitle
+            backupFrequency, backupEmail, signatureTitle,
+            // Direct base64 strings sent via JSON body (fallback path)
+            logoBase64, signatureBase64
         } = formData;
 
         const updatePayload = {
@@ -129,29 +129,44 @@ const updateSettings = async (req, res) => {
             updatePayload.emailPass = emailServer.pass !== undefined ? emailServer.pass : setting.emailPass;
         }
 
-        // Handle logo and signature file uploads
+        // Handle logo and signature — convert to base64 data URI for durable DB storage
+        // (file system uploads/ is in .gitignore and gets wiped on every git deploy)
+        const fileToBase64 = (file) => {
+            const buffer = file.buffer || (file.path ? require('fs').readFileSync(file.path) : null);
+            if (!buffer) return null;
+            return `data:${file.mimetype};base64,${buffer.toString('base64')}`;
+        };
+
         if (req.files) {
-            if (Array.isArray(req.files)) {
-                const logoFile = req.files.find(f => f.fieldname === 'logo');
-                const sigFile = req.files.find(f => f.fieldname === 'signature' || f.fieldname === 'authorizedSignature');
-                if (logoFile) updatePayload.logoUrl = `/uploads/settings/${logoFile.filename}`;
-                if (sigFile) updatePayload.signatureUrl = `/uploads/settings/${sigFile.filename}`;
-            } else {
-                if (req.files.logo && req.files.logo[0]) {
-                    updatePayload.logoUrl = `/uploads/settings/${req.files.logo[0].filename}`;
-                }
-                const sig = (req.files.signature && req.files.signature[0]) || (req.files.authorizedSignature && req.files.authorizedSignature[0]);
-                if (sig) {
-                    updatePayload.signatureUrl = `/uploads/settings/${sig.filename}`;
-                }
+            const filesArr = Array.isArray(req.files) ? req.files : [
+                ...(req.files.logo || []),
+                ...(req.files.signature || []),
+                ...(req.files.authorizedSignature || [])
+            ];
+            const logoFile = filesArr.find(f => f.fieldname === 'logo');
+            const sigFile = filesArr.find(f => f.fieldname === 'signature' || f.fieldname === 'authorizedSignature');
+            if (logoFile) {
+                const b64 = fileToBase64(logoFile);
+                if (b64) updatePayload.logoUrl = b64;
+            }
+            if (sigFile) {
+                const b64 = fileToBase64(sigFile);
+                if (b64) updatePayload.signatureUrl = b64;
             }
         } else if (req.file) {
-            if (req.file.fieldname === 'signature' || req.file.fieldname === 'authorizedSignature') {
-                updatePayload.signatureUrl = `/uploads/settings/${req.file.filename}`;
-            } else {
-                updatePayload.logoUrl = `/uploads/settings/${req.file.filename}`;
+            const b64 = fileToBase64(req.file);
+            if (b64) {
+                if (req.file.fieldname === 'signature' || req.file.fieldname === 'authorizedSignature') {
+                    updatePayload.signatureUrl = b64;
+                } else {
+                    updatePayload.logoUrl = b64;
+                }
             }
         }
+
+        // Also accept direct base64 strings in JSON body
+        if (logoBase64 && logoBase64.startsWith('data:')) updatePayload.logoUrl = logoBase64;
+        if (signatureBase64 && signatureBase64.startsWith('data:')) updatePayload.signatureUrl = signatureBase64;
 
         // FIX: Reassign so in-memory `setting` reflects the saved DB values
         setting = await setting.update(updatePayload);
@@ -328,7 +343,12 @@ const uploadSignature = async (req, res) => {
             return res.status(400).json({ error: 'No signature file uploaded.' });
         }
 
-        const signatureUrl = `/uploads/settings/${uploadedFile.filename}`;
+        // Convert to base64 data URI for durable DB storage (no file system dependency)
+        const buffer = uploadedFile.buffer || (uploadedFile.path ? require('fs').readFileSync(uploadedFile.path) : null);
+        if (!buffer) {
+            return res.status(500).json({ error: 'Failed to read uploaded file.' });
+        }
+        const signatureUrl = `data:${uploadedFile.mimetype};base64,${buffer.toString('base64')}`;
         await setting.update({ signatureUrl });
 
         emitToAll('data-updated', { type: 'settings' });

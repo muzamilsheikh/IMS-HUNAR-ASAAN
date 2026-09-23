@@ -160,11 +160,11 @@ export const apiClient = {
   getRecoveryAlerts: () => api.get('/payments/alerts/recovery'),
   getPendingFeesSummary: () => api.get('/payments/summary/pending-fees'),
 
-  // Settings endpoints
   getSettings: () => api.get('/settings'),
   getPublicSettings: () => api.get('/settings/public'),
-  updateSettings: (settingsData) => api.put('/settings', settingsData),
-  uploadSignature: (formData) => api.post('/settings/upload-signature', formData),
+  // Timeout increased to 60s for large base64 image payloads (logo/signature)
+  updateSettings: (settingsData) => api.put('/settings', settingsData, { timeout: 60000 }),
+  uploadSignature: (formData) => api.post('/settings/upload-signature', formData, { timeout: 60000 }),
 
   // Roles & Permissions endpoints
   getRoles: () => api.get('/roles'),

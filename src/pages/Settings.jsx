@@ -78,12 +78,19 @@ const Settings = () => {
                     : JSON.stringify(settings.notificationRules ?? {})
             });
             if (settings.logoUrl) {
-                setLogoPreview(`${backendUrl}${settings.logoUrl}?t=${Date.now()}`);
+                // base64 data URIs render directly; legacy /uploads/ paths need the backendUrl prefix
+                setLogoPreview(settings.logoUrl.startsWith('data:')
+                    ? settings.logoUrl
+                    : `${backendUrl}${settings.logoUrl}?t=${Date.now()}`
+                );
             } else {
                 setLogoPreview(null);
             }
             if (settings.signatureUrl) {
-                setSignaturePreview(`${backendUrl}${settings.signatureUrl}?t=${Date.now()}`);
+                setSignaturePreview(settings.signatureUrl.startsWith('data:')
+                    ? settings.signatureUrl
+                    : `${backendUrl}${settings.signatureUrl}?t=${Date.now()}`
+                );
             } else {
                 setSignaturePreview(null);
             }
@@ -106,21 +113,33 @@ const Settings = () => {
         }
     };
 
+    const fileToBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result); // returns "data:image/png;base64,..."
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+
     const handleSave = async (e) => {
         e.preventDefault();
-        const submitData = new FormData();
-        submitData.append('data', JSON.stringify(formData));
-        if (logoFile) submitData.append('logo', logoFile);
-        if (signatureFile) submitData.append('signature', signatureFile);
-        const res = await updateSettings(submitData);
+
+        // Convert files to base64 data URIs for direct DB storage (avoids file system dependency)
+        const payload = { ...formData };
+        if (logoFile) {
+            payload.logoBase64 = await fileToBase64(logoFile);
+        }
+        if (signatureFile) {
+            payload.signatureBase64 = await fileToBase64(signatureFile);
+        }
+
+        // Send as JSON (base64 images are in the body, no multipart needed)
+        const res = await updateSettings(payload);
         if (res) {
-            // Immediately sync previews from the server-returned URLs (cache-busted)
-            // so the UI doesn't flicker back to the old image before socket refetch arrives.
             if (res.signatureUrl) {
-                setSignaturePreview(`${backendUrl}${res.signatureUrl}?t=${Date.now()}`);
+                setSignaturePreview(res.signatureUrl); // data URI renders directly
             }
             if (res.logoUrl) {
-                setLogoPreview(`${backendUrl}${res.logoUrl}?t=${Date.now()}`);
+                setLogoPreview(res.logoUrl);
             }
             setLogoFile(null);
             setSignatureFile(null);

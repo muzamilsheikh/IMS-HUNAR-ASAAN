@@ -16,16 +16,9 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 if (!fs.existsSync(settingsDir)) fs.mkdirSync(settingsDir, { recursive: true });
 if (!fs.existsSync(backupUploadsDir)) fs.mkdirSync(backupUploadsDir, { recursive: true });
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, settingsDir);  // Save directly to settings directory
-    },
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname).toLowerCase() || '.png';
-        const prefix = file.fieldname === 'signature' ? 'signature' : 'logo';
-        cb(null, `${prefix}_${Date.now()}${ext}`);
-    }
-});
+// Use memoryStorage so file.buffer is available for base64 DB storage
+// (diskStorage files would be wiped on every git deploy since uploads/ is gitignored)
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage,

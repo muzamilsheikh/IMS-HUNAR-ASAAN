@@ -14,6 +14,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         ? 'http://localhost:5001'
         : window.location.origin;
 
+    // Safely resolve logo URL — handles base64 data URIs, absolute URLs, and legacy /uploads/ paths
+    const resolveLogoUrl = (url) => {
+        if (!url) return null;
+        if (url.startsWith('data:') || url.startsWith('http')) return url;
+        return `${backendUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
+
     const navLinks = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/', permKey: null },
         { name: 'Calendar', icon: Calendar, path: '/calendar', permKey: 'viewCalendar' },
@@ -62,7 +69,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         <div className="w-10 h-10 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20">
                             {settings?.logoUrl ? (
                                 <img 
-                                    src={`${backendUrl}${settings.logoUrl}`} 
+                                    src={resolveLogoUrl(settings.logoUrl)} 
                                     alt="Logo" 
                                     className="w-6 h-6 object-contain"
                                     onError={(e) => {
@@ -94,7 +101,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
                             {settings?.logoUrl ? (
                                 <img 
-                                    src={`${backendUrl}${settings.logoUrl}`} 
+                                    src={resolveLogoUrl(settings.logoUrl)} 
                                     alt="Logo" 
                                     className="w-10 h-10 object-contain"
                                     onError={(e) => {

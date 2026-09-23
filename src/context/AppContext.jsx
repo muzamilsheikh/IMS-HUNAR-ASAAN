@@ -141,19 +141,23 @@ export const AppProvider = ({ children }) => {
             const socketUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? 'http://localhost:5001'
                 : window.location.origin;
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             const newSocket = io(socketUrl, {
                 path: '/socket.io',
-                transports: ['websocket', 'polling'],
+                // On cPanel/shared hosting, WebSocket (wss://) is often blocked.
+                // Start with polling so the connection always works; Socket.io will
+                // automatically upgrade to WebSocket if the server supports it.
+                transports: isLocal ? ['websocket', 'polling'] : ['polling', 'websocket'],
                 secure: window.location.protocol === 'https:',
                 rejectUnauthorized: false,
                 withCredentials: true,
                 reconnection: true,
-                reconnectionAttempts: 10,
-                reconnectionDelay: 3000,
-                reconnectionDelayMax: 10000,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 5000,
+                reconnectionDelayMax: 15000,
                 timeout: 20000,
-                pingInterval: 10000,
-                pingTimeout: 5000
+                pingInterval: 25000,
+                pingTimeout: 10000
             });
 
             newSocket.on('connect', () => {

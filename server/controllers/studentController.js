@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const { sendEmail, sendAdminManagerNotification, generateRandomPassword } = require('../utils/email');
 const { logActivity } = require('../utils/activity');
 const { emitToAll } = require('../socket');
-const { getWelcomeTemplate } = require('../utils/emailTemplates');
+const { getWelcomeTemplate, getAdmissionConfirmationTemplate } = require('../utils/emailTemplates');
 const { generateChallanPDF } = require('../utils/pdfGenerator');
 
 // Live uniqueness check - GET /api/students/check-exists?field=email&value=...
@@ -376,42 +376,32 @@ const createStudent = async (req, res) => {
         });
       }
 
-      // Send welcome email with credentials if a new user account was created
-      const welcomeHtml = userPassword ? getWelcomeTemplate(
+      // Build admission confirmation email (no credentials — clean congratulatory message)
+      // This replaces the old staff-style credentials email.
+      // The notificationRules.admission.student toggle in Settings controls whether this fires.
+      const admissionHtml = getAdmissionConfirmationTemplate(
           name,
-          email,
-          userPassword,
           course.name,
-          batch ? batch.name : 'Unassigned'
-      ) : null;
+          batch ? batch.name : null
+      );
 
-      // Generate initial registration PDF challan
+      // Generate initial registration PDF challan to attach to the admission email
       let welcomeAttachments = [];
       try {
-          const setting = await Setting.findOne();
+          const settingForPdf = await Setting.findOne();
           const initialDue = parseFloat(course.fee || 0) - parseFloat(discountAmount || 0);
-          const studentObj = {
-              name,
-              email,
-              Course: course,
-              Batch: batch
-          };
-          const challanBuffer = await generateChallanPDF(
-              studentObj,
-              initialDue,
-              new Date(),
-              setting
-          );
+          const studentObj = { name, email, Course: course, Batch: batch };
+          const challanBuffer = await generateChallanPDF(studentObj, initialDue, new Date(), settingForPdf);
           welcomeAttachments.push({
               filename: `Registration_Challan_${name.replace(/\s+/g, '_')}.pdf`,
               content: challanBuffer,
               contentType: 'application/pdf'
           });
       } catch (pdfErr) {
-          console.error('Failed to generate initial welcome challan PDF:', pdfErr.message);
+          console.warn('Failed to generate registration challan PDF (non-fatal):', pdfErr.message);
       }
 
-      // Retrieve settings rules
+      // Retrieve settings rules to check if student email should be sent
       const sysSetting = await Setting.findOne();
       let sendToStudent = true;
       if (sysSetting && sysSetting.notificationRules) {
@@ -425,11 +415,12 @@ const createStudent = async (req, res) => {
           }
       }
 
-      if (sendToStudent && welcomeHtml) {
-          sendEmail(email, 'Welcome to Hunar Asaan Skills Center', welcomeHtml, welcomeAttachments)
+      if (sendToStudent) {
+          sendEmail(email, 'Admission Confirmed \u2013 Hunar Asaan Skills Center', admissionHtml, welcomeAttachments)
             .catch(emailError => {
-                console.warn('Failed to send welcome email:', emailError.message);
+                console.warn('Failed to send admission confirmation email:', emailError.message);
             });
+          console.log(`✅ Admission confirmation email dispatched to: ${email}`);
       } else {
           console.log(`✉️ Student admission email disabled by settings for: ${email}`);
       }

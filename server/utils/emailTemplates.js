@@ -337,10 +337,83 @@ const getStaffWelcomeTemplate = (name, email, password, role) => `
 </div>
 `;
 
+/**
+ * Admission Confirmation Email
+ * Sent to a student when "Send Confirmation To Student" is enabled in Settings.
+ * Clean congratulatory message — NO login credentials included.
+ */
+const getAdmissionConfirmationTemplate = (name, courseName, batchName) => `
+<div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f0fdf4; padding: 45px 20px; text-align: center; color: #1e293b;">
+    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.06); border: 1px solid #bbf7d0;">
+
+        <!-- Header Banner -->
+        <div style="background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); padding: 40px 30px; text-align: center; color: #ffffff; border-bottom: 4px solid #10b981;">
+            <div style="margin-bottom: 14px;">
+                <img src="__LOGO_URL_PLACEHOLDER__" alt="Hunar Asaan Logo" style="max-height: 70px; width: auto; display: inline-block; vertical-align: middle;" />
+            </div>
+            <h1 style="margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #ffffff;">Admission Confirmed</h1>
+            <p style="margin: 8px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #6ee7b7; font-weight: 700;">Hunar Asaan Skills Center</p>
+        </div>
+
+        <!-- Confetti Badge -->
+        <div style="background: #ecfdf5; padding: 20px; text-align: center; border-bottom: 1px solid #d1fae5;">
+            <span style="font-size: 36px;">🎉</span>
+            <p style="margin: 8px 0 0 0; font-size: 14px; font-weight: 900; color: #065f46; text-transform: uppercase; letter-spacing: 0.05em;">Congratulations, ${name}!</p>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 40px 45px; text-align: left;">
+            <p style="font-size: 14px; line-height: 1.7; color: #475569; margin-top: 0;">
+                We are delighted to inform you that your admission at <strong style="color: #065f46;">Hunar Asaan Skills Center</strong> has been <strong>successfully confirmed</strong>. Welcome to our learning community!
+            </p>
+
+            <!-- Enrollment Details Card -->
+            <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 16px; padding: 24px 28px; margin: 28px 0;">
+                <h3 style="margin: 0 0 16px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em; color: #065f46; font-weight: 900; border-bottom: 1px solid #bbf7d0; padding-bottom: 10px;">📋 Your Enrollment Details</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr>
+                        <td style="padding: 8px 0; color: #64748b; font-weight: 700; width: 140px;">Program / Course:</td>
+                        <td style="padding: 8px 0; color: #0f172a; font-weight: 800;">${courseName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #64748b; font-weight: 700;">Batch:</td>
+                        <td style="padding: 8px 0; color: #0f172a; font-weight: 800;">${batchName || 'To be assigned'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #64748b; font-weight: 700;">Status:</td>
+                        <td style="padding: 8px 0;">
+                            <span style="background: #dcfce7; color: #15803d; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 10px; border-radius: 20px;">Active ✓</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <p style="font-size: 14px; line-height: 1.7; color: #475569;">
+                We are excited to have you on board! Your journey towards skill development starts now. If you have any questions or need assistance, our support team is always here for you.
+            </p>
+
+            <!-- CTA -->
+            <div style="text-align: center; margin: 35px 0 10px 0;">
+                <a href="https://ims.hunarasaan.com" style="background: #065f46; color: #ffffff; padding: 15px 32px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.15em; text-decoration: none; border-radius: 12px; box-shadow: 0 4px 14px rgba(6,95,70,0.3); display: inline-block;">
+                    Visit Student Portal
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #064e3b; color: #6ee7b7; padding: 25px; text-align: center; font-size: 11px; border-top: 1px solid #065f46;">
+            <p style="margin: 0; font-weight: 900; color: #a7f3d0; text-transform: uppercase; letter-spacing: 0.1em;">Hunar Asaan Management Team</p>
+            <p style="margin: 6px 0 0 0; color: #6ee7b7;">For queries, contact us at info@hunarasaan.edu | hunarasaan.edu</p>
+        </div>
+    </div>
+</div>
+`;
+
 module.exports = {
     getWelcomeTemplate,
     getStaffLoginAlertTemplate,
     getFeePaidTemplate,
     getInstallmentDueTemplate,
-    getStaffWelcomeTemplate
+    getStaffWelcomeTemplate,
+    getAdmissionConfirmationTemplate
 };

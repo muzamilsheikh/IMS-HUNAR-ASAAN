@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import Modal from '../layout/Modal';
 import RegistrationForm from './RegistrationForm';
 import CertificateModal from '../certificates/CertificateModal';
+import SendReminderModal from './SendReminderModal';
 import { 
     GraduationCap, 
     Trophy, 
@@ -28,7 +29,8 @@ import {
     BookOpen,
     Award,
     Mail,
-    Share2
+    Share2,
+    Bell
 } from 'lucide-react';
 
 // Register a basic font for PDF
@@ -223,6 +225,9 @@ const StudentLedger = ({ studentId, onUpdate }) => {
     const [savedCertificates, setSavedCertificates] = useState([]);
     const [showCertModal, setShowCertModal] = useState(false);
     const [loadingCerts, setLoadingCerts] = useState(false);
+
+    // Send Reminder Modal state
+    const [showReminderModal, setShowReminderModal] = useState(false);
 
     // Edit Profile states
     const [showEditModal, setShowEditModal] = useState(false);
@@ -710,6 +715,13 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                     >
                         <FileText size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
                         Print Fee Challan
+                    </button>
+                    <button 
+                        onClick={() => setShowReminderModal(true)}
+                        className="group bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all border border-violet-400 shadow-lg shadow-violet-500/20 active:scale-95"
+                    >
+                        <Bell size={18} className="text-violet-100 group-hover:scale-110 transition-transform" />
+                        Send Reminder
                     </button>
                     {(user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'manager' || user?.role?.toLowerCase() === 'accounts_manager' || hasPermission?.('generateCertificate')) && (
                         <button 
@@ -1875,6 +1887,20 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                         onSuccess={() => {
                             fetchCertificates();
                         }}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Dynamic Multi-Channel Send Reminder Modal */}
+            <AnimatePresence>
+                {showReminderModal && (
+                    <SendReminderModal
+                        isOpen={showReminderModal}
+                        onClose={() => setShowReminderModal(false)}
+                        student={student}
+                        enrollments={enrollments}
+                        balance={balance}
+                        settings={settings}
                     />
                 )}
             </AnimatePresence>

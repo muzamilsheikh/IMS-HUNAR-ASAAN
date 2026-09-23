@@ -1,28 +1,40 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 import { AppProvider, useApp } from './context/AppContext';
 import Layout from './components/layout/Layout';
-import Dashboard from './pages/Dashboard';
-import Students from './pages/Students';
-import Courses from './pages/Courses';
-import Expenses from './pages/Expenses';
-import Batches from './pages/Batches';
-import Roles from './pages/Roles';
-import Settings from './pages/Settings';
-import LiveClass from './pages/LiveClass';
-import Chat from './pages/Chat';
-import Login from './pages/Login';
-import Reports from './pages/Reports';
-import Users from './pages/Users';
-import StudentDashboard from './pages/StudentDashboard';
-import VideoVault from './pages/VideoVault';
-import VideoVaultAdmin from './pages/VideoVaultAdmin';
-import Calendar from './pages/Calendar';
 import ErrorBoundary from './components/layout/ErrorBoundary';
-import StaffDashboard from './pages/StaffDashboard';
-import Payroll from './pages/Payroll';
+
+// Eagerly loaded — must be available instantly
+import Login from './pages/Login';
 import FeeChallanPage from './pages/FeeChallanPage';
+
+// Lazily loaded — split into separate chunks for faster initial boot
+const Dashboard        = lazy(() => import('./pages/Dashboard'));
+const Students         = lazy(() => import('./pages/Students'));
+const Courses          = lazy(() => import('./pages/Courses'));
+const Expenses         = lazy(() => import('./pages/Expenses'));
+const Batches          = lazy(() => import('./pages/Batches'));
+const Roles            = lazy(() => import('./pages/Roles'));
+const Settings         = lazy(() => import('./pages/Settings'));
+const LiveClass        = lazy(() => import('./pages/LiveClass'));
+const Chat             = lazy(() => import('./pages/Chat'));
+const Reports          = lazy(() => import('./pages/Reports'));
+const Users            = lazy(() => import('./pages/Users'));
+const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
+const VideoVault       = lazy(() => import('./pages/VideoVault'));
+const VideoVaultAdmin  = lazy(() => import('./pages/VideoVaultAdmin'));
+const Calendar         = lazy(() => import('./pages/Calendar'));
+const StaffDashboard   = lazy(() => import('./pages/StaffDashboard'));
+const Payroll          = lazy(() => import('./pages/Payroll'));
+
+// Shared route-level loading fallback
+const PageLoader = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
+    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Loading Module...</p>
+  </div>
+);
 
 // Component to decide which dashboard to show based on user role
 const DashboardOrStudent = () => {
@@ -104,107 +116,109 @@ const LoginWithRedirect = () => {
 function AppContent() {
   return (
     <Router>
-      <Routes>
-        <Route path="/login" element={<LoginWithRedirect />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/login" element={<LoginWithRedirect />} />
 
-        <Route path="/" element={
-          <ProtectedRoute>
-            <DashboardOrStudent />
-          </ProtectedRoute>
-        } />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <DashboardOrStudent />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/students" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
-            <Students />
-          </ProtectedRoute>
-        } />
+          <Route path="/students" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
+              <Students />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/users" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin']}>
-            <Users />
-          </ProtectedRoute>
-        } />
+          <Route path="/users" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin']}>
+              <Users />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/batches" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager', 'Staff', 'staff']}>
-            <Batches />
-          </ProtectedRoute>
-        } />
+          <Route path="/batches" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager', 'Staff', 'staff']}>
+              <Batches />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/courses" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
-            <Courses />
-          </ProtectedRoute>
-        } />
+          <Route path="/courses" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
+              <Courses />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/expenses" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
-            <Expenses />
-          </ProtectedRoute>
-        } />
+          <Route path="/expenses" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
+              <Expenses />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/roles" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin']}>
-            <Roles />
-          </ProtectedRoute>
-        } />
+          <Route path="/roles" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin']}>
+              <Roles />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/settings" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin']}>
-            <Settings />
-          </ProtectedRoute>
-        } />
+          <Route path="/settings" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin']}>
+              <Settings />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/live-class" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student']}>
-            <LiveClass />
-          </ProtectedRoute>
-        } />
+          <Route path="/live-class" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student']}>
+              <LiveClass />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/chat" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student']}>
-            <Chat />
-          </ProtectedRoute>
-        } />
+          <Route path="/chat" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student']}>
+              <Chat />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/reports" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
-            <Reports />
-          </ProtectedRoute>
-        } />
+          <Route path="/reports" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
+              <Reports />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/video-vault" element={
-          <ProtectedRoute allowedRoles={['Student', 'student', 'Admin', 'admin', 'Staff', 'staff', 'Manager', 'manager']}>
-            <VideoVault />
-          </ProtectedRoute>
-        } />
+          <Route path="/video-vault" element={
+            <ProtectedRoute allowedRoles={['Student', 'student', 'Admin', 'admin', 'Staff', 'staff', 'Manager', 'manager']}>
+              <VideoVault />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/video-vault-admin" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin']}>
-            <VideoVaultAdmin />
-          </ProtectedRoute>
-        } />
+          <Route path="/video-vault-admin" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin']}>
+              <VideoVaultAdmin />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/calendar" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student', 'accounts_manager']}>
-            <Calendar />
-          </ProtectedRoute>
-        } />
+          <Route path="/calendar" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Staff', 'staff', 'Student', 'student', 'accounts_manager']}>
+              <Calendar />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/payroll" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
-            <Payroll />
-          </ProtectedRoute>
-        } />
+          <Route path="/payroll" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'accounts_manager']}>
+              <Payroll />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/fee-challan" element={
-          <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Student', 'student', 'accounts_manager']}>
-            <FeeChallanPage />
-          </ProtectedRoute>
-        } />
+          <Route path="/fee-challan" element={
+            <ProtectedRoute allowedRoles={['Admin', 'admin', 'Manager', 'manager', 'Student', 'student', 'accounts_manager']}>
+              <FeeChallanPage />
+            </ProtectedRoute>
+          } />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

@@ -347,7 +347,6 @@ const createPayment = async (req, res) => {
                 sendEmail(student.email, `Fee Payment Receipt - ${receiptNo}`, paidHtml, pdfAttachments)
                     .catch(emailErr => console.warn('Failed to send payment receipt to student:', emailErr.message));
             } else {
-                console.log(`✉️ Student payment receipt email disabled by settings for: ${student.email}`);
             }
         }
 
@@ -930,7 +929,6 @@ const sendDueReminder = async (req, res) => {
         if (sendToStudent) {
             emailRes = await sendEmail(student.email, emailSubject, dueHtml, challanAttachments);
         } else {
-            console.log(`✉️ Overdue reminder email to student disabled by settings for: ${student.email}`);
             emailRes = { success: true, skipped: true, customReason: 'Student overdue reminders disabled in settings' };
         }
 

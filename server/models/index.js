@@ -674,6 +674,23 @@ Certificate.belongsTo(Batch, { foreignKey: 'batchId' });
 User.hasMany(Certificate, { foreignKey: 'createdBy', onDelete: 'SET NULL' });
 Certificate.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
 
+// ============ NOTIFICATION TEMPLATE MODEL ============
+const NotificationTemplate = sequelize.define('NotificationTemplate', {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    title: { type: DataTypes.STRING(255), allowNull: false },
+    slug: { type: DataTypes.STRING(255), allowNull: false, unique: true },
+    category: { type: DataTypes.ENUM('EMAIL', 'WHATSAPP', 'BOTH'), allowNull: false, defaultValue: 'BOTH' },
+    subject: { type: DataTypes.STRING(500), allowNull: true },
+    bodyHtml: { type: DataTypes.TEXT('long'), allowNull: true },
+    // Plain-text / WhatsApp message body with {{variable}} tokens
+    bodyText: { type: DataTypes.TEXT('long'), allowNull: false, defaultValue: '' },
+    isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+    // isSystem = true → cannot be deleted by users
+    isSystem: { type: DataTypes.BOOLEAN, defaultValue: false },
+    // Stored as JSON string array: '["student_name","due_amount"]' (MySQL has no array type)
+    placeholders: { type: DataTypes.TEXT, allowNull: true, defaultValue: '[]' }
+}, { timestamps: true, tableName: 'NotificationTemplates' });
+
 // ============ EXPORTS ============
 module.exports = {
     sequelize,
@@ -703,6 +720,7 @@ module.exports = {
     Collaboration,
     Certificate,
     Role,
+    NotificationTemplate,
     Op
 };
 

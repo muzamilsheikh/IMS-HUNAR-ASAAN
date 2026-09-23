@@ -37,6 +37,10 @@ Detailed decision records (with reasoning and review dates) are in `decisions.cs
 | 2026-08-20 | Triplicate fee challan PDF generator and template integration for email payments | ✅ Implemented | 2026-09-19 |
 | 2026-08-20 | Ensure uploads subdirectories (branding, invoices, students, temp, etc.) and static express routing on server boot | ✅ Implemented | 2026-09-19 |
 | 2026-08-20 | Configure Socket.IO with window.location.origin and reverse proxy SSL support | ✅ Implemented | 2026-09-19 |
+| 2026-09-23 | Store logo/signature as base64 LONGTEXT in DB instead of file system (uploads/ is gitignored and wiped on deploy) | ✅ Implemented | 2026-10-23 |
+| 2026-09-23 | Set socket.io transports to polling-first on production to eliminate wss:// WebSocket spam on cPanel shared hosting | ✅ Implemented | 2026-10-23 |
+| 2026-09-23 | Notification Templates Manager + SendReminderModal — full Email/WhatsApp reminder system with Sequelize model, CRUD API, Settings tab, and Student Ledger modal | ✅ Implemented | 2026-10-23 |
+| 2026-09-23 | Production cleanup — deleted 32 AI session .md files, 25+ server debug scripts, sensitive admin-credentials-backup.json; added React lazy/Suspense code splitting, Vite manualChunks vendor splitting, console.log purge, hardened .gitignore | ✅ Implemented | 2026-10-23 |
 
 ## Patterns Established
 - Memory files live in `/memory/` at the project root

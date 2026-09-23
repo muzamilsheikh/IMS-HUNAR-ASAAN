@@ -1,56 +1,82 @@
-# Logs
-logs
+# ─── Logs ────────────────────────────────────────────────────────────────────
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+server/server.log
 
-node_modules
-dist
-dist-ssr
+# ─── Build Output ─────────────────────────────────────────────────────────────
+dist/
+dist-ssr/
 *.local
 
-# Environment variables
+# ─── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+server/node_modules/
+.npm-cache/
+server/.npm-cache/
+
+# ─── Environment & Secrets ───────────────────────────────────────────────────
 .env
 .env.*
 !.env.example
 server/.env
 server/.env.*
+admin-credentials-backup.json
+*credentials*.json
+*-backup.json
 
-# Uploads & Media
+# ─── Uploads & Generated Assets ──────────────────────────────────────────────
 server/uploads/
 uploads/
+public/uploads/
 
-# Database & SQLite files
+# ─── Database & Backups ───────────────────────────────────────────────────────
 *.sql
 *.sqlite
 *.db
 *.sqlite3
+server/backups/
+backups/
 
-# Editor directories and files
+# ─── Archives & Binaries ─────────────────────────────────────────────────────
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# ─── Duplicate Files (iCloud / copy artifacts) ───────────────────────────────
+* 2.json
+* 2.jsx
+* 2.js
+* 2.zip
+
+# ─── Editor & OS Artifacts ───────────────────────────────────────────────────
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Archive files
-*.zip
+# ─── Scratch & Temp Files ────────────────────────────────────────────────────
+scratch/
+tmp/
+temp/
+*.tmp
+*.bak
 
-# Credentials
-admin-credentials-backup.json
-
-# Caches and duplicates
-.npm-cache/
-* 2.json
-* 2.zip
-
-# DB backups
-server/backups/
-backups/
+# ─── iCloud Artifact Directories (auto-created by macOS) ─────────────────────
+Documents/
+Irfan/
+Asaan/
+CRM/
+3/

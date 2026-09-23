@@ -87,7 +87,7 @@ async function initializeDatabase() {
             }
 
             // Import models (connects to the specific database)
-            const { sequelize, User, Course, Batch, Student, Expense, Setting, LiveClass, ChatGroup, ChatMessage, Payment, VideoRecording, VideoAccessRequest, VideoViewLog, VideoSession, Enrollment, InstallmentSchedule, Installment, Role, Certificate, ActivityLog, BackupLog, Schedule, CourseInstructor, SalaryPayment, Collaboration, EnrollmentRequest } = require('./models');
+            const { sequelize, User, Course, Batch, Student, Expense, Setting, LiveClass, ChatGroup, ChatMessage, Payment, VideoRecording, VideoAccessRequest, VideoViewLog, VideoSession, Enrollment, InstallmentSchedule, Installment, Role, Certificate, ActivityLog, BackupLog, Schedule, CourseInstructor, SalaryPayment, Collaboration, EnrollmentRequest, NotificationTemplate } = require('./models');
             
             global.User = User;
             global.Course = Course;
@@ -115,6 +115,7 @@ async function initializeDatabase() {
             global.SalaryPayment = SalaryPayment;
             global.Collaboration = Collaboration;
             global.EnrollmentRequest = EnrollmentRequest;
+            global.NotificationTemplate = NotificationTemplate;
 
             await sequelize.authenticate();
             
@@ -213,6 +214,7 @@ function setupRoutes() {
     app.use('/api/collaborations', require('./routes/collaboration'));
     app.use('/api/roles', roleRoutes);
     app.use('/api/certificates', require('./routes/certificate'));
+    app.use('/api/notification-templates', require('./routes/notificationTemplates'));
 
     // Serve static files from frontend build
     const distPath = path.join(__dirname, '../dist');

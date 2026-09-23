@@ -82,7 +82,6 @@ const createEnrollment = async (req, res) => {
                     phone: student.phone || '',
                     message: `${student.name} wants to enroll in ${course.name}.`
                 });
-                console.log(`📡 Socket alert dispatched for enrollment request: ${student.name} -> ${course.name}`);
             } catch (err) {
                 console.error('Failed to emit socket notification:', err.message);
             }
@@ -182,7 +181,6 @@ const createEnrollment = async (req, res) => {
             ]
         });
 
-        console.log(`✅ Enrollment created & Schedule Generated: Student ${studentId} → ${course.name}`);
 
         // Emit real-time update event
         emitToAll('data-updated', { type: 'student' });

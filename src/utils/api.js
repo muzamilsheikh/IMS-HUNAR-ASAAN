@@ -216,7 +216,19 @@ export const apiClient = {
   markSalaryPaid: (id) => api.patch(`/salaries/${id}/pay`),
 
   // ============ STUDENT LEDGER ENDPOINT ============
-  getStudentLedger: (studentId) => api.get(`/payments/ledger/${studentId}`)
+  getStudentLedger: (studentId) => api.get(`/payments/ledger/${studentId}`),
+
+  // ============ NOTIFICATION TEMPLATES ENDPOINTS ============
+  getNotificationTemplates: (category) => {
+    let url = '/notification-templates';
+    if (category) url += `?category=${category}`;
+    return api.get(url);
+  },
+  getNotificationTemplate: (id) => api.get(`/notification-templates/${id}`),
+  createNotificationTemplate: (data) => api.post('/notification-templates', data),
+  updateNotificationTemplate: (id, data) => api.put(`/notification-templates/${id}`, data),
+  deleteNotificationTemplate: (id) => api.delete(`/notification-templates/${id}`),
+  sendNotificationReminder: (data) => api.post('/notification-templates/send', data)
 };
 
 export default apiClient;

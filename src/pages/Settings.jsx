@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import {
-    Settings as SettingsIcon, Globe, Mail, Shield, Save, Upload, Image as ImageIcon, Sparkles, Terminal, Phone, MapPin, Building, User, Hash, CreditCard, ShieldAlert, Database, ShieldCheck
+    Settings as SettingsIcon, Globe, Mail, Shield, Save, Upload, Image as ImageIcon, Sparkles, Terminal, Phone, MapPin, Building, User, Hash, CreditCard, ShieldAlert, Database, ShieldCheck, Bell
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import EmailSettings from './Settings/EmailSettings';
 import BackupSettings from './Settings/BackupSettings';
 import RolePermissionSettings from './Settings/RolePermissionSettings';
+import NotificationTemplates from './Settings/NotificationTemplates';
 
 const Settings = () => {
     const { user, settings, updateSettings, loading } = useApp();
@@ -197,6 +198,18 @@ const Settings = () => {
                         >
                             Backup & Restore
                         </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('templates')}
+                            className={`pb-3 px-4 text-xs font-black uppercase tracking-[0.2em] transition-all relative border-b-2 flex items-center gap-1.5 ${
+                                activeTab === 'templates'
+                                    ? "text-secondary border-secondary"
+                                    : "text-slate-400 border-transparent hover:text-slate-600"
+                            }`}
+                        >
+                            <Bell size={13} />
+                            Notification Templates
+                        </button>
                         {user?.role?.toLowerCase() === 'admin' && (
                             <button
                                 type="button"
@@ -213,8 +226,8 @@ const Settings = () => {
                         )}
                     </div>
 
-                    {/* Don't show deploy button if non-admin is trying to access email or backup tabs, or on roles tab */}
-                    {!( (activeTab === 'email' || activeTab === 'backup') && user?.role?.toLowerCase() !== 'admin') && activeTab !== 'roles' && (
+                    {/* Don't show deploy button if non-admin is trying to access email or backup tabs, or on roles/templates tabs */}
+                    {!( (activeTab === 'email' || activeTab === 'backup') && user?.role?.toLowerCase() !== 'admin') && activeTab !== 'roles' && activeTab !== 'templates' && (
                         <button type="submit" className="btn-secondary py-3.5 px-8 font-black text-xs uppercase tracking-widest shadow-xl shadow-secondary/30 active:scale-95 transition-all flex items-center gap-2">
                             <Save size={16} /> Deploy Config
                         </button>
@@ -607,8 +620,12 @@ const Settings = () => {
                     </div>
                 )}
 
+                {activeTab === 'templates' && (
+                    <NotificationTemplates />
+                )}
+
                 {/* Registry Status */}
-                {!( (activeTab === 'email' || activeTab === 'backup' || activeTab === 'roles') && user?.role?.toLowerCase() !== 'admin') && activeTab !== 'roles' && (
+                {!( (activeTab === 'email' || activeTab === 'backup' || activeTab === 'roles' || activeTab === 'templates') && user?.role?.toLowerCase() !== 'admin') && activeTab !== 'roles' && activeTab !== 'templates' && (
                     <div className="flex items-center gap-4 p-8 bg-emerald-50 rounded-[2rem] border border-emerald-100 shadow-inner max-w-xl">
                         <Globe className="text-emerald-600" size={24} />
                         <div>

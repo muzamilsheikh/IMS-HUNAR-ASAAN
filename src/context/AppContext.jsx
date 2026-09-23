@@ -161,7 +161,6 @@ export const AppProvider = ({ children }) => {
             });
 
             newSocket.on('connect', () => {
-                console.log('✅ Socket connected');
                 setSocketConnected(true);
             });
 
@@ -186,16 +185,10 @@ export const AppProvider = ({ children }) => {
             });
 
             newSocket.on('data-updated', (data) => {
-                console.log('Real-time data update event received:', data);
-                // For 'settings' events: ALWAYS refetch — the server emits this after res.json()
-                // so the DB is committed and we need to sync the new signatureUrl/logoUrl.
-                // For all other types (students, payments, etc.): skip when we are the mutating
-                // client to avoid UI flicker from racing parallel writes.
-                if (isMutatingRef.current && data.type !== 'settings') {
-                    console.log('Ignoring self-triggered data-updated event:', data.type);
-                    return;
-                }
-                fetchData(true); // Silent refetch of all core data
+                // Always refetch for 'settings' events (logo/signature updates need immediate sync).
+                // For all other types: skip if this client triggered the mutation to avoid UI flicker.
+                if (isMutatingRef.current && data.type !== 'settings') return;
+                fetchData(true);
             });
 
             socketRef.current = newSocket;

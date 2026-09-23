@@ -220,7 +220,6 @@ const getStudentById = async (req, res) => {
 // Create new student
 const createStudent = async (req, res) => {
   try {
-    console.log('📥 Admission request body:', req.body);
 
     const { userId, customId, name, email, phone, secondaryEmail, secondaryPhone, additionalContacts, cnic, address, courseId, batchId, discount = 0, totalInstallments = 2, commencementDate } = req.body;
 
@@ -296,7 +295,6 @@ const createStudent = async (req, res) => {
 
     if (userId) {
       // EXISTING STUDENT FLOW
-      console.log(`🔍 Processing existing student with ID: ${userId}`);
       const cleanId = typeof userId === 'string' && userId.startsWith('student_') 
         ? parseInt(userId.replace('student_', ''), 10) 
         : parseInt(userId, 10);
@@ -420,9 +418,7 @@ const createStudent = async (req, res) => {
             .catch(emailError => {
                 console.warn('Failed to send admission confirmation email:', emailError.message);
             });
-          console.log(`✅ Admission confirmation email dispatched to: ${email}`);
       } else {
-          console.log(`✉️ Student admission email disabled by settings for: ${email}`);
       }
 
       // Admin & Manager Alert Notification
@@ -537,7 +533,6 @@ const createStudent = async (req, res) => {
       }
     }
 
-    console.log(`✅ Student processed & Enrolled: ${student.name}, ID: ${student.id}`);
 
     // Emit real-time event
     emitToAll('data-updated', { type: 'student' });
@@ -623,7 +618,6 @@ const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log(`🗑️ Attempting to delete student ID: ${id}`);
 
     const student = await Student.findByPk(id, { transaction });
     if (!student) {
@@ -634,7 +628,6 @@ const deleteStudent = async (req, res) => {
     const studentEmail = student.email;
     const studentName = student.name;
 
-    console.log(`📋 Student to delete: ${studentName} (${studentEmail})`);
 
     // Step 1: Delete associated user account (by email)
     if (studentEmail) {
@@ -644,7 +637,6 @@ const deleteStudent = async (req, res) => {
       });
       if (user) {
         await user.destroy({ transaction });
-        console.log(`✅ User account deleted: ${studentEmail}`);
       }
     }
 
@@ -658,12 +650,10 @@ const deleteStudent = async (req, res) => {
         where: { studentId: id },
         transaction 
       });
-      console.log(`✅ Deleted ${payments.length} payment records`);
     }
 
     // Step 3: Delete the student record
     await student.destroy({ transaction });
-    console.log(`✅ Student record deleted: ${studentName}`);
 
     // Commit transaction
     await transaction.commit();

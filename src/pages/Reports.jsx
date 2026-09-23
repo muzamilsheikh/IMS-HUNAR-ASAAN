@@ -7,7 +7,6 @@ import {
     Clock, BarChart3, PieChart, Activity
 } from 'lucide-react';
 import apiClient from '../utils/api';
-import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 
 const Reports = () => {
@@ -464,9 +463,10 @@ const Reports = () => {
         }
     };
 
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
         if (!reportData) return;
         
+        const XLSX = await import('xlsx');
         const wb = XLSX.utils.book_new();
 
         if (reportScope === 'students') {

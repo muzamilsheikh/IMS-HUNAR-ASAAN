@@ -26,6 +26,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
+    include: ['xlsx'],
     exclude: ['bcrypt', 'sequelize', 'mysql2', 'express', 'cors', 'socket.io', 'jsonwebtoken', 'dotenv'],
   },
   build: {
@@ -47,6 +48,10 @@ export default defineConfig({
           // PDF generation — jspdf + html-to-image + react-pdf are heavy
           if (id.includes('node_modules/jspdf') || id.includes('node_modules/html-to-image') || id.includes('node_modules/@react-pdf')) {
             return 'vendor-pdf';
+          }
+          // Excel export — xlsx is heavy, isolate in its own chunk
+          if (id.includes('node_modules/xlsx')) {
+            return 'vendor-xlsx';
           }
           // Socket.io client
           if (id.includes('node_modules/socket.io-client') || id.includes('node_modules/engine.io-client')) {

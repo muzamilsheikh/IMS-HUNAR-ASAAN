@@ -23,7 +23,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
     const navLinks = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/', permKey: null },
-        { name: 'Calendar', icon: Calendar, path: '/calendar', permKey: 'viewCalendar' },
         { name: 'Students', icon: Users, path: '/students', permKey: 'viewStudentList' },
         { name: 'Users', icon: ShieldCheck, path: '/users', permKey: 'manageUsers' },
         { name: 'Batches', icon: Layers, path: '/batches', permKey: 'viewCreateBatches' },
@@ -31,10 +30,11 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         { name: 'Expenses', icon: Wallet, path: '/expenses', permKey: 'manageExpenses' },
         { name: 'Payroll', icon: Wallet, path: '/payroll', permKey: 'viewPayroll' },
         { name: 'Reports', icon: FileText, path: '/reports', permKey: 'accessReports' },
+        { name: 'Fee Challan', icon: Receipt, path: '/fee-challan', permKey: 'viewChallans' },
+        { name: 'Calendar', icon: Calendar, path: '/calendar', permKey: 'viewCalendar' },
         { name: 'Roles', icon: ShieldCheck, path: '/roles', permKey: 'accessSettings' },
         { name: 'Live Class', icon: Video, path: '/live-class', permKey: 'liveClassAccess' },
         { name: 'Chat', icon: MessageCircle, path: '/chat', permKey: 'viewChat' },
-        { name: 'Fee Challan', icon: Receipt, path: '/fee-challan', permKey: 'viewChallans' },
         { name: 'Settings', icon: Settings, path: '/settings', permKey: 'accessSettings' },
     ].filter(link => {
         if (!link.permKey) return true; // Dashboard is open to all logged-in users
@@ -95,15 +95,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 </div>
 
                 {/* Desktop Header */}
-                <div className="p-10 relative overflow-hidden hidden lg:block">
+                <div className="p-6 pb-3 relative overflow-hidden hidden lg:block">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full -mr-16 -mt-16 blur-3xl animate-pulse" />
-                    <div className="relative z-10 flex items-center gap-4">
-                        <div className="w-14 h-14 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                    <div className="relative z-10 flex items-center gap-3">
+                        <div className="w-12 h-12 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl shrink-0">
                             {settings?.logoUrl ? (
                                 <img 
                                     src={resolveLogoUrl(settings.logoUrl)} 
                                     alt="Logo" 
-                                    className="w-10 h-10 object-contain"
+                                    className="w-8 h-8 object-contain"
                                     onError={(e) => {
                                         e.target.src = logoBase64;
                                     }}
@@ -112,16 +112,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 <img 
                                     src={logoBase64} 
                                     alt="Logo" 
-                                    className="w-10 h-10 object-contain" 
+                                    className="w-8 h-8 object-contain" 
                                 />
                             )}
                         </div>
                         <div>
-                            <h1 className="text-xl font-black tracking-tighter leading-tight italic">
+                            <h1 className="text-lg font-black tracking-tighter leading-tight italic">
                                 {settings?.instituteName?.split(' ')[0] || 'HUNAR'} <br />
                                 <span className="text-secondary not-italic">{settings?.instituteName?.split(' ').slice(1).join(' ') || 'ASAAN'}</span>
                             </h1>
-                            <div className="flex items-center gap-1.5 mt-1">
+                            <div className="flex items-center gap-1.5 mt-0.5">
                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                                 <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/40">Active System</span>
                             </div>
@@ -130,24 +130,24 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 </div>
 
                 {/* Navigation Orbit */}
-                <nav className="flex-1 px-6 space-y-2 mt-4 overflow-y-auto scrollbar-hide">
-                    <p className="px-6 text-[10px] font-black uppercase tracking-[0.4em] text-white/20 mb-6 hidden lg:block">Master Control</p>
+                <nav className="flex-1 px-4 space-y-1.5 mt-2 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pr-2">
+                    <p className="px-4 text-[9px] font-black uppercase tracking-[0.3em] text-white/20 mb-2 hidden lg:block">Master Control</p>
                     {navLinks.map((link) => (
                         <NavLink
                             key={link.path}
                             to={link.path}
                             onClick={() => setIsOpen(false)} // Close mobile menu on navigation
                             className={({ isActive }) =>
-                                `flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 group ${isActive
-                                    ? 'bg-white/10 text-white shadow-xl border border-white/10'
+                                `flex items-center gap-3.5 px-4 py-2.5 rounded-xl transition-all duration-300 group ${isActive
+                                    ? 'bg-white/10 text-white shadow-lg border border-white/10'
                                     : 'text-white/40 hover:text-white hover:bg-white/5'
                                 }`
                             }
                         >
                             {({ isActive }) => (
                                 <>
-                                    <link.icon size={20} className={cn(isActive && 'text-secondary')} />
-                                    <span className="font-black text-xs uppercase tracking-widest">{link.name}</span>
+                                    <link.icon size={18} className={cn(isActive && 'text-secondary')} />
+                                    <span className="font-black text-xs uppercase tracking-wider">{link.name}</span>
                                     <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity hidden lg:block">
                                         <Sparkles size={12} className="text-secondary/40" />
                                     </div>

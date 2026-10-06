@@ -9,9 +9,10 @@ const {
     getRecoveryAlerts,
     getPendingFeesSummary,
     getStudentLedger,
-    sendDueReminder
+    sendDueReminder,
+    deletePayment
 } = require('../controllers/paymentController');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, adminMiddleware } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -59,5 +60,8 @@ router.get('/receipt/:receiptNo', authenticateToken, getPaymentByReceipt);
 
 // Get all payments (admin view)
 router.get('/', authenticateToken, getAllPayments);
+
+// Delete payment transaction (admin only)
+router.delete('/:id', authenticateToken, adminMiddleware, deletePayment);
 
 module.exports = router;

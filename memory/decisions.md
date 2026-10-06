@@ -43,6 +43,7 @@ Detailed decision records (with reasoning and review dates) are in `decisions.cs
 | 2026-09-23 | Production cleanup — deleted 32 AI session .md files, 25+ server debug scripts, sensitive admin-credentials-backup.json; added React lazy/Suspense code splitting, Vite manualChunks vendor splitting, console.log purge, hardened .gitignore | ✅ Implemented | 2026-10-23 |
 | 2026-10-05 | Align production server PORT to 5001 matching .htaccess proxy & restart Node daemon | ✅ Implemented | 2026-11-04 |
 | 2026-10-06 | Guard student overdue status with unpaidBalance check & restore LiteSpeed .htaccess reverse proxy | ✅ Implemented | 2026-11-05 |
+| 2026-10-06 | Admin user edit/delete with position and password + Scholar drop-off reason + Safe full direct DB deletions | ✅ Implemented | 2026-11-05 |
 
 ## Patterns Established
 - Memory files live in `/memory/` at the project root

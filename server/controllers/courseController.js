@@ -134,6 +134,17 @@ const deleteCourse = async (req, res) => {
             return res.status(404).json({ error: 'Course not found' });
         }
 
+        // Clean up or unlink child records to avoid FK issues
+        const { CourseInstructor, EnrollmentRequest, VideoRecording, Batch, Student, Expense, Certificate, Collaboration } = require('../models');
+        if (CourseInstructor) await CourseInstructor.destroy({ where: { courseId: id } });
+        if (EnrollmentRequest) await EnrollmentRequest.destroy({ where: { courseId: id } });
+        if (VideoRecording) await VideoRecording.destroy({ where: { courseId: id } });
+        if (Batch) await Batch.update({ courseId: null }, { where: { courseId: id } });
+        if (Student) await Student.update({ courseId: null }, { where: { courseId: id } });
+        if (Expense) await Expense.update({ courseId: null }, { where: { courseId: id } });
+        if (Certificate) await Certificate.update({ courseId: null }, { where: { courseId: id } });
+        if (Collaboration) await Collaboration.destroy({ where: { courseId: id } });
+
         await course.destroy();
 
         // Emit real-time event

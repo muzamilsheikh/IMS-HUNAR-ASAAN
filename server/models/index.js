@@ -111,7 +111,9 @@ const Student = sequelize.define('Student', {
     createdBy: { type: DataTypes.INTEGER, allowNull: true },
     // Monthly billing fields
     commencementDate: { type: DataTypes.DATEONLY, allowNull: true },
-    next_due_date: { type: DataTypes.DATEONLY, allowNull: true }
+    next_due_date: { type: DataTypes.DATEONLY, allowNull: true },
+    // Scholar status remarks (e.g. drop-off reason)
+    dropReason: { type: DataTypes.TEXT, allowNull: true }
 }, { 
     timestamps: true, 
     tableName: 'Students',

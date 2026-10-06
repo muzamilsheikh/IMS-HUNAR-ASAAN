@@ -11,7 +11,7 @@ const getAllUsers = async (req, res) => {
 
         // Get staff users (excluding students)
         const staffUsers = await User.findAll({
-            attributes: ['id', 'name', 'email', 'role', 'status', 'createdAt'],
+            attributes: ['id', 'name', 'email', 'role', 'status', 'specialty', 'base_salary', 'createdAt'],
             where: {
                 role: { [Op.ne]: 'Student' } // Exclude students from User table
             },
@@ -377,9 +377,202 @@ const resetPasswordAdmin = async (req, res) => {
     }
 };
 
+// Master Administrative Update User (Name, Email, Role, Position/Specialty, Base Salary, Status, Password)
+const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, role, specialty, base_salary, status, password, associatedCourses } = req.body;
+
+        let userId = id;
+        let isStudent = false;
+        let studentRecord = null;
+
+        if (typeof id === 'string' && id.startsWith('student_')) {
+            isStudent = true;
+            const studentId = id.replace('student_', '');
+            studentRecord = await Student.findByPk(studentId);
+            if (!studentRecord) {
+                return res.status(404).json({ error: 'Student record not found' });
+            }
+            const user = await User.findOne({ where: { email: studentRecord.email } });
+            if (user) {
+                userId = user.id;
+            }
+        }
+
+        // Handle student user edit
+        if (isStudent && studentRecord) {
+            const studentUpdates = {};
+            if (name) studentUpdates.name = name;
+            if (email && email.toLowerCase() !== studentRecord.email?.toLowerCase()) {
+                const existingStudent = await Student.findOne({ where: { email: email.toLowerCase(), id: { [Op.ne]: studentRecord.id } } });
+                if (existingStudent) {
+                    return res.status(400).json({ error: 'Another student already has this email' });
+                }
+                studentUpdates.email = email.toLowerCase();
+            }
+            await studentRecord.update(studentUpdates);
+
+            if (userId) {
+                const user = await User.findByPk(userId);
+                if (user) {
+                    const userUpdates = {};
+                    if (name) userUpdates.name = name;
+                    if (email) userUpdates.email = email.toLowerCase();
+                    if (role) userUpdates.role = role;
+                    if (status) userUpdates.status = status;
+                    if (password && password.trim().length >= 6) {
+                        const saltRounds = 10;
+                        userUpdates.password = await bcrypt.hash(password.trim(), saltRounds);
+                    }
+                    await user.update(userUpdates);
+                }
+            }
+
+            await logActivity(
+                req.user ? req.user.id : null,
+                'Student/User Updated (Admin)',
+                `Student account "${studentRecord.name}" (${studentRecord.email}) was updated by Admin ${req.user ? req.user.name : 'System'}.`
+            );
+
+            emitToAll('data-updated', { type: 'student' });
+            emitToAll('data-updated', { type: 'user' });
+
+            return res.json({
+                success: true,
+                message: 'Student account updated successfully'
+            });
+        }
+
+        // Regular staff/manager/admin user
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Check email uniqueness if changing email
+        if (email && email.toLowerCase() !== user.email.toLowerCase()) {
+            const existingUser = await User.findOne({ 
+                where: { 
+                    email: email.toLowerCase(),
+                    id: { [Op.ne]: user.id }
+                } 
+            });
+            if (existingUser) {
+                return res.status(400).json({ error: 'Another user already exists with this email address' });
+            }
+            user.email = email.toLowerCase();
+        }
+
+        if (name) user.name = name;
+        if (role) user.role = role;
+        if (specialty !== undefined) user.specialty = specialty;
+        if (base_salary !== undefined) user.base_salary = base_salary;
+        if (status) user.status = status;
+
+        if (password && password.trim().length >= 6) {
+            const saltRounds = 10;
+            user.password = await bcrypt.hash(password.trim(), saltRounds);
+        }
+
+        await user.save();
+
+        // Update associated courses for instructors if provided
+        if (Array.isArray(associatedCourses)) {
+            await CourseInstructor.destroy({ where: { userId: user.id } });
+            if (associatedCourses.length > 0) {
+                const links = associatedCourses.map(courseId => ({
+                    userId: user.id,
+                    courseId
+                }));
+                await CourseInstructor.bulkCreate(links);
+            }
+        }
+
+        await logActivity(
+            req.user ? req.user.id : null,
+            'User Updated (Admin)',
+            `User "${user.name}" (${user.email}, Role: ${user.role}, Position: ${user.specialty || 'N/A'}) was updated by Admin ${req.user ? req.user.name : 'System'}.`
+        );
+
+        emitToAll('data-updated', { type: 'user' });
+
+        res.json({
+            success: true,
+            message: 'User updated successfully',
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                specialty: user.specialty,
+                base_salary: user.base_salary,
+                status: user.status
+            }
+        });
+    } catch (error) {
+        console.error('Update user error:', error);
+        res.status(500).json({ error: error.message || 'Server error' });
+    }
+};
+
+// Delete user permanently
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (typeof id === 'string' && id.startsWith('student_')) {
+            const studentId = id.replace('student_', '');
+            const student = await Student.findByPk(studentId);
+            if (!student) return res.status(404).json({ error: 'Student not found' });
+            if (student.email) {
+                const linkedUser = await User.findOne({ where: { email: student.email } });
+                if (linkedUser && req.user && linkedUser.id === req.user.id) {
+                    return res.status(400).json({ error: 'You cannot delete your own active administrator account' });
+                }
+                if (linkedUser) await linkedUser.destroy();
+            }
+            await student.destroy();
+            emitToAll('data-updated', { type: 'student' });
+            emitToAll('data-updated', { type: 'user' });
+            return res.json({ success: true, message: 'Student and linked account deleted successfully' });
+        }
+
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (req.user && user.id === req.user.id) {
+            return res.status(400).json({ error: 'You cannot delete your own active administrator account' });
+        }
+
+        await CourseInstructor.destroy({ where: { userId: user.id } });
+
+        const userName = user.name;
+        const userEmail = user.email;
+        await user.destroy();
+
+        await logActivity(
+            req.user ? req.user.id : null,
+            'User Deleted (Admin)',
+            `User "${userName}" (${userEmail}) was permanently deleted by Admin ${req.user ? req.user.name : 'System'}.`
+        );
+
+        emitToAll('data-updated', { type: 'user' });
+
+        res.json({ success: true, message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ error: error.message || 'Server error' });
+    }
+};
+
 module.exports = {
     getAllUsers,
     createUser,
+    updateUser,
+    deleteUser,
     updateUserStatus,
     resetPassword,
     searchStudents,

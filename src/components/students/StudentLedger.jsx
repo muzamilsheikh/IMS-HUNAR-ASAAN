@@ -334,6 +334,27 @@ const StudentLedger = ({ studentId, onUpdate }) => {
         }
     };
 
+    // ── Delete Payment (Admin direct delete) ───────────────────────
+    const [deletingPaymentId, setDeletingPaymentId] = useState(null);
+    const handleDeletePayment = async (payment) => {
+        const amountStr = Number(payment?.amountPaid || 0).toLocaleString();
+        const confirmMsg = `Are you sure you want to permanently delete Payment Receipt #${payment?.receiptNo} (Rs. ${amountStr})?\n\nThis will adjust the student's total paid amount and remaining balance in the database.`;
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            setDeletingPaymentId(payment.id);
+            await apiClient.deletePayment(payment.id);
+            toast.success('Payment transaction permanently deleted');
+            await fetchPayments();
+            if (refreshFinancialStats) refreshFinancialStats();
+        } catch (err) {
+            console.error('Delete payment error:', err);
+            toast.error(err.response?.data?.error || 'Failed to delete payment transaction');
+        } finally {
+            setDeletingPaymentId(null);
+        }
+    };
+
     // Initialize local student from context
     useEffect(() => {
         if (contextStudent) {
@@ -617,12 +638,13 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                             <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tighter uppercase">{student?.name || 'Student'}</h2>
                             <span className={cn(
                                 "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest",
-                                student?.status === 'Active' ? 'bg-emerald-50 text-emerald-600' :
-                                    student?.status === 'Completed' ? 'bg-secondary/10 text-secondary' : 'bg-rose-50 text-rose-600'
+                                student?.status === 'Active' || student?.status === 'Settled' ? 'bg-emerald-50 text-emerald-600' :
+                                    student?.status === 'Dropped' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                                    student?.status === 'Completed' || student?.status === 'Passout' ? 'bg-secondary/10 text-secondary' : 'bg-rose-50 text-rose-600'
                             )}>
-                                {student?.status || 'Unknown'}
+                                {student?.status === 'Dropped' ? 'Dropped / Dormant' : (student?.status || 'Unknown')}
                             </span>
-                            {/* 🔥 NEW: Overdue Badge */}
+                            {/* 🔥 Overdue Badge */}
                             {isOverdue && (
                                 <motion.span 
                                     className="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-300 animate-pulse"
@@ -633,6 +655,14 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                                 </motion.span>
                             )}
                         </div>
+                        {student?.dropReason && (
+                            <div className="mb-2 p-2.5 bg-amber-50/90 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2 max-w-xl">
+                                <span className="font-black uppercase tracking-widest text-[9px] bg-amber-200/80 px-2 py-0.5 rounded text-amber-900 flex-shrink-0 mt-0.5">
+                                    Drop-off Reason
+                                </span>
+                                <span className="font-medium text-slate-700 leading-relaxed">{student.dropReason}</span>
+                            </div>
+                        )}
                         <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-slate-400 text-xs">
                             <div className="flex items-center gap-2"><Hash size={14} className="text-secondary flex-shrink-0" /><span className="font-bold uppercase tracking-widest">{student?.id || 'N/A'}</span></div>
                             <div className="w-1.5 h-1.5 rounded-full bg-slate-200 hidden sm:block" />
@@ -1762,11 +1792,25 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                                                     title="Print 3-Copy Receipt (A4 Landscape)"
                                                 >
                                                     <Printer size={16} />
-                                                {/* Hover tooltip */}
-                                                <span className="absolute -top-9 right-0 whitespace-nowrap bg-slate-800 text-white text-[10px] font-semibold px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                                                    Print 3-Copy Receipt (A4 Landscape)
-                                                </span>
-                                            </button>
+                                                    {/* Hover tooltip */}
+                                                    <span className="absolute -top-9 right-0 whitespace-nowrap bg-slate-800 text-white text-[10px] font-semibold px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                                                        Print 3-Copy Receipt (A4 Landscape)
+                                                    </span>
+                                                </button>
+                                                {user?.role === 'Admin' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeletePayment(payment)}
+                                                        disabled={deletingPaymentId === (payment.id || payment._id)}
+                                                        className="group relative p-2 sm:p-3 bg-rose-50 text-rose-500 rounded-lg sm:rounded-xl hover:bg-rose-500 hover:text-white transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center disabled:opacity-50"
+                                                        title="Delete Payment Record (Admin Only)"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                        <span className="absolute -top-9 right-0 whitespace-nowrap bg-slate-800 text-white text-[10px] font-semibold px-2.5 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                                                            Delete Payment
+                                                        </span>
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

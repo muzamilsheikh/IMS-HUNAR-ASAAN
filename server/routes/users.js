@@ -3,6 +3,8 @@ const router = express.Router();
 const {
     getAllUsers,
     createUser,
+    updateUser,
+    deleteUser,
     updateUserStatus,
     resetPassword,
     searchStudents,
@@ -18,6 +20,12 @@ router.get('/search', authenticateToken, searchStudents);
 
 // Create new staff user
 router.post('/', authenticateToken, adminMiddleware, createUser);
+
+// Update user details (name, email, role, specialty/position, salary, status, password)
+router.put('/:id', authenticateToken, adminMiddleware, updateUser);
+
+// Delete user permanently
+router.delete('/:id', authenticateToken, adminMiddleware, deleteUser);
 
 // Update user status (activate/deactivate)
 router.patch('/:id/status', authenticateToken, adminMiddleware, updateUserStatus);

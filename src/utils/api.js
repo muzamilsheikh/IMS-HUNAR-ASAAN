@@ -87,6 +87,8 @@ export const apiClient = {
   // User endpoints
   getUsers: () => api.get('/users'),
   createUser: (userData) => api.post('/users', userData),
+  updateUser: (id, userData) => api.put(`/users/${id}`, userData),
+  deleteUser: (id) => api.delete(`/users/${id}`),
   updateUserStatus: (id, statusData) => api.patch(`/users/${id}/status`, statusData),
   resetUserPassword: (id, passwordData) => api.put(`/users/${id}/reset-password`, passwordData),
 
@@ -154,6 +156,7 @@ export const apiClient = {
   },
   getPaymentsByStudent: (studentId) => api.get(`/payments/student/${studentId}`),
   getAllPayments: () => api.get('/payments'),
+  deletePayment: (paymentId) => api.delete(`/payments/${paymentId}`),
   getPaymentByReceipt: (receiptNo) => api.get(`/payments/receipt/${receiptNo}`),
   getRemainingBalance: (studentId) => api.get(`/payments/balance/${studentId}`),
   // 🔥 NEW: Recovery alerts and pending fees

@@ -266,8 +266,16 @@ const deleteBatch = async (req, res) => {
             return res.status(404).json({ error: 'Batch not found' });
         }
 
-        // Delete the associated chat group
-        await ChatGroup.destroy({ where: { batchId: id } });
+        // Delete or unlink associated records to avoid FK constraints
+        const { Schedule, LiveClass, Collaboration, Expense, Certificate, VideoRecording } = require('../models');
+        if (Schedule) await Schedule.destroy({ where: { batchId: id } });
+        if (LiveClass) await LiveClass.destroy({ where: { batchId: id } });
+        if (ChatGroup) await ChatGroup.destroy({ where: { batchId: id } });
+        if (Collaboration) await Collaboration.destroy({ where: { batchId: id } });
+        await Student.update({ batchId: null }, { where: { batchId: id } });
+        if (Expense) await Expense.update({ batchId: null }, { where: { batchId: id } });
+        if (Certificate) await Certificate.update({ batchId: null }, { where: { batchId: id } });
+        if (VideoRecording) await VideoRecording.update({ batchId: null }, { where: { batchId: id } });
 
         await batch.destroy();
 

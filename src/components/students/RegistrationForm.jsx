@@ -78,6 +78,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
         joiningDate: editingStudent.commencementDate || new Date().toISOString().split('T')[0],
         customId: editingStudent.customId || '',
         status: editingStudent.status || 'Active',
+        dropReason: editingStudent.dropReason || '',
       });
     }
   }, [editingStudent]);
@@ -321,6 +322,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
       totalInstallments: Number(formData.totalInstallments),
       // Send status from form (when editing) or default Active (when creating)
       status: formData.status || 'Active',
+      dropReason: formData.dropReason || null,
       commencementDate: formData.joiningDate || null
     };
 
@@ -802,21 +804,41 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
             )}
 
             {editingStudent && (
-              <div className="sm:col-span-2">
-                <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-2 pl-1">Scholar Status</label>
-                <div className="relative">
-                  <select 
-                    className="input-field bg-white border-emerald-100 focus:ring-emerald-200 font-bold" 
-                    value={formData.status} 
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  >
-                    <option value="Active">System Active</option>
-                    <option value="Settled">Fully Settled</option>
-                    <option value="Dropped">Dropped / Dormant</option>
-                    <option value="Passout">Passout / Certified</option>
-                    <option value="Completed">Completed</option>
-                  </select>
+              <div className="sm:col-span-2 space-y-3">
+                <div>
+                  <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-2 pl-1">Scholar Status</label>
+                  <div className="relative">
+                    <select 
+                      className="input-field bg-white border-emerald-100 focus:ring-emerald-200 font-bold" 
+                      value={formData.status} 
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    >
+                      <option value="Active">System Active</option>
+                      <option value="Settled">Fully Settled</option>
+                      <option value="Dropped">Dropped / Dormant</option>
+                      <option value="Passout">Passout / Certified</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
                 </div>
+
+                {formData.status === 'Dropped' && (
+                  <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="block text-[10px] font-black text-amber-800 uppercase tracking-[0.15em] pl-1">
+                      Drop-off Reason / Issue (Optional)
+                    </label>
+                    <textarea 
+                      rows={2}
+                      className="input-field bg-white border-amber-200 focus:ring-amber-300 font-semibold text-xs text-slate-700 w-full resize-none"
+                      placeholder="Kya issue hai? Kyun drop kar raha hai? (e.g. Financial constraints, batch timing clash, personal emergency, relocated...)"
+                      value={formData.dropReason || ''}
+                      onChange={(e) => setFormData({ ...formData, dropReason: e.target.value })}
+                    />
+                    <p className="text-[10px] text-amber-600 font-bold pl-1">
+                      ℹ️ Yeh issue/wajah student ke ledger aur details mein save rahegi taake institute record maintain rahe.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

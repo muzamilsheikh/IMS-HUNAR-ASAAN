@@ -948,6 +948,76 @@ const sendDueReminder = async (req, res) => {
     }
 };
 
+// Delete payment record permanently (Admin only)
+const deletePayment = async (req, res) => {
+    if (!req.user || req.user.role !== 'Admin') {
+        return res.status(403).json({ error: 'Only administrators have permission to delete fee payment records' });
+    }
+
+    const transaction = await sequelize.transaction();
+    try {
+        const { id } = req.params;
+        const payment = await Payment.findByPk(id, { transaction });
+        if (!payment) {
+            await transaction.rollback();
+            return res.status(404).json({ error: 'Payment transaction record not found' });
+        }
+
+        const studentId = payment.studentId;
+        const amountPaid = parseFloat(payment.amountPaid || 0);
+        const receiptNo = payment.receiptNo;
+
+        // Find student and reconcile balances
+        const student = await Student.findByPk(studentId, { transaction });
+        if (student) {
+            const currentPaid = parseFloat(student.paidAmount || 0);
+            const newPaid = Math.max(0, currentPaid - amountPaid);
+            student.paidAmount = newPaid;
+            student.totalPaid = newPaid;
+
+            // Revert status to Active if it was Settled but now has unpaid balance
+            const totalFee = parseFloat(student.totalFee || 0);
+            const discount = parseFloat(student.discount || 0);
+            if (newPaid < (totalFee - discount) && student.status === 'Settled') {
+                student.status = 'Active';
+            }
+            await student.save({ transaction });
+        }
+
+        // Delete slip file if exists
+        if (payment.slip) {
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                const filePath = path.join(__dirname, '../uploads/slips', payment.slip);
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            } catch (err) {
+                console.warn('Could not delete slip file:', err.message);
+            }
+        }
+
+        // Delete payment row
+        await payment.destroy({ transaction });
+
+        await transaction.commit();
+
+        await logActivity(
+            req.user ? req.user.id : null,
+            'Payment Deletion (Admin)',
+            `Payment receipt "${receiptNo}" for Rs. ${amountPaid.toLocaleString()} was permanently deleted by Admin ${req.user ? req.user.name : 'System'}.`
+        );
+
+        emitToAll('data-updated', { type: 'payment', studentId });
+        emitToAll('data-updated', { type: 'student' });
+
+        res.json({ success: true, message: 'Payment record deleted successfully and student balance adjusted' });
+    } catch (error) {
+        if (transaction) await transaction.rollback();
+        console.error('Delete payment error:', error);
+        res.status(500).json({ error: error.message || 'Server error' });
+    }
+};
+
 module.exports = {
     createPayment,
     getPaymentsByStudent,
@@ -959,5 +1029,6 @@ module.exports = {
     getStudentLedger,
     markSalaryPaid,
     getSalaryReport,
-    sendDueReminder
+    sendDueReminder,
+    deletePayment
 };

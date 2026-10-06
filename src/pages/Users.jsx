@@ -16,7 +16,9 @@ import {
     XCircle,
     UserPlus,
     ChevronDown,
-    Wallet
+    Wallet,
+    Pencil,
+    Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../utils/cn';
@@ -31,6 +33,19 @@ const Users = () => {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [showPasswordReset, setShowPasswordReset] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+
+    // Edit User state
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingUser, setEditingUser] = useState(null);
+    const [editFormData, setEditFormData] = useState({
+        name: '',
+        email: '',
+        role: 'Staff',
+        specialty: '',
+        status: 'Active',
+        password: ''
+    });
+    const [isSavingEdit, setIsSavingEdit] = useState(false);
 
     const [filters, setFilters] = useState({
         search: '',
@@ -135,6 +150,65 @@ const Users = () => {
         } catch (error) {
             console.error('Failed to reset password:', error);
             toast.error(error.response?.data?.error || 'Failed to reset password');
+        }
+    };
+
+    // Open Edit User Modal
+    const handleOpenEdit = (user) => {
+        setEditingUser(user);
+        setEditFormData({
+            name: user.name || '',
+            email: user.email || '',
+            role: user.role || 'Staff',
+            specialty: user.specialty || '',
+            status: user.status || 'Active',
+            password: ''
+        });
+        setShowEditModal(true);
+    };
+
+    // Save User Edits
+    const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        if (!editFormData.name?.trim() || !editFormData.email?.trim()) {
+            toast.error('Name and email are required');
+            return;
+        }
+        if (editFormData.password && editFormData.password.trim().length < 6) {
+            toast.error('Password must be at least 6 characters');
+            return;
+        }
+        try {
+            setIsSavingEdit(true);
+            await apiClient.updateUser(editingUser.id, editFormData);
+            toast.success(`User "${editFormData.name}" updated successfully!`);
+            setShowEditModal(false);
+            setEditingUser(null);
+            fetchUsers();
+        } catch (error) {
+            console.error('Failed to update user:', error);
+            toast.error(error.response?.data?.error || 'Failed to update user');
+        } finally {
+            setIsSavingEdit(false);
+        }
+    };
+
+    // Delete User Permanently
+    const handleDeleteUser = async (user) => {
+        if (currentUser?.id === user.id || currentUser?.email?.toLowerCase() === user.email?.toLowerCase()) {
+            toast.error('You cannot delete your own logged-in administrator account');
+            return;
+        }
+        if (!window.confirm(`Are you sure you want to permanently delete user "${user.name}" (${user.email}) from the database?\n\nThis will remove the user account permanently.`)) {
+            return;
+        }
+        try {
+            await apiClient.deleteUser(user.id);
+            toast.success(`User "${user.name}" deleted successfully`);
+            fetchUsers();
+        } catch (error) {
+            console.error('Failed to delete user:', error);
+            toast.error(error.response?.data?.error || 'Failed to delete user');
         }
     };
 
@@ -309,9 +383,16 @@ const Users = () => {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             {getRoleIcon(user.role)}
-                                            <span className="text-sm font-bold text-slate-600">
-                                                {user.role === 'accounts_manager' ? 'Accounts Manager' : user.role}
-                                            </span>
+                                            <div>
+                                                <span className="text-sm font-bold text-slate-700 block">
+                                                    {user.role === 'accounts_manager' ? 'Accounts Manager' : user.role}
+                                                </span>
+                                                {user.specialty && (
+                                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-wider inline-block mt-0.5">
+                                                        {user.specialty}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -332,13 +413,20 @@ const Users = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1.5">
+                                            <button
+                                                onClick={() => handleOpenEdit(user)}
+                                                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                                                title="Edit User (Role, Position, Password, Email)"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
                                             <button
                                                 onClick={() => handleToggleStatus(user)}
                                                 className={cn(
                                                     "p-2 rounded-lg transition-all",
                                                     user.status === 'Active'
-                                                        ? "text-red-500 hover:bg-red-50"
+                                                        ? "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
                                                         : "text-green-500 hover:bg-green-50"
                                                 )}
                                                 title={user.status === 'Active' ? 'Deactivate User' : 'Activate User'}
@@ -352,9 +440,16 @@ const Users = () => {
                                                     setShowPassword(false);
                                                 }}
                                                 className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
-                                                title="Reset Password"
+                                                title="Quick Password Reset"
                                             >
                                                 <Key size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteUser(user)}
+                                                className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                                                title="Delete User Permanently from DB"
+                                            >
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>
@@ -575,6 +670,127 @@ const Users = () => {
                             <button type="submit" className="btn-secondary w-full py-4 font-black uppercase tracking-wider">
                                 Reset Password
                             </button>
+                        </form>
+                    </Modal>
+                )}
+            </AnimatePresence>
+
+            {/* Edit User Modal */}
+            <AnimatePresence>
+                {showEditModal && editingUser && (
+                    <Modal
+                        isOpen={showEditModal}
+                        onClose={() => {
+                            setShowEditModal(false);
+                            setEditingUser(null);
+                        }}
+                        title={`Edit User: ${editingUser.name}`}
+                        maxWidth="max-w-lg"
+                        className="bg-white/95"
+                    >
+                        <form onSubmit={handleSaveEdit} className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    className="input-field font-bold text-slate-800"
+                                    value={editFormData.name}
+                                    onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    className="input-field font-medium text-slate-700"
+                                    value={editFormData.email}
+                                    onChange={(e) => setEditFormData(prev => ({ ...prev, email: e.target.value }))}
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Role / Access Level</label>
+                                    <select
+                                        className="input-field font-bold text-slate-800"
+                                        value={editFormData.role}
+                                        onChange={(e) => setEditFormData(prev => ({ ...prev, role: e.target.value }))}
+                                        required
+                                    >
+                                        <option value="Staff">Staff</option>
+                                        <option value="Manager">Manager</option>
+                                        <option value="accounts_manager">Accounts Manager</option>
+                                        <option value="Ads Manager">Ads Manager</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Student">Student</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Account Status</label>
+                                    <select
+                                        className="input-field font-bold text-slate-800"
+                                        value={editFormData.status}
+                                        onChange={(e) => setEditFormData(prev => ({ ...prev, status: e.target.value }))}
+                                        required
+                                    >
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Position / Specialty</label>
+                                <input
+                                    type="text"
+                                    className="input-field text-slate-700"
+                                    value={editFormData.specialty || ''}
+                                    onChange={(e) => setEditFormData(prev => ({ ...prev, specialty: e.target.value }))}
+                                    placeholder="e.g. Senior Instructor, Lead Mentor, Operations"
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1">Position title displayed alongside user role badge</p>
+                            </div>
+
+                            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-600 tracking-widest block">
+                                    Change Password (Optional)
+                                </label>
+                                <input
+                                    type="password"
+                                    className="input-field bg-white"
+                                    value={editFormData.password || ''}
+                                    onChange={(e) => setEditFormData(prev => ({ ...prev, password: e.target.value }))}
+                                    placeholder="Leave blank to keep existing password"
+                                    minLength={6}
+                                />
+                                <p className="text-[10px] text-slate-400">
+                                    Only enter a password if you want to reset or change it right now (min. 6 characters).
+                                </p>
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowEditModal(false);
+                                        setEditingUser(null);
+                                    }}
+                                    className="flex-1 py-3 px-4 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all text-xs uppercase tracking-wider"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSavingEdit}
+                                    className="flex-1 btn-secondary py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider disabled:opacity-50"
+                                >
+                                    {isSavingEdit ? 'Saving...' : 'Save Changes'}
+                                </button>
+                            </div>
                         </form>
                     </Modal>
                 )}

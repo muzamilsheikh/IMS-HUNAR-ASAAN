@@ -559,7 +559,7 @@ const createStudent = async (req, res) => {
 const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, secondaryEmail, secondaryPhone, additionalContacts, cnic, address, courseId, batchId, discount, totalInstallments, status, customId } = req.body;
+    const { name, email, phone, secondaryEmail, secondaryPhone, additionalContacts, cnic, address, courseId, batchId, discount, totalInstallments, status, customId, dropReason } = req.body;
 
     const student = await Student.findByPk(id);
     if (!student) {
@@ -569,7 +569,13 @@ const updateStudent = async (req, res) => {
     // Update student record - only allow updating these specific fields
     const updateData = {};
     if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email;
+    if (email !== undefined) {
+      updateData.email = email;
+      // Sync linked user email if exists
+      if (student.email && student.email !== email) {
+        await User.update({ email }, { where: { email: student.email } });
+      }
+    }
     if (phone !== undefined) updateData.phone = phone;
     if (secondaryEmail !== undefined) updateData.secondaryEmail = secondaryEmail;
     if (secondaryPhone !== undefined) updateData.secondaryPhone = secondaryPhone;
@@ -582,6 +588,7 @@ const updateStudent = async (req, res) => {
     if (totalInstallments !== undefined) updateData.totalInstallments = Number(totalInstallments);
     if (status !== undefined) updateData.status = status;
     if (customId !== undefined) updateData.customId = customId;
+    if (dropReason !== undefined) updateData.dropReason = dropReason;
 
     await student.update(updateData);
 
@@ -612,12 +619,11 @@ const deleteStudent = async (req, res) => {
     return res.status(403).json({ error: 'You do not have permission to delete students' });
   }
 
-  const { sequelize } = require('../models');
+  const { sequelize, Installment, Enrollment, Certificate, VideoAccessRequest, VideoViewLog, VideoSession, EnrollmentRequest } = require('../models');
   const transaction = await sequelize.transaction();
 
   try {
     const { id } = req.params;
-
 
     const student = await Student.findByPk(id, { transaction });
     if (!student) {
@@ -627,7 +633,6 @@ const deleteStudent = async (req, res) => {
 
     const studentEmail = student.email;
     const studentName = student.name;
-
 
     // Step 1: Delete associated user account (by email)
     if (studentEmail) {
@@ -640,19 +645,36 @@ const deleteStudent = async (req, res) => {
       }
     }
 
-    // Step 2: Delete all payments for this student (CASCADE is set in model, but explicit for clarity)
-    const payments = await Payment.findAll({ 
+    // Step 2: Delete all payments for this student
+    await Payment.destroy({ 
       where: { studentId: id },
       transaction 
     });
-    if (payments.length > 0) {
-      await Payment.destroy({ 
-        where: { studentId: id },
-        transaction 
-      });
+
+    // Step 3: Delete installments & enrollments safely
+    if (Installment) {
+      await Installment.destroy({ where: { student_id: id }, transaction });
+    }
+    if (Enrollment) {
+      await Enrollment.destroy({ where: { studentId: id }, transaction });
+    }
+    if (Certificate) {
+      await Certificate.destroy({ where: { studentId: id }, transaction });
+    }
+    if (VideoAccessRequest) {
+      await VideoAccessRequest.destroy({ where: { studentId: id }, transaction });
+    }
+    if (VideoViewLog) {
+      await VideoViewLog.destroy({ where: { studentId: id }, transaction });
+    }
+    if (VideoSession) {
+      await VideoSession.destroy({ where: { studentId: id }, transaction });
+    }
+    if (EnrollmentRequest) {
+      await EnrollmentRequest.destroy({ where: { studentId: id }, transaction });
     }
 
-    // Step 3: Delete the student record
+    // Step 4: Delete the student record
     await student.destroy({ transaction });
 
     // Commit transaction

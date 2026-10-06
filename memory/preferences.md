@@ -37,6 +37,18 @@
 - **WhatsApp Direct Chat Links**: Always format local Pakistani phone numbers (`03XXXXXXXXX`) to international format (`923XXXXXXXXX`) before embedding in `https://wa.me/` URLs.
 - **API Client Response Unwrapping**: `src/utils/api.js` automatically unwraps `response.data` in its response interceptor. Component code should safely access response objects without assuming extra `.data` wrapping.
 
+## Production & cPanel Hosting Commands (`ims.hunarasaan.com`)
+- **Node Virtualenv Activation**: Always activate the cPanel node environment before running any node/npm commands:
+  `source ~/nodevenv/ims.hunarasaan.com/24/bin/activate`
+- **Frontend Production Build**: `npm run build && cp -r dist/* ~/ims.hunarasaan.com/` (ensures static assets and SPA index.html are served from root).
+- **Process Management**: `killall` is disabled on shared hosting; use `pkill -u muzauvmo -f node` to cleanly terminate background daemons before restarting.
+- **Daemon Startup**: `nohup node index.js >> ~/ims.hunarasaan.com/backend.log 2>&1 &` inside `server/`.
+
+## Administrative CRUD & Safety Patterns
+- **Administrative Direct Delete**: Admin has full direct deletion capabilities across Users, Students, Batches, Courses, and Payments. Deleting payments automatically triggers balance/ledger recalculation on the student record.
+- **Self-Deletion Guard**: Admin accounts cannot delete their own active logged-in user to prevent total lockout.
+- **Scholar Drop-Off Reason**: When marking a student's status as "Dropped / Dormant", capture the optional `dropReason` text in DB and display in ledger badge.
+
 ## AI Assistant Behavior
 - Read memory files at the start of every session
 - Update memory files when new decisions, preferences, or people are introduced
@@ -44,4 +56,5 @@
 - Be concise; avoid over-explaining known context
 
 ---
-*Last updated: 2026-08-06*
+*Last updated: 2026-10-06*
+

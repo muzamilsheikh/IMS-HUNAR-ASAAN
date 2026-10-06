@@ -44,6 +44,7 @@ Detailed decision records (with reasoning and review dates) are in `decisions.cs
 | 2026-10-05 | Align production server PORT to 5001 matching .htaccess proxy & restart Node daemon | ✅ Implemented | 2026-11-04 |
 | 2026-10-06 | Guard student overdue status with unpaidBalance check & restore LiteSpeed .htaccess reverse proxy | ✅ Implemented | 2026-11-05 |
 | 2026-10-06 | Admin user edit/delete with position and password + Scholar drop-off reason + Safe full direct DB deletions | ✅ Implemented | 2026-11-05 |
+| 2026-10-06 | Sanitize additionalContacts JSON string null parsing to prevent TypeError on student edit | ✅ Implemented | 2026-11-05 |
 
 ## Patterns Established
 - Memory files live in `/memory/` at the project root

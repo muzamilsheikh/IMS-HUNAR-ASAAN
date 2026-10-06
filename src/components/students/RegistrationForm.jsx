@@ -45,15 +45,17 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
   useEffect(() => {
     if (editingStudent) {
       let initialContacts = [];
-      if (editingStudent.additionalContacts) {
+      if (editingStudent.additionalContacts && editingStudent.additionalContacts !== 'null') {
         try {
-          initialContacts = typeof editingStudent.additionalContacts === 'string'
+          const parsed = typeof editingStudent.additionalContacts === 'string'
             ? JSON.parse(editingStudent.additionalContacts)
             : editingStudent.additionalContacts;
+          initialContacts = Array.isArray(parsed) ? parsed : [];
         } catch (e) {
           initialContacts = [];
         }
       }
+      if (!Array.isArray(initialContacts)) initialContacts = [];
       if (editingStudent.secondaryPhone && !initialContacts.some(c => c.type === 'Secondary Mobile' || c.value === editingStudent.secondaryPhone)) {
         initialContacts.push({ id: 'sec_phone', type: 'Secondary Mobile', label: 'Secondary Mobile Number', value: editingStudent.secondaryPhone });
       }
@@ -61,6 +63,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
         initialContacts.push({ id: 'sec_email', type: 'Secondary Email', label: 'Secondary Email Address', value: editingStudent.secondaryEmail });
       }
       setAdditionalContacts(initialContacts);
+      setPaymentMethod(Number(editingStudent.totalInstallments) > 1 ? 'Installments' : 'Full Payment');
 
       setFormData({
         userId: editingStudent.id || '',
@@ -300,8 +303,9 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
     }
 
     // Send proper JSON data instead of FormData
-    const secEmail = additionalContacts.find(c => c.type === 'Secondary Email' && c.value?.trim())?.value || formData.secondaryEmail || null;
-    const secPhone = additionalContacts.find(c => c.type === 'Secondary Mobile' && c.value?.trim())?.value || formData.secondaryPhone || null;
+    const safeContacts = Array.isArray(additionalContacts) ? additionalContacts : [];
+    const secEmail = safeContacts.find(c => c.type === 'Secondary Email' && c.value?.trim())?.value || formData.secondaryEmail || null;
+    const secPhone = safeContacts.find(c => c.type === 'Secondary Mobile' && c.value?.trim())?.value || formData.secondaryPhone || null;
 
     const studentData = {
       userId: formData.userId || null,
@@ -311,7 +315,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
       secondaryEmail: secEmail,
       phone: formData.phone,
       secondaryPhone: secPhone,
-      additionalContacts: additionalContacts.length > 0 ? JSON.stringify(additionalContacts) : null,
+      additionalContacts: safeContacts.length > 0 ? JSON.stringify(safeContacts) : null,
       cnic: formData.cnic || null,
       address: formData.address || null,
       // Convert to integers (Sequelize expects integers, not strings)
@@ -562,7 +566,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
             </div>
 
             {/* Dynamic Additional Contacts / Extra Fields (Secondary Mobile, Secondary Email, etc.) */}
-            {additionalContacts.map((item, index) => (
+            {Array.isArray(additionalContacts) && additionalContacts.map((item, index) => (
               <div key={item.id || index} className="sm:col-span-2 bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3 transition-all">
                 <div className="flex flex-wrap justify-between items-center gap-2">
                   <div className="flex items-center gap-2">

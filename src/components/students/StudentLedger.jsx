@@ -691,11 +691,15 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                             )}
                             {(() => {
                                 let contacts = [];
-                                if (student?.additionalContacts) {
+                                if (student?.additionalContacts && student.additionalContacts !== 'null') {
                                     try {
-                                        contacts = typeof student.additionalContacts === 'string' ? JSON.parse(student.additionalContacts) : student.additionalContacts;
-                                    } catch(e) {}
+                                        const parsed = typeof student.additionalContacts === 'string' ? JSON.parse(student.additionalContacts) : student.additionalContacts;
+                                        contacts = Array.isArray(parsed) ? parsed : [];
+                                    } catch(e) {
+                                        contacts = [];
+                                    }
                                 }
+                                if (!Array.isArray(contacts)) contacts = [];
                                 return contacts.filter(c => c && c.value && c.type !== 'Secondary Mobile' && c.type !== 'Secondary Email').map((c, i) => (
                                     <React.Fragment key={i}>
                                         <div className="w-1.5 h-1.5 rounded-full bg-slate-200 hidden sm:block" />

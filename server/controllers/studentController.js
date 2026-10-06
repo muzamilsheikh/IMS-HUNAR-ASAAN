@@ -462,7 +462,7 @@ const createStudent = async (req, res) => {
         phone,
         secondaryEmail: secondaryEmail || null,
         secondaryPhone: secondaryPhone || null,
-        additionalContacts: additionalContacts ? (typeof additionalContacts === 'string' ? additionalContacts : JSON.stringify(additionalContacts)) : null,
+        additionalContacts: (additionalContacts && additionalContacts !== 'null') ? (typeof additionalContacts === 'string' ? additionalContacts : JSON.stringify(additionalContacts)) : null,
         cnic: cnic ? cnic.trim() : null,
         address: address ? address.trim() : null,
         courseId,
@@ -579,7 +579,13 @@ const updateStudent = async (req, res) => {
     if (phone !== undefined) updateData.phone = phone;
     if (secondaryEmail !== undefined) updateData.secondaryEmail = secondaryEmail;
     if (secondaryPhone !== undefined) updateData.secondaryPhone = secondaryPhone;
-    if (additionalContacts !== undefined) updateData.additionalContacts = typeof additionalContacts === 'string' ? additionalContacts : JSON.stringify(additionalContacts);
+    if (additionalContacts !== undefined) {
+      if (!additionalContacts || additionalContacts === 'null') {
+        updateData.additionalContacts = null;
+      } else {
+        updateData.additionalContacts = typeof additionalContacts === 'string' ? additionalContacts : JSON.stringify(additionalContacts);
+      }
+    }
     if (cnic !== undefined) updateData.cnic = cnic ? cnic.trim() : null;
     if (address !== undefined) updateData.address = address ? address.trim() : null;
     if (courseId !== undefined) updateData.courseId = courseId;

@@ -138,7 +138,7 @@ const Students = () => {
         const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
 
         const today = new Date().toISOString().split('T')[0];
-        const hasOverdue = s.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false;
+        const hasOverdue = unpaidBalance > 0 && (s.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false);
 
         // Filter by status
         let matchesStatus = true;
@@ -254,7 +254,7 @@ const Students = () => {
                         const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
 
                         const today = new Date().toISOString().split('T')[0];
-                        const hasOverdue = student.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false;
+                        const hasOverdue = unpaidBalance > 0 && (student.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false);
                         const hasPending = unpaidBalance > 0;
 
                         return (
@@ -397,7 +397,7 @@ const Students = () => {
                                         const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
 
                                         const today = new Date().toISOString().split('T')[0];
-                                        const hasOverdue = student.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false;
+                                        const hasOverdue = unpaidBalance > 0 && (student.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false);
                                         const hasPending = unpaidBalance > 0;
 
                                         const isEnrolled = student.status === 'Active' || student.status === 'Settled' || !student.status;

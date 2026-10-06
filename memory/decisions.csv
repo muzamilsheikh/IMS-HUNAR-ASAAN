@@ -29,7 +29,12 @@ date,decision,reasoning,expected_outcome,review_date,status
 2026-08-20,Triplicate fee challan PDF generator and template integration for email payments,Email receipts previously sent single column receipts instead of official triplicate A4 landscape challans,Automated payment and due reminder emails attach 3-copy triplicate PDF challans with complete bank deposit details,2026-09-19,active
 2026-08-20,Ensure uploads subdirectories and static express routing on server boot,Uploaded assets were returning 404 or missing directories on deployment,All upload directories (branding invoices students temp etc) auto-provision and serve under /uploads,2026-09-19,active
 2026-08-20,Configure Socket.IO with window.location.origin and reverse proxy SSL support,WebSocket connections threw ERR_CERT_AUTHORITY_INVALID on domain hosting,Socket connects seamlessly over WSS/HTTPS with websocket and polling transports,2026-09-19,active
-
+2026-09-23,Store logo and signature as base64 LONGTEXT in DB,uploads directory is gitignored and gets wiped on hosting deployment,Logo and signature persist permanently in DB across git pulls and redeploys,2026-10-23,active
+2026-09-23,Set socket.io transports to polling-first on production,Avoid continuous failing wss:// WebSocket connections on cPanel shared hosting,Clean browser console with zero WebSocket connection errors,2026-10-23,active
+2026-09-23,Notification Templates Manager and Multi-Channel Student Reminders,Institutes need custom templates and manual dispatch via Email and WhatsApp,Full template manager under Settings and direct reminder modal on Student Ledger,2026-10-23,active
+2026-09-23,Codebase production cleanup and React lazy code splitting with Vite manualChunks,Streamline repository and optimize bundle size for high performance production build,Clean repo with zero AI residue and split vendor chunks with instant page loading,2026-10-23,active
+2026-10-05,Align server PORT to 5001 and restart backend daemon on production hosting,.htaccess reverse proxy was hardcoded to forward API calls to port 5001 while server/.env had PORT=5000 causing 503 Service Unavailable errors after malware resource throttling,Production backend listens on port 5001 restores API responses and resolves 503 errors on ims.hunarasaan.com,2026-11-04,active
+2026-10-06,Guard student overdue status with unpaidBalance check and configure cPanel SPA reverse proxy in .htaccess,Fully paid students were displaying OVERDUE due to stale installment rows and .htaccess proxy was lost during deployment,Students with zero unpaid balance correctly display Paid status and .htaccess proxies API to port 5001 with SPA fallback,2026-11-05,active
 
 
 

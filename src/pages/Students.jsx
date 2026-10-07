@@ -114,7 +114,7 @@ const Students = () => {
         status: ''
     });
 
-    const filteredStudents = students.filter(s => {
+    const filteredStudents = (students || []).filter(s => {
         if (!s) return false;
         const searchLower = (filters.search || '').toLowerCase().trim();
         const matchesSearch = !searchLower || 

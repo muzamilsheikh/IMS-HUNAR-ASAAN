@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import {
@@ -114,50 +114,54 @@ const Students = () => {
         status: ''
     });
 
-    const filteredStudents = (students || []).filter(s => {
-        if (!s) return false;
+    const filteredStudents = useMemo(() => {
+        const safeStudents = Array.isArray(students) ? students : [];
         const searchLower = (filters.search || '').toLowerCase().trim();
-        const matchesSearch = !searchLower || 
-            (s.name || '').toLowerCase().includes(searchLower) ||
-            (s.email || '').toLowerCase().includes(searchLower) ||
-            (s.secondaryEmail || '').toLowerCase().includes(searchLower) ||
-            (s.customId || '').toLowerCase().includes(searchLower) ||
-            (s.phone || '').includes(searchLower) ||
-            (s.secondaryPhone || '').includes(searchLower) ||
-            (s.additionalContacts || '').toLowerCase().includes(searchLower);
-
-        const sCourseId = s.courseId?._id || s.courseId;
-        const sBatchId = s.batchId?._id || s.batchId;
-
-        const matchesCourse = filters.course ? String(sCourseId) === String(filters.course) : true;
-        const matchesBatch = filters.batch ? String(sBatchId) === String(filters.batch) : true;
-
-        const studentTotalFee = Number(s.totalFee) || 0;
-        const studentDiscount = Number(s.discount) || 0;
-        const studentPaidAmount = Number(s.paidAmount) || 0;
-        const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
-
         const today = new Date().toISOString().split('T')[0];
-        const hasOverdue = unpaidBalance > 0 && (s.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false);
 
-        // Filter by status
-        let matchesStatus = true;
-        if (filters.status) {
-            if (filters.status === 'Active') matchesStatus = s.status === 'Active';
-            else if (filters.status === 'Settled') matchesStatus = s.status === 'Settled';
-            else if (filters.status === 'Dropped') matchesStatus = s.status === 'Dropped';
-            else if (filters.status === 'Passout') matchesStatus = s.status === 'Passout';
-            else if (filters.status === 'Paid') matchesStatus = unpaidBalance <= 0;
-            else if (filters.status === 'Pending') {
-                matchesStatus = unpaidBalance > 0 && !hasOverdue;
-            }
-            else if (filters.status === 'Overdue') {
-                matchesStatus = hasOverdue;
-            }
-        }
+        return safeStudents.filter(s => {
+            if (!s) return false;
+            const matchesSearch = !searchLower || 
+                (s.name || '').toLowerCase().includes(searchLower) ||
+                (s.email || '').toLowerCase().includes(searchLower) ||
+                (s.secondaryEmail || '').toLowerCase().includes(searchLower) ||
+                (s.customId || '').toLowerCase().includes(searchLower) ||
+                (s.phone || '').includes(searchLower) ||
+                (s.secondaryPhone || '').includes(searchLower) ||
+                (s.additionalContacts || '').toLowerCase().includes(searchLower);
 
-        return matchesSearch && matchesCourse && matchesBatch && matchesStatus;
-    });
+            const sCourseId = s.courseId?._id || s.courseId;
+            const sBatchId = s.batchId?._id || s.batchId;
+
+            const matchesCourse = filters.course ? String(sCourseId) === String(filters.course) : true;
+            const matchesBatch = filters.batch ? String(sBatchId) === String(filters.batch) : true;
+
+            const studentTotalFee = Number(s.totalFee) || 0;
+            const studentDiscount = Number(s.discount) || 0;
+            const studentPaidAmount = Number(s.paidAmount) || 0;
+            const unpaidBalance = Math.max(0, studentTotalFee - studentDiscount - studentPaidAmount);
+
+            const hasOverdue = unpaidBalance > 0 && (s.Installments?.some(i => i.status === 'OVERDUE' || (i.status?.toUpperCase() === 'PENDING' && i.due_date < today)) || false);
+
+            // Filter by status
+            let matchesStatus = true;
+            if (filters.status) {
+                if (filters.status === 'Active') matchesStatus = s.status === 'Active';
+                else if (filters.status === 'Settled') matchesStatus = s.status === 'Settled';
+                else if (filters.status === 'Dropped') matchesStatus = s.status === 'Dropped';
+                else if (filters.status === 'Passout') matchesStatus = s.status === 'Passout';
+                else if (filters.status === 'Paid') matchesStatus = unpaidBalance <= 0;
+                else if (filters.status === 'Pending') {
+                    matchesStatus = unpaidBalance > 0 && !hasOverdue;
+                }
+                else if (filters.status === 'Overdue') {
+                    matchesStatus = hasOverdue;
+                }
+            }
+
+            return matchesSearch && matchesCourse && matchesBatch && matchesStatus;
+        });
+    }, [students, filters]);
 
     if (loading && (students || []).length === 0) return <div className="h-[80vh] flex items-center justify-center font-black text-slate-300 animate-pulse uppercase tracking-[0.5em]">Synchronizing Registry...</div>;
 
@@ -207,11 +211,11 @@ const Students = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-8 border-t border-slate-50">
                     <select className="input-field py-4 bg-slate-50 border-transparent font-bold text-xs uppercase tracking-widest" value={filters.course} onChange={e => setFilters({ ...filters, course: e.target.value })}>
                         <option value="">All Academic Paths</option>
-                        {courses.map(c => <option key={c._id || c.id} value={c._id || c.id}>{c.name}</option>)}
+                        {(courses || []).map(c => <option key={c._id || c.id} value={c._id || c.id}>{c.name}</option>)}
                     </select>
                     <select className="input-field py-4 bg-slate-50 border-transparent font-bold text-xs uppercase tracking-widest" value={filters.batch} onChange={e => setFilters({ ...filters, batch: e.target.value })}>
                         <option value="">All Active Batches</option>
-                        {batches.map(b => <option key={b._id || b.id} value={b._id || b.id}>{b.name}</option>)}
+                        {(batches || []).map(b => <option key={b._id || b.id} value={b._id || b.id}>{b.name}</option>)}
                     </select>
                     <select className="input-field py-4 bg-slate-50 border-transparent font-bold text-xs uppercase tracking-widest" value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })}>
                         <option value="">Filter by Status</option>
@@ -238,7 +242,7 @@ const Students = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     {filteredStudents.map((student) => {
                         const studentCourseId = student.courseId?._id || student.courseId;
-                        const course = courses.find(c => (c._id === studentCourseId || c.id === studentCourseId));
+                        const course = (courses || []).find(c => (c._id === studentCourseId || c.id === studentCourseId));
                         const studentTotalFee = Number(student.totalFee) || 0;
                         const studentDiscount = Number(student.discount) || 0;
                         const studentPaidAmount = Number(student.paidAmount) || 0;
@@ -390,7 +394,7 @@ const Students = () => {
                                 ) : (
                                     filteredStudents.map((student) => {
                                         const studentCourseId = student.courseId?._id || student.courseId;
-                                        const course = courses.find(c => (c._id === studentCourseId || c.id === studentCourseId));
+                                        const course = (courses || []).find(c => (c._id === studentCourseId || c.id === studentCourseId));
                                         const studentTotalFee = Number(student.totalFee) || 0;
                                         const studentDiscount = Number(student.discount) || 0;
                                         const studentPaidAmount = Number(student.paidAmount) || 0;

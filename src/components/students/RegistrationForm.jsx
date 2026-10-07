@@ -93,7 +93,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
       setFormData(prev => ({ ...prev, totalInstallments: 1 }));
       return;
     }
-    const selectedCourse = courses.find(c => String(c._id || c.id) === String(formData.courseId));
+    const selectedCourse = (courses || []).find(c => String(c._id || c.id) === String(formData.courseId));
     if (!selectedCourse || !selectedCourse.offerInstallments) {
       setPaymentMethod('Full Payment');
       setFormData(prev => ({ ...prev, totalInstallments: 1 }));
@@ -198,7 +198,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
     }
 
     // Find the selected course and ensure fee is properly extracted
-    const course = courses.find(c => {
+    const course = (courses || []).find(c => {
       const cId = c._id || c.id;
       const fFormId = String(formData.courseId);
       return String(cId) === fFormId;
@@ -213,8 +213,8 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
 
       const year = new Date().getFullYear();
       const coursePrefix = course.code || 'ST';
-      const count = students.filter(s => {
-        const sid = String(s.customId || '');
+      const count = (students || []).filter(s => {
+        const sid = String(s?.customId || '');
         return sid.startsWith(coursePrefix) && sid.includes(String(year));
       }).length + 1;
       const serial = String(count).padStart(3, '0');
@@ -366,7 +366,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
     }
   };
 
-  const selectedCourse = courses.find(c => String(c._id || c.id) === String(formData.courseId));
+  const selectedCourse = (courses || []).find(c => String(c._id || c.id) === String(formData.courseId));
   const hasInstallmentOption = selectedCourse && selectedCourse.offerInstallments;
 
   return (
@@ -701,7 +701,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
                 }}
               >
                 <option value="">Select Course Architecture</option>
-                {courses.map(c => (
+                {(courses || []).map(c => (
                   <option key={c.id || c._id} value={c.id || c._id}>
                     {c.name} {c.fee ? `(Rs. ${c.fee.toLocaleString()})` : ''}
                   </option>
@@ -724,9 +724,9 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
                 disabled={!formData.courseId}
               >
                 <option value="">Select Target Batch</option>
-                {batches.filter(b => {
-                  const bCourseId = b.courseId?.id || b.courseId?._id || b.courseId;
-                  return bCourseId == formData.courseId;
+                {(batches || []).filter(b => {
+                  const bCourseId = b?.courseId?.id || b?.courseId?._id || b?.courseId;
+                  return String(bCourseId) === String(formData.courseId);
                 }).map(b => (
                   <option key={b.id || b._id} value={b.id || b._id}>{b.name}</option>
                 ))}
@@ -917,7 +917,7 @@ const RegistrationForm = ({ onSuccess, editingStudent }) => {  // ✅ Accept edi
             <button 
               type="button"
               onClick={async (e) => {
-                const selectedCourseObj = courses.find(c => String(c.id || c._id) === String(formData.courseId));
+                const selectedCourseObj = (courses || []).find(c => String(c.id || c._id) === String(formData.courseId));
                 const challanData = {
                   studentName: formData.name || 'Student',
                   studentId: formData.customId || 'STU-PROSPECT',

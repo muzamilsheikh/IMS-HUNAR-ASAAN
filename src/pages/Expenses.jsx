@@ -59,8 +59,8 @@ const Expenses = () => {
     const [selectedBatchModal, setSelectedBatchModal] = useState(null);
 
     // Calculate Batch-wise Financial Breakdown
-    const batchFinancials = batches.map(b => {
-        const batchStudents = students.filter(s => {
+    const batchFinancials = (batches || []).map(b => {
+        const batchStudents = (students || []).filter(s => {
             const sBatchId = s.batchId?.id || s.batchId?._id || s.batchId;
             return String(sBatchId) === String(b.id || b._id);
         });
@@ -74,7 +74,7 @@ const Expenses = () => {
         const cIdStr = String(b.courseId?.id || b.courseId?._id || b.courseId || '');
 
         // Calculate specific expenses logged for this batch OR associated course
-        const batchExpenseList = expenses.filter(e => {
+        const batchExpenseList = (expenses || []).filter(e => {
             const matchesBatch = e.batchId && Number(e.batchId) === batchIdNum;
             const matchesCourse = e.courseId && !e.batchId && Number(e.courseId) === courseIdNum;
             return matchesBatch || matchesCourse;
@@ -83,7 +83,7 @@ const Expenses = () => {
         const batchExpenses = batchExpenseList.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
         // Find all active collaborations for this batch or course
-        const batchCollabs = collaborations.filter(c => 
+        const batchCollabs = (collaborations || []).filter(c => 
             c.status === 'Active' && 
             (String(c.batchId) === bIdStr || (!c.batchId && String(c.courseId) === cIdStr))
         );
@@ -104,7 +104,7 @@ const Expenses = () => {
         return {
             batchId: b.id || b._id,
             batchName: b.name,
-            courseName: b.Course?.name || courses.find(c => String(c.id || c._id) === cIdStr)?.name || 'Assigned Course',
+            courseName: b.Course?.name || (courses || []).find(c => String(c.id || c._id) === cIdStr)?.name || 'Assigned Course',
             studentCount: batchStudents.length,
             grossIncome,
             collectedRevenue,
@@ -116,7 +116,7 @@ const Expenses = () => {
         };
     });
 
-    const filteredExpenses = expenses.filter(e =>
+    const filteredExpenses = (expenses || []).filter(e =>
         e.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.Batch?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -23,7 +23,7 @@ const Batches = () => {
         endTime: ''
     });
 
-    const filteredBatches = batches.filter(b =>
+    const filteredBatches = (batches || []).filter(b =>
         b.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -144,9 +144,9 @@ const Batches = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredBatches.map((batch) => {
                     const batchCourseId = batch.courseId?.id || batch.courseId?._id || batch.courseId;
-                    const course = courses.find(c => (c.id === batchCourseId || c._id === batchCourseId));
+                    const course = (courses || []).find(c => (c.id === batchCourseId || c._id === batchCourseId));
                     const batchId = batch.id || batch._id;
-                    const batchStudents = students.filter(s => {
+                    const batchStudents = (students || []).filter(s => {
                         const sBatchId = s.batchId?.id || s.batchId?._id || s.batchId;
                         return sBatchId === batchId;
                     });

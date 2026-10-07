@@ -935,7 +935,7 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                                                         Payment Pipeline
                                                     </h5>
                                                     <span className="text-[8px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 uppercase tracking-widest">
-                                                        {enr.InstallmentSchedules.filter(s => s.status === 'Paid').length} / {enr.InstallmentSchedules.length}
+                                                        {(enr.InstallmentSchedules || []).filter(s => s.status === 'Paid').length} / {(enr.InstallmentSchedules || []).length}
                                                     </span>
                                                 </div>
                                                 
@@ -944,12 +944,12 @@ const StudentLedger = ({ studentId, onUpdate }) => {
                                                     <div className="absolute left-1.5 top-2 bottom-2 w-0.5 bg-slate-100 rounded-full overflow-hidden">
                                                         <motion.div 
                                                             initial={{ height: 0 }}
-                                                            animate={{ height: `${(enr.InstallmentSchedules.filter(s => s.status === 'Paid').length / enr.InstallmentSchedules.length) * 100}%` }}
+                                                            animate={{ height: `${(((enr.InstallmentSchedules || []).filter(s => s.status === 'Paid').length / ((enr.InstallmentSchedules || []).length || 1)) * 100)}%` }}
                                                             className="w-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
                                                         />
                                                     </div>
                                                     
-                                                    {enr.InstallmentSchedules.map((sch, sidx) => (
+                                                    {(enr.InstallmentSchedules || []).map((sch, sidx) => (
                                                         <motion.div 
                                                             key={sch.id}
                                                             initial={{ opacity: 0, x: -10 }}

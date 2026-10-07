@@ -309,14 +309,14 @@ const Dashboard = () => {
                 />
                 <StatCard 
                     title="New Leads" 
-                    value={students.filter(s => s.status === 'Lead' || s.status === 'Pending').length} 
+                    value={(students || []).filter(s => s.status === 'Lead' || s.status === 'Pending').length} 
                     icon={UserPlus} 
                     color="primary" 
                     subtext="Prospect Enquiries" 
                 />
                 <StatCard 
                     title="Total Enrollments" 
-                    value={students.filter(s => s.status === 'Active' || s.status === 'Settled' || !s.status).length} 
+                    value={(students || []).filter(s => s.status === 'Active' || s.status === 'Settled' || !s.status).length} 
                     icon={Users} 
                     color="secondary" 
                     subtext="Registered Students" 

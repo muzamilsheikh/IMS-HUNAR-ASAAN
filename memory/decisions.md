@@ -45,6 +45,7 @@ Detailed decision records (with reasoning and review dates) are in `decisions.cs
 | 2026-10-06 | Guard student overdue status with unpaidBalance check & restore LiteSpeed .htaccess reverse proxy | ✅ Implemented | 2026-11-05 |
 | 2026-10-06 | Admin user edit/delete with position and password + Scholar drop-off reason + Safe full direct DB deletions | ✅ Implemented | 2026-11-05 |
 | 2026-10-06 | Sanitize additionalContacts JSON string null parsing to prevent TypeError on student edit | ✅ Implemented | 2026-11-05 |
+| 2026-10-07 | Harden all array references with Array.isArray & memoize student list & eliminate stale cache with LiteSpeed no-cache headers | ✅ Implemented | 2026-11-06 |
 
 ## Patterns Established
 - Memory files live in `/memory/` at the project root

@@ -213,7 +213,7 @@ const Users = () => {
     };
 
     // Filter users
-    const filteredUsers = users.filter(user => {
+    const filteredUsers = (users || []).filter(user => {
         const matchesSearch = user.name.toLowerCase().includes(filters.search.toLowerCase()) ||
             user.email.toLowerCase().includes(filters.search.toLowerCase());
 
@@ -284,7 +284,7 @@ const Users = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Users</p>
-                            <p className="text-3xl font-black text-slate-800">{users.length}</p>
+                            <p className="text-3xl font-black text-slate-800">{(users || []).length}</p>
                         </div>
                         <UsersIcon size={24} className="text-secondary" />
                     </div>
@@ -293,7 +293,7 @@ const Users = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Staff Members</p>
-                            <p className="text-3xl font-black text-slate-800">{users.filter(u => u.role !== 'Student').length}</p>
+                            <p className="text-3xl font-black text-slate-800">{(users || []).filter(u => u.role !== 'Student').length}</p>
                         </div>
                         <Shield size={24} className="text-blue-500" />
                     </div>
@@ -302,7 +302,7 @@ const Users = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Students</p>
-                            <p className="text-3xl font-black text-slate-800">{users.filter(u => u.role === 'Student').length}</p>
+                            <p className="text-3xl font-black text-slate-800">{(users || []).filter(u => u.role === 'Student').length}</p>
                         </div>
                         <UserPlus size={24} className="text-purple-500" />
                     </div>
@@ -311,7 +311,7 @@ const Users = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Users</p>
-                            <p className="text-3xl font-black text-slate-800">{users.filter(u => u.status === 'Active').length}</p>
+                            <p className="text-3xl font-black text-slate-800">{(users || []).filter(u => u.status === 'Active').length}</p>
                         </div>
                         <CheckCircle2 size={24} className="text-green-500" />
                     </div>

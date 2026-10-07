@@ -93,22 +93,22 @@ export const AppProvider = ({ children }) => {
             // Only show errors if user is logged in (has token)
             const shouldShowErrors = !!token;
 
-            if (studentsRes.status === 'fulfilled') setStudents(studentsRes.value || []);
+            if (studentsRes.status === 'fulfilled') setStudents(Array.isArray(studentsRes.value) ? studentsRes.value : []);
             else if (shouldShowErrors) showNotification(studentsRes.reason?.message || 'Failed to load students', 'error');
 
-            if (coursesRes.status === 'fulfilled') setCourses(coursesRes.value || []);
+            if (coursesRes.status === 'fulfilled') setCourses(Array.isArray(coursesRes.value) ? coursesRes.value : []);
             else if (shouldShowErrors) showNotification(coursesRes.reason?.message || 'Failed to load courses', 'error');
 
-            if (batchesRes.status === 'fulfilled') setBatches(batchesRes.value || []);
+            if (batchesRes.status === 'fulfilled') setBatches(Array.isArray(batchesRes.value) ? batchesRes.value : []);
             else if (shouldShowErrors) showNotification(batchesRes.reason?.message || 'Failed to load batches', 'error');
 
-            if (expensesRes.status === 'fulfilled') setExpenses(expensesRes.value || []);
+            if (expensesRes.status === 'fulfilled') setExpenses(Array.isArray(expensesRes.value) ? expensesRes.value : []);
             else if (shouldShowErrors && canViewExpenses()) showNotification(expensesRes.reason?.message || 'Failed to load expenses', 'error');
 
-            if (settingsRes.status === 'fulfilled') setSettings(settingsRes.value || {});
+            if (settingsRes.status === 'fulfilled') setSettings(settingsRes.value && typeof settingsRes.value === 'object' ? settingsRes.value : {});
             else if (shouldShowErrors) showNotification(settingsRes.reason?.message || 'Failed to load settings', 'error');
 
-            if (rolesRes.status === 'fulfilled') setRoles(rolesRes.value || []);
+            if (rolesRes.status === 'fulfilled') setRoles(Array.isArray(rolesRes.value) ? rolesRes.value : []);
             // roles failure is non-fatal, no error toast
         } catch (error) {
             console.error('Core Sync Error:', error.message);
@@ -484,14 +484,17 @@ export const AppProvider = ({ children }) => {
     const getStats = () => {
         const now = new Date();
         const currentMonth = now.toISOString().slice(0, 7);
-        const totalStudents = students.length;
-        const totalRevenue = students.reduce((acc, s) => acc + (s.paidAmount || 0), 0);
-        const pendingFees = students.reduce((acc, s) => {
-            return acc + (s.payments?.filter(p => p.status === 'Pending').reduce((sum, p) => sum + p.amount, 0) || 0);
+        const safeStudents = Array.isArray(students) ? students : [];
+        const safeExpenses = Array.isArray(expenses) ? expenses : [];
+        const totalStudents = safeStudents.length;
+        const totalRevenue = safeStudents.reduce((acc, s) => acc + (Number(s?.paidAmount) || 0), 0);
+        const pendingFees = safeStudents.reduce((acc, s) => {
+            const pList = Array.isArray(s?.payments) ? s.payments : [];
+            return acc + (pList.filter(p => p.status === 'Pending').reduce((sum, p) => sum + (Number(p.amount) || 0), 0) || 0);
         }, 0);
-        const monthlyExpenses = expenses
-            .filter(e => e.date && e.date.startsWith(currentMonth))
-            .reduce((acc, e) => acc + e.amount, 0);
+        const monthlyExpenses = safeExpenses
+            .filter(e => e?.date && String(e.date).startsWith(currentMonth))
+            .reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
 
         return { totalStudents, totalRevenue, pendingFees, monthlyExpenses };
     };
@@ -599,12 +602,12 @@ export const AppProvider = ({ children }) => {
         login,
         logout,
         registerUser,
-        courses,
-        batches,
-        students,
-        expenses,
-        settings,
-        roles,
+        courses: Array.isArray(courses) ? courses : [],
+        batches: Array.isArray(batches) ? batches : [],
+        students: Array.isArray(students) ? students : [],
+        expenses: Array.isArray(expenses) ? expenses : [],
+        settings: settings || {},
+        roles: Array.isArray(roles) ? roles : [],
         loading,
         addStudent,
         updateStudent,

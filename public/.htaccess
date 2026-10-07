@@ -1,0 +1,44 @@
+# ----------------------------------------------------------------------
+# 1. DISABLE CACHING FOR HTML (Always fetch fresh index.html shell)
+# ----------------------------------------------------------------------
+<FilesMatch "\.(html|htm)$">
+    FileETag None
+    <IfModule mod_headers.c>
+        Header unset ETag
+        Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+        # LiteSpeed Web Server specific cache suppression
+        Header set X-LiteSpeed-Cache-Control "no-cache, no-store"
+    </IfModule>
+</FilesMatch>
+
+# ----------------------------------------------------------------------
+# 2. AGGRESSIVE CACHING FOR IMMUTABLE HASHED ASSETS (Super fast loading)
+# ----------------------------------------------------------------------
+<FilesMatch "\.(js|css|woff2|woff|ttf|png|jpg|jpeg|svg|ico)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "max-age=31536000, immutable"
+    </IfModule>
+</FilesMatch>
+
+# ----------------------------------------------------------------------
+# 3. PROXY & SPA REWRITE RULES (Proxy to Node.js on port 5001)
+# ----------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Proxy API, uploads, and socket.io to Node.js backend on port 5001
+  RewriteRule ^api(/.*)?$ http://127.0.0.1:5001/api$1 [P,L]
+  RewriteRule ^uploads(/.*)?$ http://127.0.0.1:5001/uploads$1 [P,L]
+  RewriteRule ^socket.io(/.*)?$ http://127.0.0.1:5001/socket.io$1 [P,L]
+
+  # Serve existing static files directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # SPA Fallback to index.html
+  RewriteRule ^ index.html [L]
+</IfModule>

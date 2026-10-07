@@ -159,7 +159,7 @@ const Students = () => {
         return matchesSearch && matchesCourse && matchesBatch && matchesStatus;
     });
 
-    if (loading && students.length === 0) return <div className="h-[80vh] flex items-center justify-center font-black text-slate-300 animate-pulse uppercase tracking-[0.5em]">Synchronizing Registry...</div>;
+    if (loading && (students || []).length === 0) return <div className="h-[80vh] flex items-center justify-center font-black text-slate-300 animate-pulse uppercase tracking-[0.5em]">Synchronizing Registry...</div>;
 
     return (
         <div className="space-y-12 animate-in fade-in duration-500 pb-20 pt-8">
